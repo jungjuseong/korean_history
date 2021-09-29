@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
+import javax.print.DocFlavor;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,36 +27,30 @@ public class DocParser {
         {
             var reader = new BufferedReader(new InputStreamReader(inputStream));
             int cnt = 0;
+
+            var sql = new StringBuilder("");
+            var questions = new StringBuilder("");
+
             while (reader.ready()) {
                 String line = reader.readLine();
-                String questions = "";
+
                 if (line.startsWith("####")) {
                     cnt++;
-                    System.out.printf("%d:%s\n", cnt, line.substring(5));
+                    //System.out.printf("%d:%s\n", cnt, line.substring(5));
+                    sql.append("INSERT INTO real_estate_exam(round, question_number, sample, choices)\n");
+                    sql.append("VALUES(");
 
                     Matcher matcher = idPattern.matcher(line.substring(5));
 
-                    boolean found = false;
-                    StringBuilder message = new StringBuilder();
-                    String id = "";
                     String round = "";
-                    String number = "";
+                    String question_number = "";
                     while(matcher.find()) {
                         round = matcher.group(1);
-                        number = matcher.group(2);
-
-                        message.append("텍스트 \"")
-                                .append(matcher.group(1))      // 찾은 문자열 그룹 입니다.
-                                .append("\"를 찾았습니다.\n")
-                                .append("인덱스 ")
-                                .append(matcher.start())      // 찾은 문자열의 시작 위치 입니다.
-                                .append("에서 시작하고, ")
-                                .append(matcher.end())        // 찾은 문자열의 끝 위치 입니다.
-                                .append("에서 끝납니다.\n");
-                        found = true;
-                        System.out.printf("%s:%s\n", round, number);
+                        question_number = matcher.group(2);
+                        sql.append(String.format("'%s',",round))
+                                .append(String.format("'%s',",question_number));
+                        //System.out.printf("%s:%s\n", round, question_number);
                     }
-                    questions = "";
 
                 } else if (line.startsWith("====")) {
                     var samples = "";
@@ -65,15 +60,25 @@ public class DocParser {
                             break;
                         }
                         else {
-                            samples += sample + "\n";
+                            samples += sample + "\\n";
                         }
                     }
-                    System.out.printf("예시%d:%s\n", cnt, samples);
+                    //System.out.printf("예시%d:%s\n", cnt, samples);
+                    sql.append(String.format("'%s',", samples));
                 }
                 else if (line.startsWith("①") || line.startsWith("②") ||
                         line.startsWith("③") || line.startsWith("④") || line.startsWith("⑤")) {
-                    questions += line + "\n";
-                    System.out.printf("%d:문항 %s\n", cnt, line);
+                    questions.append(line + "\\n");
+                    //System.out.printf("%d:문항 %s\n", cnt, line);
+
+                    if (line.startsWith("⑤")) {
+                        sql.append(String.format("'%s'", questions));
+                        sql.append(")\n");
+                        System.out.println(sql);
+
+                        questions = new StringBuilder("");
+                        sql = new StringBuilder("");
+                    }
                 }
             }
         }

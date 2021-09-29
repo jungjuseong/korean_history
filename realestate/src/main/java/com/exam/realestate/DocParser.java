@@ -35,8 +35,9 @@ public class DocParser {
                 String line = reader.readLine();
 
                 if (line.startsWith("####")) {
+
+                    line.replaceAll("'","------------------------");
                     cnt++;
-                    //System.out.printf("%d:%s\n", cnt, line.substring(5));
                     sql.append("INSERT INTO real_estate_exam(round, question_number, sample, choices)\n");
                     sql.append("VALUES(");
 
@@ -49,7 +50,6 @@ public class DocParser {
                         question_number = matcher.group(2);
                         sql.append(String.format("'%s',",round))
                                 .append(String.format("'%s',",question_number));
-                        //System.out.printf("%s:%s\n", round, question_number);
                     }
 
                 } else if (line.startsWith("====")) {
@@ -63,17 +63,18 @@ public class DocParser {
                             samples += sample + "\\n";
                         }
                     }
-                    //System.out.printf("예시%d:%s\n", cnt, samples);
+                    samples.replaceAll("''","------------------------");
                     sql.append(String.format("'%s',", samples));
                 }
                 else if (line.startsWith("①") || line.startsWith("②") ||
                         line.startsWith("③") || line.startsWith("④") || line.startsWith("⑤")) {
+
+                    line.replaceAll("'","------------------------");
                     questions.append(line + "\\n");
-                    //System.out.printf("%d:문항 %s\n", cnt, line);
 
                     if (line.startsWith("⑤")) {
                         sql.append(String.format("'%s'", questions));
-                        sql.append(")\n");
+                        sql.append(");\n");
                         System.out.println(sql);
 
                         questions = new StringBuilder("");
@@ -85,6 +86,19 @@ public class DocParser {
         catch (IOException e)
         {
             System.out.println(e);
+        }
+    }
+
+    public static void  removeQuotation(String a) {
+        final Pattern quotationPattern = Pattern.compile("(['])");
+
+        Matcher matcher = quotationPattern.matcher(a);
+
+        String q = "";
+        while(matcher.find()) {
+            q = matcher.group();
+
+            System.out.printf("---> %s\n", a);
         }
     }
 }

@@ -17,68 +17,90 @@ public class DocParser {
 
     final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-    public static void firstStage(ResourceLoader resourceLoader) throws Exception
+    private static String getId(String line) {
+        final Pattern idPattern = Pattern.compile("\\[([0-9]+)-([0-9]+)\\]");
+
+        Matcher matcher = idPattern.matcher(line.substring(5));
+
+        String round = "";
+        String question_number = "";
+        while(matcher.find()) {
+            round = matcher.group(1);
+            question_number = matcher.group(2);
+        }
+
+        return round + "-" + question_number;
+    }
+
+    private static int getIdLength(String line) {
+        final Pattern idPattern = Pattern.compile("\\[([0-9]+)-([0-9]+)\\]");
+
+        Matcher matcher = idPattern.matcher(line.substring(5));
+
+        int len = 0;
+        while(matcher.find()) {
+            len = matcher.group().length();
+        }
+
+        return len;
+    }
+
+    private final String Course = "부동산학개론";
+
+    public static void firstStage(ResourceLoader resourceLoader, String course, String doc) throws Exception
     {
-        Resource resource = resourceLoader.getResource("classpath:real_estate_exam.adoc");
+        Resource resource = resourceLoader.getResource("classpath:" + doc);
         InputStream inputStream = resource.getInputStream();
 
-        final Pattern idPattern = Pattern.compile("\\[([0-9]+)-([0-9]+)\\]");
         try
         {
             var reader = new BufferedReader(new InputStreamReader(inputStream));
-            int cnt = 0;
-
             var sql = new StringBuilder("");
-            var questions = new StringBuilder("");
-
+            var choices = new StringBuilder("");
+            var hasExample = false;
             while (reader.ready()) {
                 String line = reader.readLine();
-
                 if (line.startsWith("####")) {
+                    hasExample = false;
+                    choices = new StringBuilder("");
+                    sql = new StringBuilder("");
 
-                    line.replaceAll("'","------------------------");
-                    cnt++;
-                    sql.append("INSERT INTO real_estate_exam(round, question_number, sample, choices)\n");
+                    //line.replaceAll("'","------------------------");
+                    sql.append("INSERT INTO real_estate_brokerage_exam(course, question_id, question, example, choices)\n");
                     sql.append("VALUES(");
-
-                    Matcher matcher = idPattern.matcher(line.substring(5));
-
-                    String round = "";
-                    String question_number = "";
-                    while(matcher.find()) {
-                        round = matcher.group(1);
-                        question_number = matcher.group(2);
-                        sql.append(String.format("'%s',",round))
-                                .append(String.format("'%s',",question_number));
-                    }
+                    sql.append(String.format("'%s','%s',",course, getId(line)));
+                    sql.append(String.format("'%s',",line.substring(5 + getIdLength(line) + 1)));
 
                 } else if (line.startsWith("====")) {
-                    var samples = "";
+                    var examples = "";
                     while (reader.ready()) {
                         String sample = reader.readLine();
                         if (sample.startsWith("====")) {
                             break;
                         }
                         else {
-                            samples += sample + "\\n";
+                            examples += sample + "\\n";
                         }
                     }
-                    samples.replaceAll("''","------------------------");
-                    sql.append(String.format("'%s',", samples));
+                    //samples.replaceAll("''","------------------------");
+                    sql.append(String.format("'%s',", examples));
+                    hasExample = true;
                 }
                 else if (line.startsWith("①") || line.startsWith("②") ||
                         line.startsWith("③") || line.startsWith("④") || line.startsWith("⑤")) {
 
-                    line.replaceAll("'","------------------------");
-                    questions.append(line + "\\n");
+                    //line.replaceAll("'","------------------------");
+                    choices.append(line + "\\n");
 
                     if (line.startsWith("⑤")) {
-                        sql.append(String.format("'%s'", questions));
+                        if (hasExample) {
+                            sql.append(String.format("'%s'", choices));
+                        }
+                        else {
+                            sql.append(String.format("'','%s'", choices));
+                        }
                         sql.append(");\n");
                         System.out.println(sql);
-
-                        questions = new StringBuilder("");
-                        sql = new StringBuilder("");
                     }
                 }
             }

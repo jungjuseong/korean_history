@@ -18,6 +18,6 @@ public class RealEstateExam implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception
 	{
-		DocParser.firstStage(resourceLoader);
+		DocParser.firstStage(resourceLoader, "부동산학개론", "real_estate_exam.adoc");
 	}
 }

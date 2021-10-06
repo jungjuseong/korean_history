@@ -1,28 +1,29 @@
 # 1. APIs Rule!
 
-Enterprise API adoption has exceeded expectations. We see the proliferation of APIs in almost all the industries. It is not an exaggeration to say a business without an API is like a computer with no Internet. APIs are also the foundation for building communication channels in the Internet of Things (IoT) domain. From motor vehicles to kitchen appliances, countless devices have started communicating with each other via APIs.
+엔터프라이즈 API 채택은 기대 이상이었습니다. 거의 모든 산업 분야에서 API가 확산되고 있습니다. API가 없는 비즈니스는 인터넷이 없는 컴퓨터와 같다고 해도 과언이 아닙니다. API는 또한 사물 인터넷(IoT) 도메인에서 통신 채널을 구축하기 위한 기반입니다. 자동차에서 주방 가전에 이르기까지 수많은 장치가 API를 통해 서로 통신하기 시작했습니다.
 
-The world is more connected than ever. You share photos from Instagram in Facebook, share a location from Foursquare or Yelp in Twitter, publish tweets to the Facebook wall, connect to Google Maps via the Uber mobile app, and many more. The list of connections is limitless. All this is made possible only because of public APIs, which have proliferated in the last few years. Expedia, Salesforce, eBay, and many other companies generate a large percentage of their annual revenue via APIs. APIs have become the coolest way of exposing business functionalities to the outside world.
+세상은 그 어느 때보다 연결되어 있습니다. Facebook에서 Instagram의 사진을 공유하고, Twitter에서 Foursquare 또는 Yelp의 위치를 ​​공유하고, Facebook 담벼락에 트윗을 게시하고, Uber 모바일 앱을 통해 Google 지도에 연결하는 등 다양한 작업을 할 수 있습니다. 연결 목록은 무한합니다. 이 모든 것이 지난 몇 년 동안 급증한 공개 API 덕분에 가능했습니다. Expedia, Salesforce, eBay 및 기타 여러 회사는 API를 통해 연간 수익의 상당 부분을 창출합니다. API는 비즈니스 기능을 외부 세계에 노출하는 가장 멋진 방법이 되었습니다.
 
 ## API Economy
 
-According to an infographic1 published by the ACI Information Group, at the current rate of growth, the global Internet economy is around 10 trillion US dollars. In 1984, at the time the Internet was debuted, it linked 1000 hosts at universities and corporates. In 1998, after almost 15 years, the number of Internet users, globally, reached 50 million. It took 11 years since then to reach the magic number 1 billion Internet users, in 2009. It took just three years since then to get doubled, and in 2012 it reached to 2.1 billion. In 2019, more than half of the world’s population—about 4.3 billion people—use the Internet. This number could further increase as a result of the initiatives taken by the Internet giants like Facebook and Google. The Internet.org initiative by Facebook, launched in 2013, targets to bring together technology leaders, nonprofits, and local communities to connect with the rest of the world that does not have Internet access. Google Loon is a project initiated by Google to connect people in rural and remote areas. It is based on a network of balloons traveling on the edge of space and aims to improve the connectivity of 250 million people in Southeast Asia.2
+ACI 인포메이션 그룹이 발간한 인포그래픽1에 따르면, 현재 성장률로 세계 인터넷 경제 규모는 약 10조 달러에 이른다. 인터넷이 등장한 1984년에는 대학과 기업의 호스트 1000명을 연결했다. 거의 15년이 지난 1998년에는 전 세계적으로 인터넷 사용자 수가 5천만 명에 이르렀습니다. 그 이후 2009년에는 매직 넘버 10억 인터넷 사용자를 달성하는 데 11년이 걸렸습니다. 그 이후로 2배가 되는 데는 불과 3년이 걸렸고 2012년에는 21억에 도달했습니다. 2019년에는 세계 인구의 절반 이상인 약 43억 명이 인터넷을 사용합니다. 이 숫자는 Facebook 및 Google과 같은 인터넷 거물들이 취한 이니셔티브의 결과로 더욱 증가할 수 있습니다. 2013년에 시작된 Facebook의 Internet.org 이니셔티브는 기술 리더, 비영리 단체 및 지역 사회를 모아 인터넷에 접속할 수 없는 세계와 연결하는 것을 목표로 합니다. Google Loon은 Google이 시골 및 외딴 지역의 사람들을 연결하기 위해 시작한 프로젝트입니다. 우주의 가장자리를 여행하는 풍선 네트워크를 기반으로 하며 동남아시아의 2억 5천만 명의 연결성을 개선하는 것을 목표로 합니다.2
 
-Not just humans, according to a report3 on the Internet of Things by Cisco, during 2008, the number of things connected to the Internet exceeded the number of people on earth. Over 12.5 billion devices were connected to the Internet in 2012 and 25 billion devices by the end of 2015. It is estimated that by the end of 2020, 50 billion devices will be connected. Connected devices are nothing new. They’ve been there since the introduction of the first computer networks and consumer electronics. However, if not for the explosion of the Internet adoption, the idea of a globally connected planet would never take off. In the early 1990s, computer scientists theorized how a marriage between humans and machines could give birth to a completely new form of communication and interaction via machines. That reality is now unfolding before our eyes.
 
-There are two key enablers behind the success of the Internet of Things. One is the APIs and the other is Big Data. According to a report4 by Wipro Council for Industry Research, a six-hour flight on a Boeing 737 from New York to Los Angeles generates 120 terabytes of data that is collected and stored on the plane. With the explosion of sensors and devices taking over the world, there needs to be a proper way of storing, managing, and analyzing data. By 2014, an estimated 4 zettabytes of information was held globally, and it’s estimated, by 2020, that number will climb up to 35 zettabytes.5 Most interestingly, 90% of the data we have in hand today is generated just during the last couple of years. The role of APIs under the context of the Internet of Things is equally important as Big Data. APIs are the glue which connect devices to other devices and to the cloud.
+사물 인터넷의 성공 뒤에는 두 가지 핵심 요소가 있습니다. 하나는 API이고 다른 하나는 빅 데이터입니다. Wipro 산업 연구 위원회(Wipro Council for Industry Research)의 보고서4에 따르면 뉴욕에서 로스앤젤레스까지 보잉 737을 타고 6시간 동안 비행하면 120테라바이트의 데이터가 생성되어 비행기에서 수집되고 저장됩니다. 센서와 장치가 전 세계를 장악함에 따라 데이터를 저장, 관리 및 분석하는 적절한 방법이 필요합니다. 2014년까지 전 세계적으로 약 4제타바이트의 정보가 보관되었으며 2020년에는 그 수가 35제타바이트까지 증가할 것으로 예상됩니다.5 가장 흥미롭게도 오늘날 우리가 보유하고 있는 데이터의 90%가 마지막 몇 시간 동안 생성됩니다. 년. 사물 인터넷의 맥락에서 API의 역할은 빅 데이터만큼 중요합니다. API는 장치를 다른 장치 및 클라우드에 연결하는 접착제입니다.
 
-The API economy talks about how an organization can become profitable or successful in their corresponding business domain with APIs. IBM estimated the API economy to become a $2.2 trillion market by 2018,6 and the IBM Redbook, The Power of the API Economy,7 defines API economy as the commercial exchange of business functions, capabilities, or competencies as services using web APIs. It further finds five main reasons why enterprises should embrace web APIs and become an active participant in the API economy:
+사물 인터넷의 성공 뒤에는 두 가지 핵심 요소가 있습니다. 하나는 API이고 다른 하나는 빅 데이터입니다. Wipro 산업 연구 위원회(Wipro Council for Industry Research)의 보고서4에 따르면 뉴욕에서 로스앤젤레스까지 보잉 737을 타고 6시간 동안 비행하면 120테라바이트의 데이터가 생성되어 비행기에서 수집되고 저장됩니다. 센서와 장치가 전 세계를 장악함에 따라 데이터를 저장, 관리 및 분석하는 적절한 방법이 필요합니다. 2014년까지 전 세계적으로 약 4제타바이트의 정보가 보관되었으며 2020년에는 그 수가 35제타바이트까지 증가할 것으로 예상됩니다.5 가장 흥미롭게도 오늘날 우리가 보유하고 있는 데이터의 90%가 마지막 몇 시간 동안 생성됩니다. 년. 사물 인터넷의 맥락에서 API의 역할은 빅 데이터만큼 중요합니다. API는 장치를 다른 장치 및 클라우드에 연결하는 접착제입니다.
 
-- Grow your customer base by attracting customers to your products and services through API ecosystems.
+API 경제는 조직이 API를 사용하여 해당 비즈니스 도메인에서 수익을 올리거나 성공할 수 있는 방법에 대해 설명합니다. IBM은 API 경제가 2018년까지 2조 2천억 달러의 시장이 될 것으로 추정하고6, IBM Redbook, The Power of the API Economy(API 경제의 힘)7에서는 API 경제를 웹 API를 사용하는 서비스로서의 비즈니스 기능, 기능 또는 역량의 상업적 교환으로 정의합니다. 또한 기업이 웹 API를 수용하고 API 경제에 적극적으로 참여해야 하는 5가지 주요 이유를 찾습니다.
 
-- Drive innovation by capitalizing on the composition of different APIs, yours and third parties.
+- API 생태계를 통해 제품 및 서비스에 고객을 유치하여 고객 기반을 확장합니다.
 
-- Improve the time-to-value and time-to-market for new products.
+- 다양한 API, 귀하 및 제3자의 구성을 활용하여 혁신을 주도하십시오.
 
-- Improve integration with web APIs.
+- 신제품의 가치 실현 시간과 시장 출시 시간을 개선합니다.
 
-- Open up more possibilities for a new era of computing and prepare for a flexible future.
+- 웹 API와의 통합을 개선합니다.
+
+- 컴퓨팅의 새로운 시대를 위한 더 많은 가능성을 열고 유연한 미래를 준비합니다.
 
 ### Amazon
 

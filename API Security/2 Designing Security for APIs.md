@@ -100,203 +100,203 @@ Another example for security by obscurity is Microsoft’s NTLM (an authenticati
 
 ## Design Principles
 
-Jerome Saltzer and Michael Schroeder produced one of the most widely cited research papers in the information security domain.23 According to the paper, irrespective of the level of functionality provided, the effectiveness of a set of protection mechanisms depends upon the ability of a system to prevent security violations. In most of the cases, building a system at any level of functionality that prevents all unauthorized actions has proved to be extremely difficult. For an advanced user, it is not hard to find at least one way to crash a system, preventing other authorized users accessing the system. Penetration tests that involved a large number of different general-purpose systems have shown that users can build programs to obtain unauthorized access to information stored within. Even in systems designed and implemented with security as a top priority, design and implementation flaws could provide ways around the intended access restrictions. Even though the design and construction techniques that could systematically exclude flaws are the topic of much research activity, according to Jerome and Michael, no complete method applicable to the construction of large general-purpose systems existed during the early 1970s. In this paper, Jerome Saltzer and Michael Schroeder further highlight eight design principles for securing information in computer systems, as described in the following sections.
+Jerome Saltzer와 Michael Schroeder는 정보 보안 영역에서 가장 널리 인용되는 연구 논문 중 하나를 작성했습니다. 이 논문에 따르면 제공된 기능 수준에 관계없이 보호 메커니즘 세트의 효과는 시스템이 다음을 수행할 수 있는지 여부에 달려 있습니다. 보안 위반을 방지합니다. 대부분의 경우 모든 무단 작업을 방지하는 기능 수준에서 시스템을 구축하는 것은 매우 어려운 것으로 판명되었습니다. 고급 사용자의 경우 시스템을 충돌시켜 다른 인증된 사용자가 시스템에 액세스하는 것을 방지하는 방법을 하나 이상 찾는 것은 어렵지 않습니다. 다수의 다양한 범용 시스템과 관련된 침투 테스트는 사용자가 내부에 저장된 정보에 대한 무단 액세스를 얻기 위해 프로그램을 구축할 수 있음을 보여주었습니다. 보안을 최우선으로 설계하고 구현한 시스템에서도 설계 및 구현 결함으로 인해 의도한 액세스 제한을 우회할 수 있습니다. 결함을 체계적으로 배제할 수 있는 설계 및 구축 기술이 많은 연구 활동의 주제이지만 Jerome과 Michael에 따르면 1970년대 초반에는 대규모 범용 시스템 구축에 적용할 수 있는 완전한 방법이 없었습니다. 이 백서에서 Jerome Saltzer와 Michael Schroeder는 다음 섹션에서 설명하는 것처럼 컴퓨터 시스템의 정보 보안을 위한 8가지 설계 원칙을 더욱 강조합니다.
 
-### Least Privilege
+### 최소 권한의 원칙
 
-The principle of least privilege states that an entity should only have the required set of permissions to perform the actions for which they are authorized, and no more. Permissions can be added as needed and should be revoked when no longer in use. This limits the damage that can result from an accident or error. The need to know principle, which follows the least privilege philosophy, is popular in military security. This states that even if someone has all the necessary security clearance levels to access information, they should not be granted access unless there is a real/proven need.
+최소 권한의 원칙은 엔터티가 권한이 부여된 작업을 수행하는 데 필요한 권한 집합만 가져야 하며 더 이상은 없어야 한다는 것입니다. 필요에 따라 권한을 추가할 수 있으며 더 이상 사용하지 않을 때는 권한을 취소해야 합니다. 이는 사고나 오류로 인해 발생할 수 있는 손상을 제한합니다. 최소 특권 철학을 따르는 알아야 할 필요성은 군사 보안 분야에서 인기가 있습니다. 이는 누군가가 정보에 액세스하는 데 필요한 모든 보안 인가 수준을 가지고 있더라도 실제/입증된 필요가 없는 한 액세스 권한을 부여해서는 안 된다는 의미입니다.
 
-Unfortunately, this principle didn’t apply in the case of Edward Snowden,24 or he was clever enough to work around it. Edward Snowden who worked for NSA (National Security Agency of the United States) as a contractor in Hawaii used unsophisticated techniques to access and copy an estimated 1.7 million classified NSA files. He was an employee of NSA and had legitimate access to all the information he downloaded. Snowden used a simple web crawler, similar to Google’s Googlebot (which collects documents from the Web to build a searchable index for the Google Search engine), to crawl and scrape all the data from NSA’s internal wiki pages. Being a system administrator, Snowden’s role was to back up the computer systems and move information to local servers; he had no need to know the content of the data.
+불행히도, 이 원칙은 Edward Snowden의 경우에 적용되지 않았거나 그는 이를 해결할 만큼 충분히 영리했습니다. NSA(미국 국가안보국)에서 하와이의 계약자로 근무한 Edward Snowden은 약 170만 개의 기밀 NSA 파일에 액세스하고 복사하는 데 정교하지 않은 기술을 사용했습니다. 그는 NSA의 직원이었고 다운로드한 모든 정보에 합법적으로 액세스할 수 있었습니다. Snowden은 Google의 `Googlebot`(웹에서 문서를 수집하여 Google 검색 엔진에 대한 검색 가능한 색인을 구축함)과 유사한 간단한 웹 크롤러를 사용하여 NSA의 내부 위키 페이지에서 모든 데이터를 크롤링하고 긁었습니다. 시스템 관리자로서 Snowden의 역할은 컴퓨터 시스템을 백업하고 정보를 로컬 서버로 옮기는 것이었습니다. 그는 데이터의 내용을 알 필요가 없었습니다.
 
-ISO 27002 also emphasizes on the least privilege principle. ISO 27002 (Information Technology - Code of Practice for Information Security Management) standard is a well-known, widely used standard in the information security domain. It was originally developed by the British Standards Institution and called the BS7799 and subsequently accepted by the International Organization for Standardization (ISO) and published under their title in December 2000. According to ISO 27002, privileges should be allocated to individuals on a need-to-use basis and on an event-by-event basis, that is, the minimum requirement for their functional role only when needed. It further identifies the concept of “zero access” to start, which suggests that no access or virtually no access is the default, so that all subsequent access and the ultimate accumulation can be traced back through an approval process.25
+`ISO 27002`는 또한 최소 권한 원칙을 강조합니다. ISO 27002 표준은 정보 보안 영역에서 널리 사용되는 잘 알려진 표준입니다. 원래 영국 표준 기관에서 개발했으며 BS7799라고 불렀고 이후 ISO에서 승인하여 2000년 12월 제목으로 출판했습니다. ISO 27002에 따르면 권한은 필요한 경우 개인에게 할당되어야 합니다. - 사용 기반 및 이벤트별로, 즉 필요할 때만 기능적 역할에 대한 최소 요구 사항. 또한 시작에 대한 "제로 액세스"의 개념을 식별합니다. 이는 액세스가 없거나 사실상 액세스가 없음을 기본으로 하여 모든 후속 액세스 및 최종 누적이 승인 프로세스를 통해 역추적될 수 있음을 나타냅니다.25
 
-### Fail-Safe Defaults
+### 페일 세이프 기본 원칙
 
-The fail-safe defaults principle highlights the importance of making a system safe by default. A user’s default access level to any resource in the system should be “denied” unless they’ve been granted a “permit” explicitly. A fail-safe design will not endanger the system when it fails. The Java Security Manager implementation follows this principle—once engaged, none of the components in the system can perform any privileged operations unless explicitly permitted. Firewall rules are another example. Data packets are only allowed through a firewall when it’s explicitly allowed; otherwise everything is denied by default.
+페일 세이프 기본 원칙은 기본적으로 시스템을 안전하게 만드는 것의 중요성을 강조합니다. 시스템의 모든 리소스에 대한 사용자의 기본 액세스 수준은 명시적으로 "허용"이 부여되지 않은 한 `거부`되어야 합니다. 페일 세이프 설계는 시스템이 실패해도 시스템을 위험에 빠뜨리지 않습니다. `Java Security Manager` 구현은 이 원칙을 따릅니다. 일단 연결되면 명시적으로 허용되지 않는 한 시스템의 어떤 구성 요소도 권한 있는 작업을 수행할 수 없습니다. 방화벽 규칙은 또 다른 예입니다. 데이터 패킷은 명시적으로 허용된 경우에만 방화벽을 통해 허용됩니다. 그렇지 않으면 기본적으로 모든 것이 거부됩니다.
 
-Any complex system will have failure modes. Failures are unavoidable and should be planned for, to make sure that no security risks get immerged as part of a system failure. Possibility of failures is an assumption made under the security design philosophy, defense in depth. If no failures are expected, there is no point of having multiple layers of defense. Let’s go through an example where every one of us is most probably familiar with: credit card verification. When you swipe your credit card at a retail store, the credit card machine there connects to the corresponding credit card service to verify the card details. The credit card verification service will verify the transaction after considering the available amount in the card, whether the card is reported as lost or blacklisted, and other context-sensitive information like the location where the transaction is initiated from, the time of the day, and many other factors. 
+모든 복잡한 시스템에는 실패 모드가 있습니다. 실패는 피할 수 없으며 시스템 실패의 일부로 보안 위험이 잠식되지 않도록 계획해야 합니다. 실패 가능성은 보안 설계 철학인 심층 방어에 따른 가정입니다. 장애가 예상되지 않으면 여러 방어 계층을 가질 필요가 없습니다. 우리 모두가 가장 잘 알고 있는 신용 카드 인증의 예를 살펴보겠습니다. 소매점에서 신용카드를 긁으면 거기에 있는 신용카드 기계가 해당 신용카드 서비스에 연결하여 카드 세부정보를 확인합니다. 신용 카드 인증 서비스는 카드의 가용 금액, 카드가 분실 또는 블랙리스트에 등록되었는지 여부, 거래가 시작된 위치, 하루 중 시간, 및 기타 많은 요인.
 
-If the credit card machine fails to connect to the verification service, what would happen? In such case, the merchants are given a machine to get an imprint of your card manually. Getting an imprint of the card is not just sufficient, as it does not do any verification. The merchant also has to talk to his bank over the phone, authenticate by providing the merchant number, and then get the transaction verified. That’s the fail-safe process for credit card verification, as the failure of the credit card transaction machine does not lead into any security risks. In case the merchant’s phone line is also completely down, then according to the fail-safe defaults principle, the merchant should avoid accepting any credit card payments.
+신용카드 기기가 인증 서비스에 연결되지 않으면 어떻게 되나요? 이러한 경우 판매자는 카드를 수동으로 인쇄할 수 있는 기계를 받게 됩니다. 어떤 확인 작업도 수행하지 않기 때문에 카드의 임프린트를 얻는 것만으로는 충분하지 않습니다. 판매자는 또한 전화로 은행과 통화하고 판매자 번호를 제공하여 인증한 다음 거래를 확인해야 합니다. 신용 카드 거래 기계의 오류로 인해 보안 위험이 발생하지 않기 때문에 신용 카드 인증을 위한 안전 장치 프로세스입니다. 판매자의 전화선도 완전히 끊긴 경우, 안전 불이행 원칙에 따라 판매자는 신용 카드 결제를 수락하지 않아야 합니다.
 
-The failure to adhere to fail-safe defaults has resulted in many TLS /SSL (Secure Sockets Layer) vulnerabilities. Most of the TLS/SSL vulnerabilities are based on the TLS/SSL downgrade attack, where the attacker makes the server to use a cryptographically weak cipher suite (we discuss TLS in depth in Appendix C). In May 2015, a group from INRIA, Microsoft Research, Johns Hopkins, the University of Michigan, and the University of Pennsylvania published a deep analysis26 of the Diffie-Hellman algorithm as used in TLS and other protocols. This analysis included a novel downgrade attack against the TLS protocol itself called Logjam, which exploits export cryptography. Export ciphers are weaker ciphers that were intentionally designed to be weaker to meet certain legal requirements enforced by the US government, in 1990s. Only weaker ciphers were legally possible to export into other countries outside the United States. Even though this legal requirement was lifted later on, most of the popular application servers still support export ciphers. The Logjam attack exploited the servers having support for export ciphers by altering the TLS handshake and forcing the servers to use a weaker cipher suite, which can be broken later on. According to the fail-safe defaults principle, in this scenario, the server should abort the TLS handshake when they see a cryptographically weaker algorithm is suggested by the client, rather than accepting and proceeding with it.
+페일 세이프 기본값을 준수하지 않아 많은 TLS/SSL 취약점이 발생했습니다. 대부분의 TLS/SSL 취약점은 TLS/SSL 다운그레이드 공격을 기반으로 합니다. 이 공격에서 공격자는 서버가 암호학적으로 약한 암호 제품군을 사용하도록 합니다(TLS에 대해서는 부록 C에서 자세히 설명합니다). 2015년 5월 INRIA, Microsoft Research, Johns Hopkins, University of Michigan 및 University of Pennsylvania의 그룹은 TLS 및 기타 프로토콜에 사용되는 Diffie-Hellman 알고리즘에 대한 심층 분석26을 발표했습니다. 이 분석에는 내보내기 암호화를 악용하는 Logjam이라는 TLS 프로토콜 자체에 대한 새로운 다운그레이드 공격이 포함되었습니다. 수출 암호는 1990년대에 미국 정부가 시행한 특정 법적 요구 사항을 충족하기 위해 의도적으로 약하게 설계된 약한 암호입니다. 더 약한 암호만이 합법적으로 미국 이외의 다른 국가로 수출할 수 있었습니다. 이 법적 요구 사항이 나중에 해제되었지만 대부분의 인기 있는 응용 프로그램 서버는 여전히 내보내기 암호를 지원합니다. Logjam 공격은 TLS 핸드셰이크를 변경하고 서버가 나중에 손상될 수 있는 더 약한 암호 제품군을 사용하도록 하여 내보내기 암호를 지원하는 서버를 악용했습니다. 오류 방지 기본 원칙에 따르면 이 시나리오에서 서버는 클라이언트가 암호화 방식으로 더 약한 알고리즘을 제안하고 수락하고 진행하는 대신 TLS 핸드셰이크를 중단해야 합니다.
 
-### Economy of Mechanism
+### 메커니즘의 경제
 
-The economy of mechanism principle highlights the value of simplicity. The design should be as simple as possible. All the component interfaces and the interactions between them should be simple enough to understand. If the design and the implementation were simple, the possibility of bugs would be low, and at the same time, the effort on testing would be less. A simple and easy-to-understand design and implementation would also make it easy to modify and maintain, without introducing bugs exponentially. As discussed earlier in this chapter, Gary McGraw in his book, Software Security, highlights complexity in both the code and the system design as one attribute that is responsible for the high rate of data breaches.
+메커니즘 원리의 경제는 단순함의 가치를 강조합니다. 디자인은 가능한 한 단순해야 합니다. 모든 구성 요소 인터페이스와 이들 간의 상호 작용은 이해할 수 있을 만큼 간단해야 합니다. 설계와 구현이 단순했다면 버그가 발생할 가능성이 낮고 동시에 테스트에 드는 노력도 덜했을 것이다. 간단하고 이해하기 쉬운 디자인과 구현은 버그를 기하급수적으로 도입하지 않고도 수정 및 유지 관리를 쉽게 만들 것입니다. 이 장의 앞부분에서 논의한 바와 같이 `Gary McGraw`는 자신의 저서인 소프트웨어 보안에서 코드와 시스템 설계의 복잡성을 높은 비율의 데이터 침해에 대한 책임이 있는 한 가지 속성으로 강조합니다.
+1960년 미 해군이 도입한 KISS(Keep it Simple, 바보같은) 원칙은 메커니즘의 경제에서 Jerome Saltzer와 Michael Schroeder가 설명한 것과 매우 유사합니다. 대부분의 시스템은 복잡하게 만들지 않고 단순하게 유지해야 가장 잘 작동한다고 합니다.27 실제로는 운영 체제에서 응용 프로그램 코드에 이르기까지 KISS 원칙을 고수하고 싶지만 모든 것이 점점 더 복잡해지고 있습니다. 1990년에 Microsoft Windows 3.1은 3백만 라인이 약간 넘는 코드베이스로 시작되었습니다. 시간이 지남에 따라 요구 사항이 복잡해졌으며 2001년 Windows XP 코드베이스는 4천만 라인의 코드를 넘었습니다. 이 장에서 이전에 논의한 것처럼 이 글을 쓰는 시점에 모든 인터넷 서비스를 실행하기 위한 전체 Google 코드베이스는 약 20억 줄의 코드였습니다. 증가된 코드 행 수가 코드 복잡성을 직접적으로 반영하지 않는다고 쉽게 주장할 수 있지만 대부분의 경우 슬프게도 그렇습니다.
 
-The keep it simple, stupid (KISS) principle introduced by the US Navy in 1960 is quite close to what Jerome Saltzer and Michael Schroeder explained under the economy of mechanism principle. It states that most systems work best if they are kept simple rather than made complicated.27 In practice, even though we want to adhere to the KISS principle, from operating systems to application code, everything is becoming more and more complex. Microsoft Windows 3.1 in 1990 started with a codebase slightly over 3 million lines of code. Over time, requirements got complex, and in 2001 Windows XP codebase crossed 40 million lines of code. As we discussed before in this chapter, at the time of this writing, the complete Google codebase to run all its Internet services was around 2 billion lines of code. Even though one can easily argue the increased number of lines of code will not directly reflect the code complexity, in most of the cases, sadly it’s the case.
+### 완전한 중재
 
-### Complete Mediation
+완전한 중재 원칙에 따라 시스템은 모든 리소스에 대한 액세스 권한을 확인하여 액세스가 허용되는지 여부를 확인해야 합니다. 대부분의 시스템은 캐시된 권한 매트릭스를 구축하기 위해 진입점에서 한 번 액세스 유효성 검사를 수행합니다. 각 후속 작업은 캐시된 권한 매트릭스에 대해 검증됩니다. 이 패턴은 대부분 정책 평가에 소요되는 시간을 줄임으로써 성능 문제를 해결하기 위해 따르지만 공격자가 시스템을 악용하도록 매우 쉽게 초대할 수 있습니다. 실제로 대부분의 시스템은 사용자 권한과 역할을 캐시하지만 권한이나 역할 업데이트가 발생한 경우 캐시를 지우는 메커니즘을 사용합니다.
 
-With complete mediation principle, a system should validate access rights to all its resources to ensure whether they’re allowed to access or not. Most systems do access validation once at the entry point to build a cached permission matrix. Each subsequent operation will be validated against the cached permission matrix. This pattern is mostly followed to address performance concerns by reducing the time spent on policy evaluation, but could quite easily invite attackers to exploit the system. In practice, most systems cache user permissions and roles, but employ a mechanism to clear the cache in an event of a permission or role update.
+예제를 살펴보겠습니다. UNIX 운영 체제에서 실행 중인 프로세스가 파일을 읽으려고 하면 운영 체제 자체에서 해당 프로세스에 파일을 읽을 수 있는 적절한 권한이 있는지 확인합니다. 이 경우 프로세스는 허용된 액세스 수준으로 인코딩된 파일 설명자를 수신합니다. 프로세스가 파일을 읽을 때마다 파일 설명자를 커널에 제공합니다. 커널은 파일 디스크립터를 검사한 다음 액세스를 허용합니다. 파일 디스크립터가 발행된 후 파일 소유자가 프로세스에서 읽기 권한을 취소하는 경우 커널은 여전히 ​​액세스를 허용하여 완전한 중재 원칙을 위반합니다. 완전한 중재 원칙에 따라 모든 권한 업데이트는 애플리케이션 런타임(캐시된 경우 캐시)에 즉시 반영되어야 합니다
 
-Let’s have a look at an example. When a process running under the UNIX operating system tries to read a file, the operating system itself determines whether the process has the appropriate rights to read the file. If that is the case, the process receives a file descriptor encoded with the allowed level of access. Each time the process reads the file, it presents the file descriptor to the kernel. The kernel examines the file descriptor and then allows the access. In case the owner of the file revokes the read permission from the process after the file descriptor is issued, the kernel still allows access, violating the principle of complete mediation. According to the principle of complete mediation, any permission update should immediately reflect in the application runtime (if cached, then in the cache).
+### 열린 설계 원칙
 
-### Open Design
+개방형 설계 원칙은 비밀이 없고 기밀 알고리즘이 없는 개방형 방식으로 시스템을 구축하는 것의 중요성을 강조합니다. 이것은 앞부분의 "설계 과제" 섹션에서 논의한 은폐에 의한 보안의 반대입니다. 오늘날 사용되는 대부분의 강력한 암호화 알고리즘은 공개적으로 설계되고 구현됩니다. 한 가지 좋은 예는 `AES` 대칭 키 알고리즘입니다. NIST는 1997년부터 2000년까지 확장된 공개 프로세스를 따라 AES를 위한 최고의 암호학적으로 강력한 알고리즘을 선택하고 당시에는 무차별 공격에 취약했던 `DES`를 대체했습니다. 1997년 1월 2일 `NIST`는 `DES`를 대체할 알고리즘을 구축하기 위한 경쟁에 대해 처음 발표했습니다. 대회가 시작된 후 처음 9개월 동안 여러 국가에서 15개의 서로 다른 제안이 있었습니다.
 
-The open design principle highlights the importance of building a system in an open manner—with no secrets, confidential algorithms. This is the opposite of security by obscurity, discussed earlier in the section “Design Challenges.” Most of the strong cryptographic algorithms in use today are designed and implemented openly. One good example is the AES (Advanced Encryption Standard) symmetric key algorithm. NIST (National Institute of Standards and Technology, United States) followed an open process, which expanded from 1997 to 2000 to pick the best cryptographically strong algorithm for AES, to replace DES (Data Encryption Standard), which by then was susceptible to brute-force attacks. On January 2, 1997, the initial announcement was made by NIST regarding the competition to build an algorithm to replace DES. During the first nine months, after the competition began, there were 15 different proposals from several countries. 
+모든 디자인이 공개되었고 하나하나 철저한 암호해독을 거쳤습니다. `NIST`는 또한 1998년 8월과 1999년 3월에 두 번의 공개 회의를 열어 제안을 논의한 후 15개의 제안을 모두 5개로 압축했습니다. 그들은 `AES` 알고리즘으로 `Rijndael`을 선택했습니다. 최종 결과 이상으로 모든 사람(심지어 경쟁에서 패한 사람까지 포함)은 `AES` 선택 단계 전반에 걸쳐 진행한 공개 프로세스에 대해 `NIST`를 높이 평가했습니다.
 
-All the designs were open, and each one of them was subjected to thorough cryptanalysis. NIST also held two open conferences to discuss the proposals, in August 1998 and March 1999, and then narrowed down all 15 proposals into 5. After another round of intense analysis during the April 2000 AES conference, the winner was announced in October 2000, and they picked Rijndael as the AES algorithm. More than the final outcome, everyone (even the losers of the competition) appreciated NIST for the open process they carried throughout the AES selection phase.
+개방형 디자인 원칙은 특정 앱의 설계자 또는 개발자가 앱을 안전하게 만들기 위해 앱의 설계 또는 코딩 비밀에 의존해서는 안 된다는 점을 더욱 강조합니다. 오픈 소스 소프트웨어에 의존한다면 이것은 전혀 불가능합니다. 오픈 소스 개발에는 비밀이 없습니다. 디자인 결정에서 기능 개발에 이르기까지 오픈 소스 철학에 따라 모든 것이 공개적으로 진행됩니다. 똑같은 이유로 오픈 소스 소프트웨어가 보안에 취약하다고 쉽게 주장할 수 있습니다.
 
-The open design principle further highlights that the architects or developers of a particular application should not rely on the design or coding secrets of the application to make it secure. If you rely on open source software, then this is not even possible at all. There are no secrets in open source development. Under the open source philosophy from the design decisions to feature development, all happens openly. One can easily argue, due to the exact same reason, open source software is bad in security. 
-
-This is a very popular argument against open source software, but facts prove otherwise. According to a report28 by Netcraft published in January 2015, almost 51% of all active sites in the Internet are hosted on web servers powered by the open source Apache web server. The OpenSSL library, which is another open source project implementing the SSL and TLS protocols, is used by more than 5.5 million web sites in the Internet, by November 2015.29 If anyone seriously worries about the security aspects of open source, it’s highly recommended for him or her to read the white paper published by SANS Institute, under the topic Security Concerns in Using Open Source Software for Enterprise Requirements.30
+이것은 오픈 소스 소프트웨어에 대한 매우 인기 있는 주장이지만 사실은 그렇지 않다는 것을 증명합니다. 2015년 1월에 발행된 Netcraft의 보고서28에 따르면 인터넷의 모든 활성 사이트 중 거의 51%가 오픈 소스 Apache 웹 서버로 구동되는 웹 서버에서 호스팅됩니다. SSL 및 TLS 프로토콜을 구현하는 또 다른 오픈 소스 프로젝트인 OpenSSL 라이브러리는 2015년 11월까지 인터넷의 550만 개 이상의 웹 사이트에서 사용됩니다.29 오픈 소스의 보안 측면에 대해 심각하게 걱정하는 사람이 있다면 그에게 적극 권장됩니다. 또는 그녀는 기업 요구 사항에 대한 오픈 소스 소프트웨어 사용의 보안 문제라는 주제로 SANS Institute에서 발행한 백서를 읽습니다.
 
 > Note
 >
 > Gartner predicts, by 2020, 98% of IT organizations will leverage open source software technology in their mission-critical IT portfolios, including many cases where they will be unaware of it.31
 
-### Separation of Privilege
+### 권한 분리의 원칙
 
-The principle of separation of privilege states that a system should not grant permissions based on a single condition. The same principle is also known as segregation of duties, and one can look into it from multiple aspects. For example, say a reimbursement claim can be submitted by any employee but can only be approved by the manager. What if the manager wants to submit a reimbursement? According to the principle of separation of privilege, the manager should not be granted the right to approve his or her own reimbursement claims.
+권한 분리의 원칙은 시스템이 단일 조건에 따라 권한을 부여해서는 안 된다는 것입니다. 동일한 원칙을 직무 분담이라고도 하며 여러 측면에서 살펴볼 수 있습니다. 예를 들어, 상환 청구는 모든 직원이 제출할 수 있지만 관리자만 승인할 수 있다고 가정해 보겠습니다. 관리자가 환급을 제출하기를 원하면 어떻게 합니까? `권한 분리의 원칙`에 따라 관리자는 자신의 상환 청구를 승인할 수 있는 권한을 부여받아서는 안 됩니다.
 
-It is interesting to see how Amazon follows the separation of privilege principle in securing AWS (Amazon Web Services) infrastructure. According to the security white paper32 published by Amazon, the AWS production network is segregated from the Amazon Corporate network by means of a complex set of network security/segregation devices. AWS developers and administrators on the corporate network who need to access AWS cloud components in order to maintain them must explicitly request access through the AWS ticketing system. All requests are reviewed and approved by the applicable service owner. Approved AWS personnel then connect to the AWS network through a bastion host that restricts access to network devices and other cloud components, logging all activity for security review. Access to bastion hosts require SSH public key authentication for all user accounts on the host.
+Amazon이 AWS 인프라를 보호할 때 `권한 분리 원칙`을 어떻게 따르는지 보는 것은 흥미롭습니다. Amazon에서 발행한 보안 백서에 따르면 `AWS 프로덕션 네트워크`는 복잡한 네트워크 보안/분리 장치 세트를 통해 `Amazon Corporate 네트워크`에서 분리됩니다. AWS 클라우드 구성 요소를 유지 관리하기 위해 액세스해야 하는 기업 네트워크의 AWS 개발자 및 관리자는 `AWS 티켓팅 시스템`을 통해 액세스를 명시적으로 요청해야 합니다. 모든 요청은 해당 서비스 소유자가 검토하고 승인합니다. 그런 다음 승인된 AWS 직원이 네트워크 장치 및 기타 클라우드 구성 요소에 대한 액세스를 제한하는 배스천 호스트를 통해 AWS 네트워크에 연결하여 보안 검토를 위해 모든 활동을 기록합니다. 배스천 호스트에 액세스하려면 호스트의 모든 사용자 계정에 대한 `SSH 공개 키 인증`이 필요합니다.
 
-NSA too follows a similar strategy. In a fact sheet33 published by NSA, it highlights the importance of implementing the separation of privilege principle at the network level. Networks are composed of interconnected devices with varying functions, purposes, and sensitivity levels. Networks can consist of multiple segments that may include web servers, database servers, development environments, and the infrastructure that binds them together. Because these segments have different purposes as well as different security concerns, segregating them appropriately is paramount in securing a network from exploitation and malicious intent.
+`NSA`도 유사한 전략을 따릅니다. NSA에서 발행한 팩트 시트에서는 네트워크 수준에서 권한 분리 원칙을 구현하는 것의 중요성을 강조합니다. 네트워크는 다양한 기능, 목적 및 민감도 수준을 가진 상호 연결된 장치로 구성됩니다. 네트워크는 웹 서버, 데이터베이스 서버, 개발 환경 및 이들을 함께 묶는 인프라를 포함할 수 있는 여러 세그먼트로 구성될 수 있습니다. 이러한 세그먼트는 목적과 보안 문제가 다르기 때문에 네트워크를 악용 및 악의적인 의도로부터 보호하려면 이를 적절하게 분리하는 것이 가장 중요합니다.
 
-### Least Common Mechanism
+### 최소 공통 메커니즘
 
-The principle of least common mechanism concerns the risk of sharing state information among different components. In other words, it says that mechanisms used to access resources should not be shared. This principle can be interpreted in multiple angles. One good example is to see how AWS works as an IaaS provider. EC2, is one of the key services provided by AWS. Netflix, Reddit, Newsweek, and many other companies run their services on EC2. EC2 provides a cloud environment to spin up and down server instances of your choice based on the load you get. With this approach, you do not need to plan before for the highest expected load and let the resources idle most of the time when there is low load. Even though in this case, each EC2 user gets his own isolated server instance running its own guest operating system (Linux, Windows, etc.), ultimately all the servers are running on top of a shared platform maintained by AWS. 
+최소 공통 메커니즘의 원칙은 서로 다른 구성 요소 간에 상태 정보를 공유할 위험에 관한 것입니다. 즉, 리소스 접근에 사용되는 메커니즘을 공유해서는 안 된다는 것입니다. 이 원칙은 여러 각도에서 해석될 수 있습니다. 한 가지 좋은 예는 AWS가 IaaS 공급자로 작동하는 방식을 보는 것입니다. EC2는 AWS에서 제공하는 핵심 서비스 중 하나입니다. Netflix, Reddit, Newsweek 및 기타 많은 회사에서 EC2에서 서비스를 실행합니다. EC2는 부하에 따라 선택한 서버 인스턴스를 스핀업 및 다운할 수 있는 클라우드 환경을 제공합니다. 이 접근 방식을 사용하면 예상되는 가장 높은 로드를 미리 계획할 필요가 없으며 로드가 낮을 때 대부분의 시간 동안 리소스를 유휴 상태로 만들 수 있습니다. 이 경우 각 EC2 사용자는 자체 게스트 운영 체제를 실행하는 자체 격리된 서버 인스턴스를 갖게 되지만 궁극적으로 모든 서버는 AWS에서 유지 관리하는 공유 플랫폼 위에서 실행됩니다.
 
-This shared platform includes a networking infrastructure, a hardware infrastructure, and storage. On top of the infrastructure, there runs a special software called hypervisor. All the guest operating systems are running on top of the hypervisor. Hypervisor provides a virtualized environment over the hardware infrastructure. Xen and KVM are two popular hypervisors, and AWS is using Xen internally. Even though a given virtual server instance running for one customer does not have access to another virtual server instance running for another customer, if someone can find a security hole in the hypervisor, then he can get the control of all the virtual server instances running on EC2. Even though this sounds like nearly impossible, in the past there were many security vulnerabilities reported against the Xen hypervisor.34
+이 공유 플랫폼에는 네트워킹 인프라, 하드웨어 인프라 및 스토리지가 포함됩니다. 인프라 위에 하이퍼바이저라는 특수 소프트웨어가 실행됩니다. 모든 게스트 운영 체제는 하이퍼바이저 위에서 실행됩니다. 하이퍼바이저는 하드웨어 인프라를 통해 가상화된 환경을 제공합니다. Xen과 KVM은 널리 사용되는 두 가지 하이퍼바이저이며 AWS는 내부적으로 Xen을 사용하고 있습니다. 한 고객을 위해 실행되는 특정 가상 서버 인스턴스가 다른 고객을 위해 실행 중인 다른 가상 서버 인스턴스에 액세스할 수 없더라도 누군가가 하이퍼바이저에서 보안 허점을 찾을 수 있다면 실행 중인 모든 가상 서버 인스턴스를 제어할 수 있습니다. EC2. 이것이 거의 불가능해 보이지만 과거에는 Xen 하이퍼바이저에 대해 보고된 많은 보안 취약점이 있었습니다.34
 
-The principle of least common mechanism encourages minimizing common, shared usage of resources. Even though the usage of common infrastructure cannot be completely eliminated, its usage can be minimized based on business requirements. AWS Virtual Private Cloud (VPC) provides a logically isolated infrastructure for each of its users. Optionally, one can also select to launch dedicated instances, which run on hardware dedicated to each customer for additional isolation.
+최소 공통 메커니즘의 원칙은 리소스의 공통 공유 사용을 최소화하도록 권장합니다. 공용 인프라의 사용을 완전히 제거할 수는 없지만 비즈니스 요구 사항에 따라 사용량을 최소화할 수 있습니다. AWS VPC는 각 사용자에게 논리적으로 격리된 인프라를 제공합니다. 선택적으로 추가 격리를 위해 각 고객 전용 하드웨어에서 실행되는 전용 인스턴스를 시작하도록 선택할 수도 있습니다.
 
-The principle of least common mechanism can also be applied to a scenario where you store and manage data in a shared multitenanted environment. If we follow the strategy shared everything, then the data from different customers can be stored in the same table of the same database, isolating each customer data by the customer id. The application, which accesses the database, will make sure that a given customer can only access his own data. With this approach, if someone finds a security hole in the application logic, he can access all customer data. The other approach could be to have an isolated database for each customer. This is a more expensive but much secure option. With this we can minimize what is being shared between customers.
+최소 공통 메커니즘의 원칙은 공유 다중 테넌트 환경에서 데이터를 저장하고 관리하는 시나리오에도 적용될 수 있습니다. 모든 것을 공유하는 전략을 따르면 다른 고객의 데이터를 동일한 데이터베이스의 동일한 테이블에 저장하여 각 고객 데이터를 고객 ID로 격리할 수 있습니다. 데이터베이스에 액세스하는 애플리케이션은 주어진 고객이 자신의 데이터에만 액세스할 수 있도록 합니다. 이 접근 방식을 사용하면 누군가 애플리케이션 로직에서 보안 허점을 발견하면 모든 고객 데이터에 액세스할 수 있습니다. 다른 접근 방식은 각 고객에 대해 격리된 데이터베이스를 갖는 것입니다. 이것은 더 비싸지 만 훨씬 안전한 옵션입니다. 이를 통해 고객 간에 공유되는 내용을 최소화할 수 있습니다.
 
-### Psychological Acceptability
+### 심리적 수용성
 
-The principle of psychological acceptability states that security mechanisms should not make the resource more difficult to access than if the security mechanisms were not present. Accessibility to resources should not be made difficult by security mechanisms. If security mechanisms kill the usability or accessibility of resources, then users may find ways to turn off those mechanisms. Wherever possible, security mechanisms should be transparent to the users of the system or at most introduce minimal distractions. Security mechanisms should be user-friendly to encourage the users to occupy them more frequently.
+심리적 수용 가능성의 원칙은 보안 메커니즘이 보안 메커니즘이 없는 경우보다 리소스 접근을 더 어렵게 만들어서는 안 된다는 것입니다. 보안 메커니즘이 리소스의 유용성 또는 액세스 가능성을 죽이면 사용자는 이러한 메커니즘을 끌내는 방법을 찾을 수 있습니다. 가능하면 보안 메커니즘은 시스템 사용자에게 투명해야 하며 기껏해야 방해를 최소화해야 합니다. 보안 메커니즘은 사용자가 더 자주 사용하도록 권장하기 위해 사용자 친화적이어야 합니다.
 
-Microsoft introduced information cards in 2005 as a new paradigm for authentication to fight against phishing. But the user experience was bad, with a high setup cost, for people who were used to username/password-based authentication. It went down in history as another unsuccessful initiative from Microsoft.
+`Microsoft`는 2005년에 정보 카드를 피싱에 대항하기 위한 인증의 새로운 패러다임으로 도입했습니다. 그러나 사용자 이름/비밀번호 기반 인증에 익숙한 사람들에게는 높은 설정 비용과 함께 사용자 경험이 좋지 않았습니다. 그것은 `Microsoft`의 또 다른 실패한 계획으로 역사에 기록되었습니다.
 
-Most of the web sites out there use CAPTCHA as a way to differentiate human beings from automated scripts. CAPTCHA is in fact an acronym, which stands for Completely Automated Public Turing test to tell Computers and Humans Apart. CAPTCHA is based on a challenge-response model and mostly used along with user registration and password recovery functions to avoid any automated brute-force attacks. Even though this tightens up security, this also could easily kill the user experience. Some of the challenges provided by certain CAPTCHA implementations are not even readable to humans. Google tries to address this concern with Google reCAPTCHA.35 With reCAPTCHA users can attest they are humans without having to solve a CAPTCHA. Instead, with just a single click, one can confirm that he is not a robot. This is also known as No CAPTCHA reCAPTCHA experience.
+대부분의 웹 사이트는 자동화된 스크립트에서 인간을 구별하는 방법으로 CAPTCHA를 사용합니다. CAPTCHA는 실제로 컴퓨터와 인간을 구분하는 완전 자동화된 공개 튜링 테스트의 약자입니다. CAPTCHA는 챌린지 응답 모델을 기반으로 하며 자동 무차별 대입 공격을 피하기 위해 대부분 사용자 등록 및 비밀번호 복구 기능과 함께 사용됩니다. 이렇게 하면 보안이 강화되지만 사용자 경험이 쉽게 중단될 수도 있습니다. 특정 CAPTCHA 구현이 제공하는 일부 문제는 사람이 읽을 수조차 없습니다. Google은 Google reCAPTCHA를 사용하여 이 문제를 해결하려고 합니다. reCAPTCHA를 사용하면 사용자는 보안 문자를 풀지 않고도 자신이 사람임을 증명할 수 있습니다. 대신 클릭 한 번으로 로봇이 아님을 확인할 수 있습니다. 이것은 CAPTCHA reCAPTCHA 경험 없음이라고도 합니다.
 
-## Security Triad
+## 보안 삼각대
 
-Confidentiality, integrity, and availability (CIA), widely known as the triad of information security, are three key factors used in benchmarking information systems security. This is also known as CIA triad or AIC triad. The CIA triad helps in both designing a security model and assessing the strength of an existing security model. In the following sections, we discuss the three key attributes of the CIA triad in detail.
+정보 보안의 3요소로 널리 알려진 CIA(기밀성, 무결성 및 가용성)는 정보 시스템 보안을 벤치마킹하는 데 사용되는 세 가지 핵심 요소입니다. 이것은 CIA 트라이어드 또는 AIC 트라이어드라고도 합니다. CIA 트라이어드는 보안 모델을 설계하고 기존 보안 모델의 강점을 평가하는 데 도움이 됩니다. 다음 섹션에서는 CIA 트라이어드의 세 가지 주요 속성에 대해 자세히 설명합니다.
 
-### Confidentiality
+### 기밀성
 
-Confidentiality attribute of the CIA triad worries about how to protect data from unintended recipients, both at rest and in transit. You achieve confidentiality by protecting transport channels and storage with encryption. For APIs, where the transport channel is HTTP (most of the time), you can use Transport Layer Security (TLS), which is in fact known as HTTPS. For storage, you can use disk-level encryption or application-level encryption. Channel encryption or transport-level encryption only protects a message while it’s in transit. 
+CIA 트라이어드의 기밀성 속성은 저장 중이거나 전송 중인 의도하지 않은 수신자로부터 데이터를 보호하는 방법에 대해 걱정합니다. 암호화로 전송 채널과 스토리지를 보호하여 기밀성을 확보합니다. 전송 채널이 대부분 HTTP인 API의 경우 실제로 `HTTPS`로 알려진 `TLS`를 사용할 수 있습니다. 스토리지의 경우 디스크 수준 암호화 또는 응용 프로그램 수준 암호화를 사용할 수 있습니다. 채널 암호화 또는 전송 수준 암호화는 전송 중인 메시지만 보호합니다.
 
-As soon as the message leaves the transport channel, it’s no more secure. In other words, transport-level encryption only provides point-to-point protection and truncates from where the connection ends. In contrast, there is message-level encryption, which happens at the application level and has no dependency on the transport channel. In other words, with message-level encryption, the application itself has to worry about how to encrypt the message, prior to sending it over the wire, and it’s also known as end-to-end encryption. If you secure data with message-level encryption, then you can use even an insecure channel (like HTTP) to transport the message.
+메시지가 전송 채널을 떠나는 즉시 더 이상 안전하지 않습니다. 즉, 전송 수준 암호화는 지점 간 보호만 제공하고 연결이 끝나는 곳에서 자릅니다. 이와 대조적으로 앱 수준에서 발생하고 전송 채널에 종속되지 않는 메시지 수준 암호화가 있습니다. 즉, 메시지 수준 암호화를 사용하면 앱 자체에서 유선을 통해 메시지를 보내기 전에 메시지를 암호화하는 방법에 대해 걱정해야 하며, 이를 `종단 간 암호화`라고도 합니다. 메시지 수준 암호화로 데이터를 보호하는 경우 보안되지 않은 `HTTP`을 사용하여 메시지를 전송할 수도 있습니다.
 
-A TLS connection, when going through a proxy, from the client to the server can be established in two ways: either with TLS bridging or with TLS tunneling. Almost all proxy servers support both modes. For a highly secured deployment, TLS tunneling is recommended. In TLS bridging, the initial connection truncates from the proxy server, and a new connection to the gateway (or the server) is established from there. That means the data is in cleartext while inside the proxy server. Any intruder who can plant malware in the proxy server can intercept traffic that passes through. With TLS tunneling, the proxy server facilitates creating a direct channel between the client machine and the gateway (or the server). The data flow through this channel is invisible to the proxy server.
+프록시를 통과할 때 클라이언트에서 서버로의 TLS 연결은 TLS 브리징 또는 TLS 터널링의 두 가지 방법으로 설정할 수 있습니다. 거의 모든 프록시 서버는 두 모드를 모두 지원합니다. 보안 수준이 높은 배포의 경우 `TLS` 터널링을 사용하는 것이 좋습니다. `TLS` 브리징에서 초기 연결은 프록시 서버에서 잘리고 거기에서 게이트웨이(또는 서버)에 대한 새 연결이 설정됩니다. 이는 데이터가 프록시 서버 내부에 있는 동안 일반 텍스트임을 의미합니다. 프록시 서버에 `맬웨어`를 심을 수 있는 모든 침입자는 통과하는 트래픽을 가로챌 수 있습니다. `TLS 터널링`을 사용하면 프록시 서버가 클라이언트 시스템과 게이트웨이(또는 서버) 간에 직접 채널을 쉽게 생성할 수 있습니다. 이 채널을 통한 데이터 흐름은 프록시 서버에 표시되지 않습니다.
 
-Message-level encryption, on the other hand, is independent from the underlying transport. It’s the application developers’ responsibility to encrypt and decrypt messages. Because this is application specific, it hurts interoperability and builds tight couplings between the sender and the receiver. Each has to know how to encrypt/decrypt data beforehand—which will not scale well in a largely distributed system. To overcome this challenge, there have been some concentrated efforts to build standards around message-level security. XML Encryption is one such effort, led by the W3C. It standardizes how to encrypt an XML payload. Similarly, the IETF JavaScript Object Signing and Encryption (JOSE) working group has built a set of standards for JSON payloads. In Chapters 7 and 8, we discuss JSON Web Signature and JSON Web Encryption, respectively—which are two prominent standards in securing JSON messages.
+반면에 메시지 수준 암호화는 기본 전송과 독립적입니다. 메시지를 암호화하고 해독하는 것은 앱 개발자의 책임입니다. 이것은 앱에 따라 다르기 때문에 상호 운용성을 해치고 발신자와 수신자 사이에 긴밀한 결합을 구축합니다. 각각은 데이터를 사전에 암호화/복호화하는 방법을 알아야 합니다. 이는 대규모로 분산된 시스템에서 잘 확장되지 않습니다. 이 문제를 극복하기 위해 메시지 수준 보안에 대한 표준을 구축하려는 집중적인 노력이 있었습니다. XML 암호화는 W3C가 주도하는 그러한 노력 중 하나입니다. XML 페이로드를 암호화하는 방법을 표준화합니다. 마찬가지로 `IETF JOSE 작업 그룹`은 JSON 페이로드에 대한 표준 세트를 구축했습니다. 7장과 8장에서는 각각 JSON 메시지 보안의 두 가지 주요 표준인 JSON 웹 서명과 JSON 웹 암호화에 대해 설명합니다.
 
-> Note
+> 참고
 >
-> SSL and TLS are often used interchangeably, but in pure technical terms, they aren’t the same. TLS is the successor of SSL 3.0. TLS 1.0, which is defined under the IETF RFC 2246, is based on the SSL 3.0 protocol specification, which was published by Netscape. The differences between TLS 1.0 and SSL 3.0 aren’t dramatic, but they’re significant enough that TLS 1.0 and SSL 3.0 don’t interoperate.
+> SSL과 TLS는 종종 같은 의미로 사용되지만 순수한 기술 용어로는 동일하지 않습니다. TLS는 SSL 3.0의 후속 제품입니다. `IETF RFC 2246`에 정의된 TLS 1.0은 Netscape에서 발행한 SSL 3.0 프로토콜 사양을 기반으로 합니다. TLS 1.0과 SSL 3.0의 차이점은 극적인 것은 아니지만 TLS 1.0과 SSL 3.0이 상호 운용되지 않을 만큼 충분히 중요합니다.
 
-There are few more key differences between transport-level security and message-level security, in addition to what were discussed before.
+이전에 논의된 것 외에도 전송 수준 보안과 메시지 수준 보안 사이에는 몇 가지 주요 차이점이 있습니다.
 
-- Transport-level security being point to point, it encrypts the entire message while in transit.
+- 전송 수준 보안은 지점 간 보안이므로 전송 중 전체 메시지를 암호화합니다.
 
-- Since transport-level relies on the underlying channel for protection, application developers have no control over which part of the data to encrypt and which part not to.
+- 전송 수준은 보호를 위해 기본 채널에 의존하기 때문에 애플리케이션 개발자는 암호화할 데이터 부분과 암호화하지 않을 부분을 제어할 수 없습니다.
 
-- Partial encryption isn’t supported by transport-level security, but it is supported by message-level security.
+- 부분 암호화는 전송 수준 보안에서 지원되지 않지만 메시지 수준 보안에서는 지원됩니다.
 
-- Performance is a key factor, which differentiates message-level security from transport-level security. Message-level encryption is far more expensive than transport-level encryption, in terms of resource consumption.
+- 성능은 메시지 수준 보안과 전송 수준 보안을 구분하는 핵심 요소입니다. 메시지 수준 암호화는 리소스 소비 측면에서 전송 수준 암호화보다 훨씬 비쌉니다.
 
-- Message-level encryption happens at the application layer, and it has to take into consideration the type and the structure of the message to carry out the encryption process. If it’s an XML message, then the process defined in the XML Encryption standard has to be followed.
+- 메시지 레벨 암호화는 애플리케이션 계층에서 이루어지며, 암호화 과정을 수행하기 위해서는 메시지의 종류와 구조를 고려해야 한다. XML 메시지인 경우 XML 암호화 표준에 정의된 프로세스를 따라야 합니다.
 
-### Integrity
 
-Integrity is a guarantee of data’s correctness and trustworthiness and the ability to detect any unauthorized modifications. It ensures that data is protected from unauthorized or unintentional alteration, modification, or deletion. The way to achieve integrity is twofold: preventive measures and detective measures. Both measures have to take care of data in transit as well as data at rest.
+### 무결성 원칙
 
-To prevent data from alteration while in transit, you should use a secure channel that only intended parties can read or do message-level encryption. TLS is the recommended approach for transport-level encryption. TLS itself has a way of detecting data modifications. It sends a message authentication code in each message from the first handshake, which can be verified by the receiving party to make sure the data has not been modified while in transit. 
+무결성은 데이터의 정확성과 신뢰성을 보장하고 무단 수정을 감지하는 능력입니다. 데이터가 무단 또는 의도하지 않은 변경, 수정 또는 삭제로부터 보호되도록 합니다. 무결성을 달성하는 방법은 예방 조치와 탐지 조치의 두 가지입니다. 두 측정 모두 전송 데이터와 저장 데이터를 모두 처리해야 합니다.
 
-If you use message-level encryption to prevent data alteration, then to detect any modification in the message at the recipient, the sender has to sign the message, and with the public key of the sender, the recipient can verify the signature. Similar to what we discussed in the previous section, there are standards based on the message type and the structure, which define the process of signing. If it’s an XML message, then the XML Signature standard by W3C defines the process.
+전송 중에 데이터가 변경되는 것을 방지하려면 의도된 당사자만 메시지 수준 암호화를 읽거나 수행할 수 있는 보안 채널을 사용해야 합니다. TLS는 전송 수준 암호화에 권장되는 접근 방식입니다. TLS 자체에는 데이터 수정을 감지하는 방법이 있습니다. 첫 번째 핸드셰이크에서 각 메시지의 메시지 인증 코드를 전송합니다. 이 코드는 전송 중에 데이터가 수정되지 않았는지 확인하기 위해 수신 당사자가 확인할 수 있습니다.
 
-For data at rest, you can calculate the message digest periodically and keep it in a secured place. The audit logs, which can be altered by an intruder to hide suspicious activities, need to be protected for integrity. Also with the advent of network storage and new technology trends, which have resulted in new failure modes for storage, interesting challenges arise in ensuring data integrity. A paper36 published by Gopalan Sivathanu, Charles P. Wright, and Erez Zadok of Stony Brook University highlights the causes of integrity violations in storage and presents a survey of integrity assurance techniques that exist today. It describes several interesting applications of storage integrity checking, apart from security, and discusses the implementation issues associated with those techniques.
+데이터 변경을 방지하기 위해 메시지 수준 암호화를 사용하는 경우 받는 사람에서 메시지의 수정 사항을 감지하려면 보낸 사람이 메시지에 서명해야 하고 보낸 사람의 공개 키로 받는 사람이 서명을 확인할 수 있습니다. 이전 섹션에서 논의한 것과 유사하게 서명 프로세스를 정의하는 메시지 유형 및 구조를 기반으로 하는 표준이 있습니다. XML 메시지인 경우 W3C의 XML 서명 표준이 프로세스를 정의합니다.
+
+미사용 데이터의 경우 메시지 다이제스트를 주기적으로 계산하여 안전한 장소에 보관할 수 있습니다. 의심스러운 활동을 숨기기 위해 침입자가 변경할 수 있는 감사 로그는 무결성을 위해 보호되어야 합니다. 또한 네트워크 스토리지의 출현과 스토리지에 대한 새로운 장애 모드를 초래한 새로운 기술 동향으로 인해 데이터 무결성을 보장하는 데 흥미로운 문제가 발생합니다. 보안과 별도로 스토리지 무결성 검사의 여러 흥미로운 응용 프로그램에 대해 설명하고 이러한 기술과 관련된 구현 문제에 대해 설명합니다.
 
 > Note
 >
 > HTTP Digest authentication with the quality of protection (qop) value set to auth-int can be used to protect messages for integrity. Appendix F discusses HTTP Digest authentication in depth.
 
-### Availability
+### 가용성
 
-Making a system available for legitimate users to access all the time is the ultimate goal of any system design. Security isn’t the only aspect to look into, but it plays a major role in keeping the system up and running. The goal of the security design should be to make the system highly available by protecting it from illegal access attempts. Doing so is extremely challenging. Attacks, especially on a public API, can vary from an attacker planting malware in the system to a highly organized distributed denial of service (DDoS) attack.
+합법적인 사용자가 항상 액세스할 수 있는 시스템을 만드는 것은 모든 시스템 설계의 궁극적인 목표입니다. 보안은 조사해야 할 유일한 측면이 아니지만 시스템을 계속 가동하고 실행하는 데 중요한 역할을 합니다. 보안 설계의 목표는 불법적인 액세스 시도로부터 시스템을 보호하여 시스템을 고가용성으로 만드는 것이어야 합니다. 그렇게 하는 것은 매우 어려운 일입니다. 특히 공개 API에 대한 공격은 공격자가 시스템에 맬웨어를 심는 것부터 고도로 조직화된 DDoS 공격에 이르기까지 다양합니다.
 
-DDoS attacks are hard to eliminate fully, but with a careful design, they can be minimized to reduce their impact. In most cases, DDoS attacks must be detected at the network perimeter level—so, the application code doesn’t need to worry too much. But vulnerabilities in the application code can be exploited to bring a system down. A paper37 published by Christian Mainka, Juraj Somorovsky, Jorg Schwenk, and Andreas Falkenberg discusses eight types of DoS attacks that can be carried out against SOAP-based APIs with XML payloads:
+DDoS 공격은 완전히 제거하기 어렵지만 신중하게 설계하면 영향을 줄이기 위해 최소화할 수 있습니다. 대부분의 경우 DDoS 공격은 네트워크 경계 수준에서 감지되어야 하므로 애플리케이션 코드는 너무 걱정할 필요가 없습니다. 그러나 애플리케이션 코드의 취약점을 악용하여 시스템을 다운시킬 수 있습니다. Christian Mainka, Juraj Somorovsky, Jorg Schwenk 및 Andreas Falkenberg가 발행한 논문은 XML 페이로드가 있는 SOAP 기반 API에 대해 수행할 수 있는 8가지 유형의 DoS 공격에 대해 설명합니다.
 
-- Coercive parsing attack: The attacker sends an XML document with a deeply nested XML structure. When a DOM-based parser processes the XML document, an out-of-memory exception or a high CPU load can occur.
+- 강압적 구문 분석 공격: 공격자가 깊이 중첩된 XML 구조를 가진 XML 문서를 보낸다. DOM 기반 파서가 XML 문서를 처리할 때 메모리 부족 예외 또는 높은 CPU 로드가 발생할 수 있습니다.
 
-- SOAP array attack: Forces the attacked web service to declare a very large SOAP array. This can exhaust the web service’s memory.
+- SOAP 배열 공격: 공격을 받은 웹 서비스가 매우 큰 SOAP 배열을 선언하도록 합니다. 이것은 웹 서비스의 메모리를 고갈시킬 수 있습니다.
 
-- XML element count attack: Attacks the server by sending a SOAP message with a high number of non-nested elements.
+- XML ​​요소 개수 공격: 비중첩 요소가 많은 SOAP 메시지를 전송하여 서버를 공격합니다.
 
-- XML attribute count attack: Attacks the server by sending a SOAP message with a high attribute count.
+- XML ​​속성 카운트 공격: 속성 카운트가 높은 SOAP 메시지를 전송하여 서버를 공격합니다.
 
-- XML entity expansion attack: Causes a system failure by forcing the server to recursively resolve entities defined in a document type definition (DTD). This attack is also known as an XML bomb or a billion laughs attack.
+- XML ​​엔터티 확장 공격: 서버가 DTD(문서 유형 정의)에 정의된 엔터티를 재귀적으로 확인하도록 하여 시스템 장애를 일으킵니다. 이 공격은 XML 폭탄 또는 10억 웃음 공격이라고도 합니다.
 
-- XML external entity DoS attack: Causes a system failure by forcing the server to resolve a large external entity defined in a DTD. If an attacker is able to execute the external entity attack, an additional attack surface may appear.
+- XML ​​외부 엔터티 DoS 공격: 서버가 DTD에 정의된 대규모 외부 엔터티를 강제로 해결하여 시스템 장애를 일으킵니다. 공격자가 외부 엔티티 공격을 실행할 수 있는 경우 추가 공격 표면이 나타날 수 있습니다.
 
-- XML overlong name attack: Injects overlong XML nodes in the XML document. Overlong nodes can be overlong element names, attribute names, attribute values, or namespace definitions.
+- XML ​​overlong name 공격: XML 문서에 지나치게 긴 XML 노드를 삽입합니다. 너무 긴 노드는 너무 긴 요소 이름, 속성 이름, 속성 값 또는 네임스페이스 정의일 수 있습니다.
 
-- Hash collision attack (HashDoS): Different keys result in the same bucket assignments, causing a collision. A collision leads to resource-intensive computations in the bucket. When a weak hash function is used, an attacker can intentionally create hash collisions that lead to a system failure.
+- 해시 충돌 공격(HashDoS): 다른 키를 사용하면 동일한 버킷 할당이 발생하여 충돌이 발생합니다. 충돌은 버킷에서 리소스 집약적인 계산으로 이어집니다. 약한 해시 함수를 사용하면 공격자가 의도적으로 해시 충돌을 만들어 시스템 오류를 일으킬 수 있습니다.
 
-Most of these attacks can be prevented at the application level. For CPU- or memory-intensive operations, you can keep threshold values. For example, to prevent a coercive parsing attack, the XML parser can enforce a limit on the number of elements. Similarly, if your application executes a thread for a longer time, you can set a threshold and kill it. Aborting any further processing of a message as soon as it’s found to be not legitimate is the best way to fight against DoS attacks. This also highlights the importance of having authentication/authorization checks closest to the entry point of the flow.
+이러한 공격의 대부분은 애플리케이션 수준에서 방지할 수 있습니다. CPU 또는 메모리 집약적 작업의 경우 임계값을 유지할 수 있습니다. 예를 들어, 강제 구문 분석 공격을 방지하기 위해 XML 파서는 요소 수에 제한을 적용할 수 있습니다. 유사하게, 애플리케이션이 더 오랜 시간 동안 스레드를 실행하는 경우 임계값을 설정하고 종료할 수 있습니다. 합법적이지 않은 것으로 확인되는 즉시 메시지의 추가 처리를 중단하는 것이 DoS 공격에 맞서 싸우는 가장 좋은 방법입니다. 이는 또한 흐름의 진입점에 가장 가까운 인증/권한 부여 확인의 중요성을 강조합니다.
 
-> Note
+> 참고
 >
-> According to eSecurity Planet, one of the largest DDoS attacks hit the Internet in March 2013 and targeted the Cloudflare network with 120 Gbps. The upstream providers were hit by 300 Gbps DDoS at the peak of the attack.
+> eSecurity Planet에 따르면 가장 큰 DDoS 공격 중 하나가 2013년 3월 인터넷을 강타했으며 120Gbps의 Cloudflare 네트워크를 표적으로 삼았습니다. 업스트림 공급자는 공격이 절정에 달했을 때 300Gbps DDoS의 공격을 받았습니다.
 
-There are also DoS attacks carried out against JSON vulnerabilities. CVE-2013-026938 explains a scenario in which a carefully crafted JSON message can be used to trigger the creation of arbitrary Ruby symbols or certain internal objects, to result in a DoS attack.
+JSON 취약점에 대한 DoS 공격도 있습니다. CVE-2013-026938은 신중하게 제작된 JSON 메시지를 사용하여 임의의 Ruby 기호 또는 특정 내부 개체 생성을 트리거하여 DoS 공격을 일으킬 수 있는 시나리오를 설명합니다.
 
-## Security Control
+## 보안 통제
 
-Confidentiality, Integrity, and Availability is one of the core principles of information security. In achieving it, authentication, authorization, nonrepudiation, and auditing are four prominent controls, which play a vital role. In the following sections, we discuss these four security controls in detail.
+기밀성, 무결성 및 가용성은 정보 보안의 핵심 원칙 중 하나입니다. 이를 달성하기 위해 인증, 권한 부여, 부인 방지 및 감사가 중요한 역할을 하는 4가지 주요 제어 기능입니다. 다음 섹션에서는 이러한 네 가지 보안 제어에 대해 자세히 설명합니다.
 
-### Authentication
+### 인증
 
-Authentication is the process of identifying a user, a system, or a thing in a unique manner to prove that it is the one who it claims to be. Authentication can be direct or brokered, based on how you bring your authentication assertions. If you directly log in to a system just providing your username and password, it falls under direct authentication. In other words, under direct authentication, the entity which wants to authenticate itself presents the authentication assertions to the service it wants to access. 
+인증은 사용자, 시스템 또는 사물을 고유한 방식으로 식별하여 그것이 주장하는 사람임을 증명하는 프로세스입니다. 인증은 인증 어설션을 가져오는 방법에 따라 직접 또는 중개될 수 있습니다. 사용자 이름과 비밀번호만 제공하면 시스템에 직접 로그인하는 경우 직접 인증에 해당합니다. 즉, 직접 인증에서 자신을 인증하려는 엔터티는 액세스하려는 서비스에 인증 주장을 제시합니다.
 
-Under brokered authentication, there is a third party involved. This third party is commonly known as an identity provider. When you log in to your Yelp account via Facebook, it falls under brokered authentication, and Facebook is the identity provider. With brokered authentication, the service provider (or the website you want to log in, or the API you want to access) does not trust you directly. It only trusts an identity provider. You can access the service only if the trusted identity provider (by the service provider) passes a positive assertion to the service provider.
+중개 인증에는 제3자가 관련되어 있습니다. 이 제3자는 일반적으로 ID 제공자로 알려져 있습니다. Facebook을 통해 Yelp 계정에 로그인하면 중개 인증에 해당하며 Facebook은 ID 제공자입니다. 중개 인증을 사용하면 서비스 제공자(또는 로그인하려는 웹 사이트 또는 액세스하려는 API)가 사용자를 직접 신뢰하지 않습니다. ID 공급자만 신뢰합니다. 신뢰할 수 있는 ID 제공자(서비스 제공자에 의한)가 서비스 제공자에게 긍정적인 주장을 전달하는 경우에만 서비스에 액세스할 수 있습니다.
 
-Authentication can be done in a single factor or in multiple factors (also known as multifactor authentication). Something you know, something you are, and something you have are the well-known three factors of authentication. For multifactor authentication, a system should use a combination of at least two factors. Combining two techniques that fall under the same category isn’t considered multifactor authentication. For example, entering a username and a password and then a PIN number isn’t considered multifactor authentication, because both fall under the something you know category.
+인증은 단일 요소 또는 다중 요소(다중 요소 인증이라고도 함)에서 수행할 수 있습니다. 당신이 알고 있는 것, 당신 자신, 그리고 당신이 가진 것이 인증의 잘 알려진 세 가지 요소입니다. 다단계 인증의 경우 시스템은 최소한 두 가지 요소를 조합하여 사용해야 합니다. 동일한 범주에 속하는 두 가지 기술을 결합하는 것은 다단계 인증으로 간주되지 않습니다. 예를 들어 사용자 이름과 비밀번호를 입력한 다음 PIN 번호를 입력하는 것은 다단계 인증으로 간주되지 않습니다. 둘 다 알고 있는 범주에 속하기 때문입니다
 
-> **Note**
+> **참고**
 >
-> Google two-step verification falls under multifactor authentication. First you need to provide a username and a password (something you know), and then a PIN is sent to your mobile phone. Knowing the PIN verifies that the registered mobile phone is under your possession: it’s something you have. Then again one can argue this is not multifactor authentication, because you only need to know the PIN, having the phone with you to get the PIN is not mandatory. This sounds bit weird, but Grant Blakeman’s incident proved exactly the same thing.39 An attacker was able to set a call forwarding number into Grant’s cell phone and was able to receive Google password reset information to the new number (via call forwarding).
+> Google 2단계 인증은 다단계 인증에 해당합니다. 먼저 사용자 이름과 비밀번호(귀하가 알고 있는 것)를 제공해야 하며, 그런 다음 PIN이 휴대 전화로 전송됩니다. PIN을 알면 등록된 휴대 전화가 귀하의 소유 하에 있음을 확인할 수 있습니다. 그런 다음 다시 한 번 이것은 다단계 인증이 아니라고 주장할 수 있습니다. PIN만 알면 되며 PIN을 받기 위해 전화를 가지고 있어야 하는 것은 필수가 아니기 때문입니다. 다소 이상하게 들리지만 Grant Blakeman의 사건은 정확히 동일한 것으로 판명되었습니다. 공격자는 Grant의 휴대전화에 착신 전환 번호를 설정할 수 있었고 Google 비밀번호 재설정 정보를 새 번호로 수신할 수 있었습니다(착신 전환을 통해).
 
-### Something You Know
+### 당신이 알고 있는 것
 
-Passwords, passphrases, and PIN numbers belong to the category of something you know. This has been the most popular form of authentication not just for decades but also for centuries. It goes back to the eighteenth century. In the Arabian folktale Ali Baba and the Forty Thieves from One Thousand and One Nights, Ali Baba uses the passphrase “open sesame” to open the door to a hidden cave. Since then, this has become the most popular form of authentication. Unfortunately, it’s also the weakest form of authentication. Password-protected systems can be broken in several ways. Going back to Ali Baba’s story, his brother-in-law got stuck in the same cave without knowing the password and tried shouting all the words he knew. This, in modern days, is known as a brute-force attack. The first known brute-force attack took place in the 18th century. Since then, it has become a popular way of breaking password-secured systems.
+암호, 암호 및 PIN 번호는 알고 있는 범주에 속합니다. 이것은 수십 년 동안뿐만 아니라 수세기 동안 가장 인기 있는 인증 형식이었습니다. 18세기로 거슬러 올라갑니다. 아라비아 민담 Ali Baba와 천일야화 사십도에서 Ali Baba는 "열려라 참깨"라는 암호를 사용하여 숨겨진 동굴의 문을 엽니다. 그 이후로 이것은 가장 인기 있는 인증 형식이 되었습니다. 불행히도 가장 약한 인증 방식이기도 합니다. 암호로 보호된 시스템은 여러 가지 방법으로 손상될 수 있습니다. Ali Baba의 이야기로 돌아가서, 그의 처남은 비밀번호도 모른 채 같은 동굴에 갇히고 그가 아는 ​​모든 단어를 외치려고 했습니다. 이것은 현대에는 무차별 대입 공격으로 알려져 있습니다. 알려진 최초의 무차별 대입 공격은 18세기에 발생했습니다. 그 이후로 암호 보안 시스템을 깨는 인기 있는 방법이 되었습니다.
 
-> **Note**
+> **참고**
 >
-> In April 2013, WordPress was hit with a brute-force attack of massive scale. The average scans per day in April were more than 100,000.40 There are different forms of brute-force attacks. The dictionary attack is one of them, where the brute-force attack is carried out with a limited set of inputs based on a dictionary of commonly used words. This is why you should have a corporate password policy that should enforce strong passwords with mixed alphanumeric characters that aren’t found in dictionaries. Most public web sites enforce a CAPTCHA after few failed login attempts. This makes automated/tool-based brute-force attacks harder to execute.
+> 2013년 4월 WordPress는 대규모 무차별 대입 공격을 받았습니다. 4월의 하루 평균 스캔 수는 100,000건을 넘었습니다. 무차별 대입 공격에는 다양한 형태가 있습니다. 사전 공격은 그 중 하나이며, 일반적으로 사용되는 단어 사전을 기반으로 제한된 입력 집합으로 무차별 대입 공격을 수행합니다. 이것이 사전에서 찾을 수 없는 혼합 영숫자 문자로 강력한 암호를 적용해야 하는 회사 암호 정책이 있어야 하는 이유입니다. 대부분의 공개 웹 사이트는 로그인 시도에 몇 번 실패하면 보안문자를 적용합니다. 이는 자동화/도구 기반 무차별 대입 공격을 실행하기 어렵게 만듭니다.
 
-### Something You Have
+### 보유하고 있는 것
 
-Certificates and smart card–based authentication fall into the category of something you have. This is a much stronger form of authentication than something you know. TLS mutual authentication is the most popular way of securing APIs with client certificates; this is covered in detail in Chapter 3.
+인증서 및 스마트 카드 기반 인증은 보유하고 있는 범주에 속합니다. 이것은 당신이 알고 있는 것보다 훨씬 더 강력한 인증 형식입니다. TLS 상호 인증은 클라이언트 인증서로 API를 보호하는 가장 널리 사용되는 방법입니다. 이것은 3장에서 자세히 다룹니다.
 
-FIDO (Fast IDentity Online) authentication also falls under the something you have category. FIDO alliance41 has published three open specifications to address certain concerns in strong authentication: FIDO Universal Second Factor (FIDO U2F), FIDO Universal Authentication Framework (FIDO UAF) and the Client to Authenticator Protocol (CTAP). FIDO U2F protocol allows online services to augment the security of their existing password infrastructure by adding a strong second factor to user login. The largest deployment of FIDO U2F–based authentication is at Google. Google has been using FIDO U2F internally for some time to secure its internal services, and in October 2014 Google made FIDO U2F enabled to all its users publicly.42
+FIDO(Fast IDentity Online) 인증도 카테고리에 속합니다. FIDO Alliance41는 강력한 인증의 특정 문제를 해결하기 위해 FIDO U2F(FIDO Universal Second Factor), FIDO UAF(FIDO Universal Authentication Framework) 및 CTAP(Client to Authenticator Protocol)의 세 가지 공개 사양을 발표했습니다. FIDO U2F 프로토콜을 사용하면 온라인 서비스에서 사용자 로그인에 강력한 두 번째 요소를 추가하여 기존 암호 인프라의 보안을 강화할 수 있습니다. FIDO U2F 기반 인증의 가장 큰 배포는 Google입니다. Google은 내부 서비스를 보호하기 위해 한동안 내부적으로 FIDO U2F를 사용해 왔으며 2014년 10월에 모든 사용자가 FIDO U2F를 공개적으로 사용할 수 있도록 설정했습니다.42
 
-### Something You Are
+### 당신 자신
 
-Fingerprints, eye retina, facial recognition, and all other biometric-based authentication techniques fall into the category of something you are. This is the strongest form of authentication. In most of the cases, biometric authentication is not done on its own, rather used with another factor to further improve the security.
+지문, 눈 망막, 안면 인식 및 기타 모든 생체 인식 기반 인증 기술은 사용자의 범주에 속합니다. 이것은 가장 강력한 인증 형식입니다. 대부분의 경우 생체 인증은 자체적으로 수행되지 않고 보안을 더욱 강화하기 위해 다른 요소와 함께 사용됩니다.
 
-With the wide adoption of mobile devices, most of the retailers, financial institutes, and many others have chosen fingerprint-based authentication for their mobile apps. In the iOS platform, all these applications associate their username- and password-based authentication with Apple Touch ID (or face recognition). Once the initial association is done, a user can log in to all the associated applications just by scanning his fingerprint. Further iPhone also associates Touch ID with App Store login and to authorize Apple Pay transactions.
+모바일 장치의 광범위한 채택으로 대부분의 소매업체, 금융 기관 및 기타 많은 기업이 모바일 앱에 지문 기반 인증을 선택했습니다. iOS 플랫폼에서 이러한 모든 애플리케이션은 사용자 이름 및 암호 기반 인증을 Apple Touch ID(또는 얼굴 인식)와 연결합니다. 초기 연결이 완료되면 사용자는 지문을 스캔하는 것만으로 연결된 모든 애플리케이션에 로그인할 수 있습니다. 또한 iPhone은 Touch ID를 App Store 로그인과 연결하고 Apple Pay 거래를 승인합니다
 
-### Authorization
+## 권한 부여 Authorization
 
-Authorization is the process of validating what actions an authenticated user, a system, or a thing can perform within a well-defined system boundary. Authorization happens with the assumption that the user is already authenticated. Discretionary Access Control (DAC) and Mandatory Access Control (MAC) are two prominent models to control access in a system.
+권한 부여는 인증된 사용자, 시스템 또는 사물이 잘 정의된 시스템 경계 내에서 수행할 수 있는 작업을 확인하는 프로세스입니다. 권한 부여는 사용자가 이미 인증되었다는 가정 하에 이루어집니다. 임의 액세스 제어(DAC) 및 필수 액세스 제어(MAC)는 시스템에서 액세스를 제어하는 ​​두 가지 주요 모델입니다.
 
-With Discretionary Access Control (DAC), the user who owns the data, at their discretion, can transfer rights to another user. Most operating systems support DAC, including Unix, Linux, and Windows. When you create a file in Linux, you can decide who should be able to read, write to, and execute it. Nothing prevents you from sharing it with any user or a group of users. There is no centralized control—which can easily bring security flaws into the system.
+임의 접근 제어(DAC)를 사용하면 데이터를 소유한 사용자가 재량에 따라 다른 사용자에게 권한을 양도할 수 있습니다. Unix, Linux 및 Windows를 포함한 대부분의 운영 체제는 DAC를 지원합니다. Linux에서 파일을 생성할 때 누가 파일을 읽고, 쓰고, 실행할 수 있는지 결정할 수 있습니다. 어떤 사용자 또는 사용자 그룹과도 공유할 수 없습니다. 시스템에 보안 결함을 쉽게 가져올 수 있는 중앙 집중식 제어가 없습니다.
 
-With Mandatory Access Control (MAC), only designated users are allowed to grant rights. Once rights are granted, users can’t transfer them. SELinux, Trusted Solaris, and TrustedBSD are some of the operating systems that support MAC.
+MAC(Mandatory Access Control)을 사용하면 지정된 사용자만 권한을 부여할 수 있습니다. 권한이 부여되면 사용자는 이를 양도할 수 없습니다. SELinux, Trusted Solaris 및 TrustedBSD는 MAC을 지원하는 운영 체제 중 일부입니다.
 
-> Note
+> 참고
 >
-> SELinux is an NSA research project that added the Mandatory Access Control (MAC) architecture to the Linux kernel, which was then merged into the mainstream version of Linux in August 2003. It utilizes a Linux 2.6 kernel feature called the Linux Security Modules (LSM) interface.
+> `SELinux`는 Linux 커널에 MAC(Mandatory Access Control) 아키텍처를 추가한 NSA 연구 프로젝트로, 이후 2003년 8월 주류 버전의 Linux에 병합되었습니다. `Linux Security Modules(LSM)`라는 Linux 2.6 커널 기능을 활용합니다. ) 상호 작용.
 
-The difference between DAC and MAC lies in who owns the right to delegate. In either case, you need to have a way to represent access control rules or the access matrix. Authorization tables, access control lists (see Figure 2-2), and capabilities are three ways of representing access control rules. An authorization table is a three-column table with subject, action, and resource. The subject can be an individual user or a group. With access control lists, each resource is associated with a list, indicating, for each subject, the actions that the subject can exercise on the resource. With capabilities, each subject has an associated list called a capability list, indicating, for each resource, the actions that the user is allowed to exercise on the resource. A bank locker key can be considered a capability: the locker is the resource, and the user holds the key to the resource. At the time the user tries to open the locker with the key, you only have to worry about the capabilities of the key—not the capabilities of its owner. An access control list is resource driven, whereas capabilities are subject driven.
+DAC와 MAC의 차이점은 누가 위임할 수 있는지에 있습니다. 두 경우 모두 액세스 제어 규칙이나 액세스 매트릭스를 나타내는 방법이 필요합니다. 권한 부여 테이블, 액세스 제어 목록(그림 2-2 참조) 및 기능은 액세스 제어 규칙을 나타내는 세 가지 방법입니다. 권한 부여 테이블은 제목, 작업 및 리소스가 있는 3열 테이블입니다. 주체는 개별 사용자 또는 그룹이 될 수 있습니다. 액세스 제어 목록을 사용하면 각 리소스가 목록과 연결되어 각 주체에 대해 주체가 리소스에 대해 실행할 수 있는 작업을 나타냅니다. 기능이 있는 경우 각 주제에는 기능 목록이라는 관련 목록이 있으며, 이는 각 리소스에 대해 사용자가 해당 리소스에 대해 실행할 수 있는 작업을 나타냅니다. 은행 사물함 키는 기능으로 간주될 수 있습니다. 사물함은 리소스이고 사용자는 리소스에 대한 키를 보유합니다. 사용자가 로커를 열쇠로 열려고 할 때, 당신은 열쇠 소유자의 능력이 아니라 열쇠의 능력에 대해서만 걱정하면 됩니다. 액세스 제어 목록은 리소스 기반이지만 기능은 주체 기반입니다.
 
-Authorization tables, access control lists and capabilities are very coarse grained. One alternative is to use policy-based access control. With policy-based access control, you can have authorization policies with fine granularity. In addition, capabilities and access control lists can be dynamically derived from policies. eXtensible Access Control Markup Language (XACML) is one of the OASIS standards for policy-based access control.
+권한 부여 테이블, 액세스 제어 목록 및 기능은 매우 세분화되어 있습니다. 한 가지 대안은 정책 기반 액세스 제어를 사용하는 것입니다. 정책 기반 액세스 제어를 통해 세분화된 권한 부여 정책을 가질 수 있습니다. 또한 기능 및 액세스 제어 목록은 정책에서 동적으로 파생될 수 있습니다. XACML은 정책 기반 액세스 제어를 위한 OASIS 표준 중 하나입니다.
 
 Figure 2-2 Access control list
 
@@ -304,56 +304,56 @@ Figure 2-2 Access control list
 >
 > XACML is an XML-based open standard for policy-based access control developed under the OASIS XACML Technical Committee. XACML 3.0, the latest XACML specification, was standardized in January 2013.43 Then again XACML is little too complex in defining access control policies, irrespective of how powerful it is. You can also check the Open Policy Agent (OPA) project, which has become quite popular recently in building fine-grained access control policies.
 
-### Nonrepudiation
+### 부인 방지
 
-Whenever you do a business transaction via an API by proving your identity, later you should not be able to reject it or repudiate it. The property that ensures the inability to repudiate is known as nonrepudiation. You do it once—you own it forever. Nonrepudiation should provide proof of the origin and the integrity of data, both in an unforgeable manner, which a third party can verify at any time. Once a transaction is initiated, none of its content—including the user identity, date and time, and transaction details—should be altered to maintain the transaction integrity and allow future verifications. One has to ensure that the transaction is unaltered and logged after it’s committed and confirmed. Logs must be archived and properly secured to prevent unauthorized modifications. Whenever there is a repudiation dispute, transaction logs along with other logs or data can be retrieved to verify the initiator, date and time, transaction history, and so on.
+API를 통해 신원을 증명하여 비즈니스 거래를 할 때마다 나중에 이를 거부하거나 거부할 수 없어야 합니다. 부인할 수 없음을 보장하는 속성을 부인 방지라고 합니다. 한 번만 하면 영원히 소유할 수 있습니다. 부인 방지는 제3자가 언제든지 확인할 수 있는 위조 불가능한 방식으로 데이터의 출처와 무결성에 대한 증거를 제공해야 합니다. 트랜잭션이 시작되면 트랜잭션 무결성을 유지하고 향후 검증을 허용하기 위해 사용자 ID, 날짜 및 시간, 트랜잭션 세부 정보를 포함한 그 어떤 내용도 변경되어서는 안 됩니다. 트랜잭션이 커밋되고 확인된 후 변경되지 않고 기록되었는지 확인해야 합니다. 무단 수정을 방지하려면 로그를 보관하고 적절하게 보호해야 합니다. 거부 분쟁이 있을 때마다 다른 로그 또는 데이터와 함께 트랜잭션 로그를 검색하여 개시자, 날짜 및 시간, 트랜잭션 내역 등을 확인할 수 있습니다.
 
-> Note
-> 
-> TLS ensures authentication (by verifying the certificates), confidentiality (by encrypting the data with a secret key), and integrity (by digesting the data), but not nonrepudiation. In TLS, the Message Authentication Code (MAC) value of the data transmitted is calculated with a shared secret key, known to both the client and the server. Shared keys can’t be used for nonrepudiation.
-
-Digital signatures provide a strong binding between the user (who initiates the transaction) and the transaction the user performs. A key known only to the user should sign the complete transaction, and the server (or the service) should be able to verify the signature through a trusted broker that vouches for the legitimacy of the user’s key. This trusted broker can be a certificate authority (CA). Once the signature is verified, the server knows the identity of the user and can guarantee the integrity of the data. For nonrepudiation purposes, the data must be stored securely for any future verification.
-
-> Note
+> 참고
 >
-> The paper44 Non-Repudiation in Practice, by Chii-Ren Tsai of Citigroup, discusses two potential nonrepudiation architectures for financial transactions using challenge-response one-time password tokens and digital signatures.
+> TLS는 인증(인증서 확인), 기밀성(비밀 키로 데이터 암호화) 및 무결성(데이터 다이제스트)을 보장하지만 부인 방지는 보장하지 않습니다. TLS에서 전송된 데이터의 MAC(메시지 인증 코드) 값은 클라이언트와 서버 모두에 알려진 공유 비밀 키로 계산됩니다. 공유 키는 부인 방지에 사용할 수 없습니다.
 
-### Auditing
+디지털 서명은 사용자(트랜잭션을 시작한 사용자)와 사용자가 수행하는 트랜잭션 사이에 강력한 바인딩을 제공합니다. 사용자만 알고 있는 키로 전체 트랜잭션에 서명해야 하며 서버(또는 서비스)는 사용자 키의 적법성을 보증하는 신뢰할 수 있는 브로커를 통해 서명을 확인할 수 있어야 합니다. 이 신뢰할 수 있는 브로커는 인증 기관(CA)일 수 있습니다. 서명이 확인되면 서버는 사용자의 신원을 알고 데이터의 무결성을 보장할 수 있습니다. 부인 방지를 위해 데이터는 향후 확인을 위해 안전하게 저장되어야 합니다.
 
-There are two aspects of auditing: keeping track of all legitimate access attempts to facilitate nonrepudiation, and keeping track of all illegal access attempts to identify possible threats. There can be cases where you’re permitted to access a resource, but it should be with a valid purpose. For example, a mobile operator is allowed to access a user’s call history, but he should not do so without a request from the corresponding user. If someone frequently accesses a user’s call history, you can detect it with proper audit trails. Audit trails also play a vital role in fraud detection. An administrator can define fraud-detection patterns, and the audit logs can be evaluated in near real time to find any matches.
+> 참고
+>
+> Citigroup의 Chii-Ren Tsai가 작성한 Non-Repudiation in Practice 백서에서는 시도 응답 1회용 암호 토큰과 디지털 서명을 사용하는 금융 거래에 대한 두 가지 잠재적인 부인 방지 아키텍처에 대해 논의합니다.
 
-## Summary
 
-- Security isn’t an afterthought. It has to be an integral part of any development project and also for APIs. It starts with requirements gathering and proceeds through the design, development, testing, deployment, and monitoring phases.
+## 감사
 
-- Connectivity, extensibility, and complexity are the three trends behind the rise of data breaches around the globe in the last few years.
+감사에는 두 가지 측면이 있습니다. 부인 방지를 용이하게 하기 위해 모든 합법적인 액세스 시도를 추적하고 가능한 위협을 식별하기 위해 모든 불법적인 액세스 시도를 추적합니다. 리소스에 대한 액세스가 허용되는 경우가 있을 수 있지만 유효한 목적이어야 합니다. 예를 들어 이동통신사는 사용자의 통화 내역에 액세스할 수 있지만 해당 사용자의 요청 없이 액세스해서는 안 됩니다. 누군가 사용자의 통화 기록에 자주 액세스하는 경우 적절한 감사 추적으로 이를 감지할 수 있습니다. 감사 추적은 사기 탐지에서도 중요한 역할을 합니다. 관리자는 사기 탐지 패턴을 정의할 수 있으며 감사 로그는 거의 실시간으로 평가되어 일치하는 항목을 찾을 수 있습니다.
 
-- The most challenging thing in any security design is to find and maintain the right balance between security and the user comfort.
+## 요약
 
-- A proper security design should care about all the communication links in the system. Any system is no stronger than its weakest link.
+- 보안은 나중에 생각하는 것이 아닙니다. 이는 모든 개발 프로젝트와 API의 필수적인 부분이어야 합니다. 요구 사항 수집으로 시작하여 설계, 개발, 테스트, 배포 및 모니터링 단계를 진행합니다.
 
-- A layered approach is preferred for any system being tightened for security. This is also known as defense in depth.
+- 연결성, 확장성 및 복잡성은 지난 몇 년 동안 전 세계적으로 증가하는 데이터 침해의 세 가지 추세입니다.
+- 모든 보안 설계에서 가장 어려운 것은 보안과 사용자 편의 사이에서 적절한 균형을 찾고 유지하는 것입니다.
 
-- Insider attacks are less complicated, but highly effective.
+- 적절한 보안 설계는 시스템의 모든 통신 링크에 주의해야 합니다. 어떤 시스템도 가장 약한 연결보다 강하지 않습니다.
 
-- Kerckhoffs’ principle emphasizes that a system should be secured by its design, not because the design is unknown to an adversary.
+- 보안을 위해 강화되는 모든 시스템에는 계층화된 접근 방식이 선호됩니다. 이를 심층 방어라고도 합니다.
 
-- The principle of least privilege states that an entity should only have the required set of permissions to perform the actions for which they are authorized, and no more.
+- 내부자 공격은 덜 복잡하지만 매우 효과적입니다.
 
-- The fail-safe defaults principle highlights the importance of making a system safe by default.
+- Kerckhoffs의 원칙은 설계가 적에게 알려지지 않았기 때문에가 아니라 설계에 의해 시스템을 보호해야 함을 강조합니다.
 
-- The economy of mechanism principle highlights the value of simplicity. The design should be as simple as possible.
+- 최소 권한의 원칙은 엔터티가 권한이 부여된 작업을 수행하는 데 필요한 권한 집합만 가져야 하며 더 이상은 없어야 한다는 것입니다.
 
-- With complete mediation principle, a system should validate access rights to all its resources to ensure whether they’re allowed to access or not.
+- 페일 세이프 기본 원칙은 기본적으로 시스템을 안전하게 만드는 것의 중요성을 강조합니다.
 
-- The open design principle highlights the importance of building a system in an open manner—with no secrets, confidential algorithms.
+- 메커니즘 원리의 경제는 단순함의 가치를 강조합니다. 디자인은 가능한 한 단순해야 합니다.
 
-- The principle of separation of privilege states that a system should not grant permissions based on a single condition.
+- 완전한 중재 원칙에 따라 시스템은 모든 리소스에 대한 액세스 권한을 확인하여 액세스가 허용되는지 여부를 확인해야 합니다.
 
-- The principle of least common mechanism concerns the risk of sharing state information among different components.
+- 개방형 설계 원칙은 비밀이 없고 기밀 알고리즘이 없는 개방형 방식으로 시스템을 구축하는 것의 중요성을 강조합니다.
 
-- The principle of psychological acceptability states that security mechanisms should not make the resource more difficult to access than if the security mechanisms were not present.
+- 권한 분리의 원칙은 시스템이 단일 조건으로 권한을 부여해서는 안 된다는 것입니다.
 
-- Confidentiality, integrity, and availability (CIA), widely known as the triad of information security, are three key factors used in benchmarking information systems security.
+- 최소 공통 메커니즘의 원칙은 서로 다른 구성 요소 간에 상태 정보를 공유할 위험에 관한 것입니다.
+
+- 심리적 수용의 원칙은 보안 메커니즘이 보안 메커니즘이 없는 경우보다 리소스에 대한 액세스를 더 어렵게 만들어서는 안 된다는 것입니다.
+
+- 정보 보안의 3대 요소로 널리 알려진 CIA(Confidentiality, Integrity, and Availability)는 정보 시스템 보안을 벤치마킹하는 데 사용되는 세 가지 핵심 요소입니다.
 
 >>>

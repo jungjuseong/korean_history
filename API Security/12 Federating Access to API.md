@@ -1,58 +1,52 @@
 # 12. Federating Access to APIs
 
-One of the research performed by Quocirca (analyst and research company) confirms that many businesses now have more external users who interact with enterprise applications than internal ones. In Europe, 58% of businesses transact directly with users from other firms and/or consumers. In the United Kingdom alone, the figure is 65%.
+Quocirca(분석가 및 연구 회사)가 수행한 연구 중 하나에 따르면 많은 기업에는 이제 내부 사용자보다 엔터프라이즈 애플리케이션과 상호 작용하는 외부 사용자가 더 많습니다. 유럽에서는 기업의 58%가 다른 회사 및/또는 소비자의 사용자와 직접 거래합니다. 영국에서만 그 수치가 65%입니다.
 
-If you look at recent history, most enterprises today grow via acquisitions, mergers, and partnerships. In the United States alone, the volume of mergers and acquisitions totaled $865.1 billion in the first nine months of 2013, according to Dealogic. That’s a 39% increase over the same period of the previous year and the highest nine-month total since 2008. What does this mean for securing APIs? You need to have the ability to deal with multiple heterogeneous security systems across borders.
+최근의 역사를 살펴보면 오늘날 대부분의 기업은 인수, 합병 및 파트너십을 통해 성장합니다. 딜로직(Dealogic)에 따르면 미국에서만 2013년 첫 9개월 동안 인수합병 규모는 총 8,651억 달러에 달했다. 이는 전년 동기 대비 39% 증가한 수치이며 2008년 이후 9개월 중 가장 높은 수치입니다. 이것이 API 보안에 의미하는 바는 무엇입니까? 국경을 넘어 여러 이기종 보안 시스템을 처리할 수 있는 능력이 필요합니다.
 
-Enabling Federation
+## Enabling Federation
 
-Federation, in the context of API security, is about propagating user identities across distinct identity management systems or distinct enterprises. Let’s start with a simple use case where you have an API exposed to your partners. How would you authenticate users for this API from different partners? These users belong to the external partners and are managed by them. HTTP Basic authentication won’t work. You don’t have access to the external users’ credentials, and, at the same time, your partners won’t expose an LDAP or a database connection outside their firewall to external parties. Asking for usernames and passwords simply doesn’t work in a federation scenario. Would OAuth 2.0 work? To access an API secured with OAuth, the client must present an access token issued by the owner of the API or issued by an entity that your API trusts. Users from external parties have to authenticate first with the OAuth authorization server that the API trusts and then obtain an access token. Ideally, the authorization server the API trusts is from the same domain as the API.
+API 보안의 맥락에서 `연합`은 고유한 ID 관리 시스템 또는 고유한 기업 전체에 사용자 ID를 전파하는 것입니다. 파트너에게 공개된 API가 있는 간단한 사용 사례부터 시작하겠습니다. 다른 파트너의 이 API에 대해 사용자를 어떻게 인증하시겠습니까? 이러한 사용자는 외부 파트너에 속하며 외부 파트너가 관리합니다. HTTP 기본 인증이 작동하지 않습니다. 외부 사용자의 자격 증명에 액세스할 수 없으며 동시에 파트너는 방화벽 외부의 LDAP 또는 데이터베이스 연결을 외부 당사자에게 노출하지 않습니다. 사용자 이름과 암호를 묻는 것은 연합 시나리오에서 작동하지 않습니다. OAuth 2.0이 작동합니까? OAuth로 보호되는 API에 액세스하려면 클라이언트가 API 소유자가 발급하거나 API가 신뢰하는 엔터티에서 발급한 액세스 토큰을 제시해야 합니다. 외부 당사자의 사용자는 먼저 API가 신뢰하는 OAuth 권한 부여 서버로 인증한 다음 액세스 토큰을 얻어야 합니다. 이상적으로는 API가 신뢰하는 권한 부여 서버가 API와 동일한 도메인에 있는 것입니다.
 
-Neither the authorization code grant type nor the implicit grant type mandates how to authenticate users at the authorization server. It’s up to the authorization server to decide. If the user is local to the authorization server, then it can use a username and password or any other direct authentication protocol. If the user is from an external entity, then you have to use some kind of brokered authentication.
+권한 부여 코드 부여 유형이나 암시적 부여 유형은 권한 부여 서버에서 사용자를 인증하는 방법을 요구하지 않습니다. 결정하는 것은 권한 부여 서버에 달려 있습니다. 사용자가 권한 부여 서버에 로컬인 경우 사용자 이름과 암호 또는 기타 직접 인증 프로토콜을 사용할 수 있습니다. 사용자가 외부 엔터티에서 온 경우 일종의 중개 인증을 사용해야 합니다
 
-Brokered Authentication
+## Brokered Authentication
 
-With brokered authentication, at the time of authentication, the local authorization server (running in the same domain as the API) does not need to trust each and every individual user from external parties. Instead, it can trust a broker from a given partner domain (see Figure 12-1). Each partner should have a trust broker whose responsibility is to authenticate its own users (possibly through direct authentication) and then pass the authentication decision back to the local OAuth authorization server in a reliable and trusted manner. In practice, an identity provider running in the user’s (in our case, the partner employees’) home domain plays the role of a trust broker.
+중개 인증을 사용하면 인증 시 로컬 인증 서버(API와 동일한 도메인에서 실행)가 외부 당사자의 모든 개별 사용자를 신뢰할 필요가 없습니다. 대신 지정된 파트너 도메인의 브로커를 신뢰할 수 있습니다(그림 12-1 참조). 각 파트너는 자신의 사용자를 인증(직접 인증을 통해 가능)한 다음 신뢰할 수 있고 신뢰할 수 있는 방식으로 인증 결정을 다시 로컬 OAuth 권한 부여 서버에 전달하는 역할을 하는 신뢰 브로커가 있어야 합니다. 실제로는 사용자(이 경우 파트너 직원)의 홈 도메인에서 실행되는 ID 공급자가 신뢰 중개자 역할을 합니다.
 
- 
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781484220504/files/A323855_2_En_12_Fig1_HTML.jpg)
+그림 12-1 OAuth 클라이언트 애플리케이션을 위한 중개 인증
 
-Figure 12-1
+파트너의 브로커와 로컬 OAuth 권한 부여 서버(또는 두 페더레이션 도메인 사이) 간의 신뢰 관계는 대역 외에서 설정해야 합니다. 즉, 사전에 두 당사자 간의 합의가 있어야 성립됩니다. 대부분의 시나리오에서 서로 다른 엔터티 간의 신뢰는 X.509 인증서를 통해 설정됩니다. 샘플 중개 인증 사용 사례를 살펴보겠습니다.
 
-Brokered authentication for OAuth client applications
+OAuth 원칙으로 돌아가서 연합 시나리오에서 리소스 소유자, 리소스 서버, 권한 부여 서버 및 클라이언트 애플리케이션의 네 가지 엔터티를 처리해야 합니다. 이러한 모든 엔터티는 동일한 도메인 또는 다른 도메인에 상주할 수 있습니다.
 
-The trust relationship between the brokers from partners and the local OAuth authorization server (or between two federation domains) must be established out of band. In other words, it has to be established with a prior agreement between two parties. In most scenarios, trust between different entities is established through X.509 certificates. Let’s walk through a sample brokered authentication use case.
+가장 간단한 시나리오부터 시작하겠습니다. 리소스 소유자(사용자), 리소스 서버(API 게이트웨이) 및 권한 부여 서버는 단일 도메인에 있고 클라이언트 애플리케이션(웹 앱)은 다른 도메인에 있습니다. 예를 들어, Foo Inc.의 직원이고 Bar Inc.에서 호스팅하는 웹 애플리케이션에 액세스하려고 합니다(그림 12-1 참조). Bar Inc.에서 웹 애플리케이션에 로그인하면 사용자를 대신하여 Foo Inc.에서 호스팅되는 API에 액세스해야 합니다. OAuth 용어를 사용하면 리소스 소유자이며 API는 리소스 서버에서 호스팅됩니다. 귀하와 API 모두 Foo 도메인에서 왔습니다. Bar Inc.에서 호스팅하는 웹 애플리케이션은 OAuth 클라이언트 애플리케이션입니다.
 
-Going back to OAuth principles, you need to deal with four entities in a federation scenario: the resource owner, the resource server, the authorization server, and the client application. All these entities can reside in the same domain or in different ones.
+그림 12-1은 OAuth 클라이언트 애플리케이션에 대해 중개 인증이 작동하는 방식을 보여줍니다.
 
-Let’s start with the simplest scenario first. The resource owner (user), resource server (API gateway), and authorization server are in a single domain, and the client application (web app) is in a different domain. For example, you’re an employee of Foo Inc. and want to access a web application hosted by Bar Inc. (see Figure 12-1). Once you log in to a web application at Bar Inc., it needs to access an API hosted in Foo Inc. on your behalf. Using OAuth terminology, you’re the resource owner, and the API is hosted in the resource server. Both you and API are from the Foo domain. The web application hosted by Bar Inc. is the OAuth client application.
+- Foo Inc.의 리소스 소유자(사용자)가 Bar Inc.의 웹 애플리케이션을 방문합니다(1단계).
 
-Figure 12-1 illustrates how brokered authentication works for an OAuth client application.
-
-- The resource owner (user) from Foo Inc. visits the web application at Bar Inc. (step 1).
-
-- To authenticate the user, the web application redirects the user to the OAuth authorization server at Foo Inc., which is also the home domain of the resource owner (step 2). To use the OAuth authorization code grant type, the web application also needs to pass its client ID along with the authorization code grant request during the redirection. At this time, the authorization server won’t authenticate the client application but only validates its existence. In a federation scenario, the authorization server does not need to trust each and every individual application (or OAuth client); rather, it trusts the corresponding domain. The authorization server accepts authorization grant requests from any client that belongs to a trusted domain. This also avoids the cost of client registration. You don’t need to register each client application from Bar Inc.—instead, you can build a trust relationship between the authorization server from Foo Inc. and the trust broker from Bar Inc. During the authorization code grant phase, the authorization server only needs to record the client ID. It doesn’t need to validate the client’s existence.
+- 사용자를 인증하기 위해 웹 애플리케이션은 리소스 소유자의 홈 도메인이기도 한 Foo Inc.의 OAuth 인증 서버로 사용자를 리디렉션합니다(2단계). OAuth 인증 코드 부여 유형을 사용하려면 웹 애플리케이션도 리디렉션 중에 인증 코드 부여 요청과 함께 클라이언트 ID를 전달해야 합니다. 이때 인증 서버는 클라이언트 애플리케이션을 인증하지 않고 존재 여부만 확인합니다. 연합 시나리오에서 권한 부여 서버는 모든 개별 애플리케이션(또는 OAuth 클라이언트)을 신뢰할 필요가 없습니다. 오히려 해당 도메인을 신뢰합니다. 권한 부여 서버는 신뢰할 수 있는 도메인에 속한 모든 클라이언트의 권한 부여 요청을 수락합니다. 이것은 또한 클라이언트 등록 비용을 피합니다. Bar Inc.의 각 클라이언트 애플리케이션을 등록할 필요가 없습니다. 대신 Foo Inc.의 인증 서버와 Bar Inc.의 트러스트 브로커 간에 신뢰 관계를 구축할 수 있습니다. 인증 코드 부여 단계에서 인증 서버만 클라이언트 ID를 기록해야 합니다. 클라이언트의 존재를 확인할 필요가 없습니다.
 
 > **Note**
+> The OAuth client identifier (ID) isn’t treated as a secret. It’s publicly visible to anyone.
+
+- 클라이언트 애플리케이션이 인증 서버로부터 인증 코드를 받으면(3단계), 다음 단계는 이를 유효한 액세스 토큰으로 교환하는 것입니다. 이 단계에서는 클라이언트 인증이 필요합니다.
+
+- 권한 부여 서버는 개별 응용 프로그램을 신뢰하지 않기 때문에 웹 응용 프로그램은 먼저 자체 도메인의 자체 신뢰 브로커에 인증하고(4단계) 서명된 주장을 받아야 합니다(5단계). 이 서명된 주장은 Foo Inc의 인증 서버에 대한 증거 토큰으로 사용할 수 있습니다.
+
+- 인증 서버는 어설션의 서명을 확인하고, 신뢰하는 엔터티가 서명한 경우 해당 액세스 토큰을 클라이언트 애플리케이션에 반환합니다(단계 6 및 7).
+
+- 클라이언트 애플리케이션은 액세스 토큰을 사용하여 리소스 소유자를 대신하여 Foo Inc.의 API에 액세스하거나(8단계) Foo Inc.의 사용자 엔드포인트와 통신하여 사용자에 대한 추가 정보를 얻을 수 있습니다.
+
+> **참고**
 >
- The OAuth client identifier (ID) isn’t treated as a secret. It’s publicly visible to anyone.
+> 옥스포드 영어 사전에 따르면 주장의 정의는 "사실이나 신념에 대한 자신감 있고 강력한 진술"입니다. 여기서 사실 또는 믿음은 이 주장을 가져오는 엔터티가 신뢰 브로커에서 인증된 엔터티라는 것입니다. 주장이 서명되지 않은 경우 중간에 누구든지 이를 변경할 수 있습니다. 신뢰 브로커(또는 주장 당사자)가 개인 키로 주장에 서명하면 중간에 아무도 이를 변경할 수 없습니다. 변경된 경우 서명 유효성 검사 중에 권한 부여 서버에서 변경 사항을 감지할 수 있습니다. 서명은 신뢰 브로커의 해당 공개 키를 사용하여 검증됩니다.
 
-- Once the client application gets the authorization code from the authorization server (step 3), the next step is to exchange it for a valid access token. This step requires client authentication.
+### SAML
 
-- Because the authorization server doesn’t trust each individual application, the web application must first authenticate to its own trust broker in its own domain (step 4) and get a signed assertion (step 5). This signed assertion can be used as a token of proof against the authorization server in Foo Inc.
-
-- The authorization server validates the signature of the assertion and, if it’s signed by an entity it trusts, returns the corresponding access token to the client application (steps 6 and 7).
-
-- The client application can use the access token to access the APIs in Foo Inc. on behalf of the resource owner (step 8), or it can talk to a user endpoint at Foo Inc. to get more information about the user.
-
-> **Note**
->
-
-
-The definition of assertion, according to the Oxford English Dictionary, is “a confident and forceful statement of fact or belief.” The fact or belief here is that the entity that brings this assertion is an authenticated entity at the trust broker. If the assertion isn’t signed, anyone in the middle can alter it. Once the trust broker (or the asserting party) signs the assertion with its private key, no one in the middle can alter it. If it’s altered, any alterations can be detected at the authorization server during signature validation. The signature is validated using the corresponding public key of the trust broker.
-
-Security Assertion Markup Language (SAML)
-
-Security Assertion Markup Language (SAML) is an OASIS standard for exchanging authentication, authorization, and identity-related data between interested parties in an XML-based data format. SAML 1.0 was adopted as an OASIS standard in 2002, and in 2003 SAML 1.1 was ratified as an OASIS standard. At the same time, the Liberty Alliance donated its Identity Federation Framework to OASIS. SAML 2.0 became an OASIS standard in 2005 by converging SAML 1.1, Liberty Alliance’s Identity Federation Framework, and Shibboleth 1.3. SAML 2.0 has four basic elements:
+SAML은 XML 기반 데이터 형식으로 이해 당사자 간에 인증, 권한 부여 및 ID 관련 데이터를 교환하기 위한 OASIS 표준입니다. SAML 1.0은 2002년 OASIS 표준으로 채택되었으며, 2003년 SAML 1.1은 OASIS 표준으로 승인되었습니다. 동시에 Liberty Alliance는 ID 연합 프레임워크를 OASIS에 기증했습니다. SAML 2.0은 SAML 1.1, Liberty Alliance의 Identity Federation Framework 및 Shibboleth 1.3을 통합하여 2005년 OASIS 표준이 되었습니다. SAML 2.0에는 네 가지 기본 요소가 있습니다.
 
 - Assertions: Authentication, Authorization, and Attribute assertions.
 
@@ -63,100 +57,61 @@ Security Assertion Markup Language (SAML) is an OASIS standard for exchanging au
 - Profiles: How to aggregate the assertions, protocol, and bindings to address a specific use case. A SAML 2.0 Web Single Sign-On (SSO) profile defines a standard way to establish SSO between different service providers via SAML.
 
 > **Note**
->
+> The blog post at http://blog.facilelogin.com/2011/11/depth-of-saml-saml-summary.html provides a high-level overview of SAML.
 
-
-The blog post at http://blog.facilelogin.com/2011/11/depth-of-saml-saml-summary.html provides a high-level overview of SAML.
-
-SAML 2.0 Client Authentication
+### SAML 2.0 Client Authentication
 
 To achieve client authentication with the SAML 2.0 profile for OAuth 2.0, you can use the parameter client_assertion_type with the value urn:ietf:params:oauth:client-assertion-type:saml2-bearer in the access token request (see step 6 in Figure 12-1). The OAuth flow starts from step 2.
 
 Now let’s dig into each step. The following shows a sample authorization code grant request initiated by the web application at Bar Inc.:
-
+```
 GET /authorize?response_type=code
-
                &client_id=wiuo879hkjhkjhk3232
-
                &state=xyz
-
                &redirect_uri=https://bar.com/cb
-
 HTTP/1.1
-
 Host: auth.foo.com
-
+``
 This results in the following response, which includes the requested authorization code:
-
+```
 HTTP/1.1 302 Found
-
 Location: https://bar.com/cb?code=SplwqeZQwqwKJjklje&state=xyz
-
+```
 So far it’s the normal OAuth authorization code flow. Now the web application has to talk to the trust broker in its own domain to obtain a SAML assertion. This step is outside the scope of OAuth. Because this is machine-to-machine authentication (from the web application to the trust broker), you can use a SOAP-based WS-Trust protocol to obtain the SAML assertion or any other protocol like OAuth 2.0 Token Delegation profile, which we discussed in Chapter 9. The web application does not need to do this each time a user logs in; it can be one-time operation that is governed by the lifetime of the SAML assertion. The following is a sample SAML assertion obtained from the trust broker:
 
-<saml:Assertion >
+`<saml:Assertion>
+  <saml:Issuer>bar.com</saml:Issuer>
+  <ds:Signature>
+    <ds:SignedInfo></ds:SignedInfo>
+    <ds:SignatureValue></ds:SignatureValue>
+    <ds:KeyInfo></ds:KeyInfo>
+  </ds:Signature>
+  <saml:Subject>
+        <saml:NameID>18982198kjk2121</saml:NameID>
+        <saml:SubjectConfirmation>
+        <saml:SubjectConfirmationData
+                  NotOnOrAfter="2019-10-05T19:30:14.654Z"
+                  Recipient="https://foo.com/oauth2/token"/>
 
-       <saml:Issuer>bar.com</saml:Issuer>
-
-       <ds:Signature>
-
-         <ds:SignedInfo></ds:SignedInfo>
-
-         <ds:SignatureValue></ds:SignatureValue>
-
-         <ds:KeyInfo></ds:KeyInfo>
-
-       </ds:Signature>
-
-       <saml:Subject>
-
-              <saml:NameID>18982198kjk2121</saml:NameID>
-
-              <saml:SubjectConfirmation>
-
-              <saml:SubjectConfirmationData
-
-                        NotOnOrAfter="2019-10-05T19:30:14.654Z"
-
-                        Recipient="https://foo.com/oauth2/token"/>
-
-              </saml:SubjectConfirmation>
-
-       </saml:Subject>
-
-       <saml:Conditions
-
-             NotBefore="2019-10-05T19:25:14.654Z"
-
-             NotOnOrAfter="2019-10-05T19:30:14.654Z">
-
-               <saml:AudienceRestriction>
-
-                  <saml:Audience>
-
-                      https://foo.com/oauth2/token
-
-                  </saml:Audience>
-
-               </saml:AudienceRestriction>
-
-       </saml:Conditions>
-
-       <saml:AuthnStatement AuthnInstant="2019-10-05T19:25:14.655Z">
-
-              <saml:AuthnContext>
-
-                 <saml:AuthnContextClassRef>
-
-                    urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified
-
-                 </saml:AuthnContextClassRef>
-
-             </saml:AuthnContext>
-
-       </saml:AuthnStatement>
-
-</saml:Assertion>
+        </saml:SubjectConfirmation>
+  </saml:Subject>
+  <saml:Conditions
+        NotBefore="2019-10-05T19:25:14.654Z"
+        NotOnOrAfter="2019-10-05T19:30:14.654Z">
+          <saml:AudienceRestriction>
+            <saml:Audience>
+                https://foo.com/oauth2/token
+            </saml:Audience>
+          </saml:AudienceRestriction>
+  </saml:Conditions>
+  <saml:AuthnStatement AuthnInstant="2019-10-05T19:25:14.655Z">
+        <saml:AuthnContext>
+            <saml:AuthnContextClassRef>
+              urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified
+            </saml:AuthnContextClassRef>
+        </saml:AuthnContext>
+  </saml:AuthnStatement>
+</saml:Assertion>`
 
 To use this SAML assertion in an OAuth flow to authenticate the client, it must adhere to the following rules:
 
@@ -169,36 +124,26 @@ To use this SAML assertion in an OAuth flow to authenticate the client, it must 
 - If the assertion issuer authenticates the client, then the assertion must have a single AuthnStatement.
 
 > **Note**
->
+> `WS-Trust` is an OASIS standard for SOAP message security. WS-Trust, which is built on top of the WS-Security standard, defines a protocol to exchange identity information that is wrapped in a token (SAML), between two trust domains. The blog post at http://blog.facilelogin.com/2010/05/ws-trust-with-fresh-banana-service.html explains WS-Trust at a high level. The latest WS-Trust specification is available at http://docs.oasis-open.org/ws-sx/ws-trust/v1.4/errata01/ws-trust-1.4-errata01-complete.html.
 
-
-WS-Trust is an OASIS standard for SOAP message security. WS-Trust, which is built on top of the WS-Security standard, defines a protocol to exchange identity information that is wrapped in a token (SAML), between two trust domains. The blog post at http://blog.facilelogin.com/2010/05/ws-trust-with-fresh-banana-service.html explains WS-Trust at a high level. The latest WS-Trust specification is available at http://docs.oasis-open.org/ws-sx/ws-trust/v1.4/errata01/ws-trust-1.4-errata01-complete.html.
-
-Once the client web application gets the SAML assertion from the trust broker, it has to base64url-encode the assertion and send it to the authorization server along with the access token request. In the following sample HTTP POST message, client_assertion_type is set to urn:ietf:params:oauth:client-assertion-type:saml2-bearer, and the base64url-encoded (see Appendix E) SAML assertion is set to the client_assertion parameter :
-
+Once the client web application gets the SAML assertion from the trust broker, it has to base64url-encode the assertion and send it to the authorization server along with the access token request. In the following sample HTTP POST message, client_assertion_type is set to `urn:ietf:params:oauth:client-assertion-type:saml2-bearer`, and the `base64url-encoded` (see Appendix E) SAML assertion is set to the `client_assertion` parameter :
+```
 POST /token HTTP/1.1
-
 Host: auth.foo.com
-
 Content-Type: application/x-www-form-urlencoded
-
 grant_type=authorization_code&code=SplwqeZQwqwKJjklje
-
 &client_assertion_type=urn:ietf:params:oauth:client-assertion-type:saml2-bearer
-
 &client_assertion=HdsjkkbKLew...[omitted for brevity]...OT
-
+``
 Once the authorization server receives the access token request, it validates the SAML assertion. If it’s valid (signed by a trusted party), an access token is issued, along with a refresh token.
 
-SAML Grant Type for OAuth 2.0
 
-The previous section explained how to use a SAML assertion to authenticate a client application. That is one federation use case that falls under the context of OAuth. There the trust broker was running inside Bar Inc., where the client application was running. Let’s consider a use case where the resource server (API), the authorization server, and the client application run in the same domain (Bar Inc.), while the user is from an outside domain (Foo Inc.). Here the end user authenticates to the web application with a SAML assertion (see Figure 12-2). A trust broker (a SAML identity provider) in the user’s domain issues this assertion. The client application uses this assertion to talk to the local authorization server to obtain an access token to access an API on behalf of the logged-in user.
+## OAuth 2.0용 SAML 권한 부여 유형
 
- 
+이전 섹션에서는 SAML 어설션을 사용하여 클라이언트 애플리케이션을 인증하는 방법을 설명했습니다. 이것은 OAuth 컨텍스트에 속하는 하나의 연합 사용 사례입니다. 그곳에서는 클라이언트 애플리케이션이 실행되고 있는 Bar Inc. 내부에서 신뢰 브로커가 실행되고 있었습니다. 리소스 서버(API), 인증 서버 및 클라이언트 애플리케이션이 동일한 도메인(Bar Inc.)에서 실행되고 사용자가 외부 도메인(Foo Inc.)에서 실행되는 사용 사례를 생각해 보겠습니다. 여기에서 최종 사용자는 SAML 어설션을 사용하여 웹 애플리케이션에 인증합니다(그림 12-2 참조). 사용자 도메인의 트러스트 브로커(SAML ID 공급자)가 이 어설션을 발행합니다. 클라이언트 애플리케이션은 이 어설션을 사용하여 로그인한 사용자를 대신하여 API에 액세스하기 위한 액세스 토큰을 얻기 위해 로컬 권한 부여 서버와 통신합니다.
 
-Figure 12-2
-
-Brokered authentication with the SAML grant type for OAuth 2.0
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781484220504/files/A323855_2_En_12_Fig2_HTML.jpg)
+Figure 12-2 Brokered authentication with the SAML grant type for OAuth 2.0
 
 Figure 12-2 illustrates how brokered authentication with a SAML grant type for OAuth 2.0 works.
 
@@ -210,48 +155,40 @@ Figure 12-2 illustrates how brokered authentication with a SAML grant type for O
 
 - Once the user logs in to the web application, the web application has to exchange the SAML assertion for an access token by talking to its own internal authorization server (steps 4 and 5). The way to do this is defined in the SAML 2.0 Profile for OAuth 2.0 Client Authentication and Authorization Grants specification (RFC 7522).
 
-The following is a sample POST message from the web application to the authorization server. There the value of grant_type must be urn:ietf:params:oauth:grant-type:saml2-bearer, and the base64url-encoded SAML assertion is set as the value of the assertion parameter:
+다음은 웹 애플리케이션에서 인증 서버로 보내는 샘플 POST 메시지입니다. 여기서 `grant_type`의 값은 `urn:ietf:params:oauth:grant-type:saml2-bearer`여야 하고 `base64url`로 인코딩된 SAML 주장은 주장 매개변수의 값으로 설정됩니다.
 
-> **Note**
->
+> **참고**
+> SAML 전달자 부여 유형에서는 새로 고침 토큰이 발급되지 않습니다. 액세스 토큰의 수명은 SAML 전달자 어설션의 수명을 상당히 초과해서는 안 됩니다.
 
-
-No refresh tokens are issued under the SAML Bearer grant type. The lifetime of the access token should not exceed the lifetime of the SAML bearer assertion by a significant amount.
-
+```
 POST /token HTTP/1.1
-
 Host: auth.bar.com
-
 Content-Type: application/x-www-form-urlencoded
-
 grant_type=urn:ietf:params:oauth:grant-type:saml2-bearer
-
 &assertion=QBNhbWxwOl...[omitted for brevity]...OT4
+```
 
-This request is validated at the authorization server. The SAML assertion is once again validated via its signature; and, if a trusted identity provider signs it, the authorization server issues a valid access token.
+이 요청은 권한 부여 서버에서 검증됩니다. SAML 주장은 서명을 통해 다시 한 번 검증됩니다. 신뢰할 수 있는 ID 제공자가 서명하면 권한 부여 서버가 유효한 액세스 토큰을 발급합니다.
 
-The scope of the access token issued under the SAML Bearer grant type should be set out of band by the resource owner. Out of band here indicates that the resource owner makes a pre-agreement with the resource server/authorization server with respect to the scope associated with a given resource when the SAML grant type is being used. The client application can include a scope parameter in the authorization grant request, but the value of the scope parameter must be a subset of the scope defined out of band by the resource owner. If no scope parameter is included in the authorization grant request, then the access token inherits the scope set out of band.
+SAML 전달자 부여 유형에서 발급된 액세스 토큰의 범위는 리소스 소유자가 대역 외로 설정해야 합니다. 여기서 대역 외는 SAML 부여 유형이 사용 중일 때 리소스 소유자가 지정된 리소스와 연결된 범위와 관련하여 리소스 서버/권한 부여 서버와 사전 계약을 맺는 것을 나타냅니다. 클라이언트 애플리케이션은 권한 부여 요청에 범위 매개변수를 포함할 수 있지만 범위 매개변수의 값은 자원 소유자가 대역 외에서 정의한 범위의 하위 집합이어야 합니다. 권한 부여 요청에 범위 매개변수가 포함되지 않은 경우 액세스 토큰은 대역 외 설정 범위를 상속합니다.
 
-Both federation use cases discussed assume that the resource server and the authorization server are running in the same domain. If that isn’t the case, the resource server must invoke an API exposed by the authorization server to validate the access token at the time the client tries to access a resource. If the authorization server supports the OAuth Introspection specification (discussed in Chapter 9), the resource server can talk to the introspection endpoint and find out whether the token is active or not and also what scopes are associated with the token. The resource server can then check whether the token has the required set of scopes to access the resource.
+논의된 두 페더레이션 사용 사례는 리소스 서버와 권한 부여 서버가 동일한 도메인에서 실행되고 있다고 가정합니다. 그렇지 않은 경우 리소스 서버는 클라이언트가 리소스에 액세스하려고 할 때 액세스 토큰의 유효성을 검사하기 위해 권한 부여 서버에 의해 노출된 API를 호출해야 합니다. Authorization Server가 OAuth Introspection 사양(9장에서 설명)을 지원하는 경우 리소스 서버는 Introspection 끝점과 통신하고 토큰이 활성 상태인지 여부와 토큰과 연결된 범위를 확인할 수 있습니다. 그런 다음 리소스 서버는 토큰에 리소스에 액세스하는 데 필요한 범위 집합이 있는지 확인할 수 있습니다.
 
-JWT Grant Type for OAuth 2.0
 
-The JSON Web Token (JWT) profile for OAuth 2.0, which is defined in the RFC 7523, extends the OAuth 2.0 core specification by defining its own authorization grant type and a client authentication mechanism. An authorization grant in OAuth 2.0 is an abstract representation of the temporary credentials granted to the OAuth 2.0 client by the resource owner to access a resource. The OAuth 2.0 core specification defines four grant types: authorization code, implicit, resource owner password, and client credentials. Each of these grant types defines in a unique way how the resource owner can grant delegated access to a resource he/she owns to an OAuth 2.0 client. The JWT grant type, which we discuss in this chapter, defines how to exchange a JWT for an OAuth 2.0 access token. In addition to the JWT grant type, the RFC 7523 also defines a way to authenticate an OAuth 2.0 client in its interactions with an OAuth 2.0 authorization server. OAuth 2.0 does not define a concrete way for client authentication, even though in most of the cases it’s the HTTP Basic authentication with client id and the client secret. The RFC 7523 defines a way to authenticate an OAuth 2.0 client using a JWT.
+## OAuth 2.0용 JWT 부여 유형
 
-The JWT authorization grant type assumes that the client is in possession with a JWT. This JWT can be a self-issued JWT or a JWT obtained from an identity provider. Based on who signs the JWT, one can differentiate a self-issued JWT from an identity provider–issued JWT. The client itself signs a self-issued JWT, while an identity provider signs the identity provider–issued JWT. In either case, the OAuth authorization server must trust the issuer of the JWT. The following shows a sample JWT authorization grant request, where the value of the grant_type parameter is set to urn:ietf:params:oauth:grant-type:jwt-bearer.
+RFC 7523에 정의된 OAuth 2.0용 JWT(JSON Web Token) 프로필은 고유한 권한 부여 유형과 클라이언트 인증 메커니즘을 정의하여 OAuth 2.0 핵심 사양을 확장합니다. OAuth 2.0의 권한 부여는 리소스 소유자가 리소스에 액세스하기 위해 OAuth 2.0 클라이언트에 부여한 임시 자격 증명의 추상 표현입니다. OAuth 2.0 핵심 사양은 권한 부여 코드, 암시적, 리소스 소유자 암호 및 클라이언트 자격 증명의 네 가지 권한 부여 유형을 정의합니다. 이러한 각 부여 유형은 리소스 소유자가 자신이 소유한 리소스에 대한 위임된 액세스 권한을 OAuth 2.0 클라이언트에 부여하는 방법을 고유한 방식으로 정의합니다. 이 장에서 설명하는 JWT 부여 유형은 JWT를 OAuth 2.0 액세스 토큰으로 교환하는 방법을 정의합니다. JWT 부여 유형 외에도 RFC 7523은 OAuth 2.0 인증 서버와의 상호 작용에서 OAuth 2.0 클라이언트를 인증하는 방법도 정의합니다. OAuth 2.0은 대부분의 경우 클라이언트 ID와 클라이언트 암호를 사용하는 HTTP 기본 인증이지만 클라이언트 인증을 위한 구체적인 방법을 정의하지 않습니다. RFC 7523은 JWT를 사용하여 OAuth 2.0 클라이언트를 인증하는 방법을 정의합니다.
 
+JWT 권한 부여 유형은 클라이언트가 JWT를 소유하고 있다고 가정합니다. 이 JWT는 자체 발급 JWT 또는 ID 제공자로부터 얻은 JWT일 수 있습니다. JWT에 서명한 사람에 따라 자체 발급 JWT와 ID 제공자 발급 JWT를 구별할 수 있습니다. 클라이언트 자체가 자체 발행 JWT에 서명하는 반면 ID 제공자는 ID 제공자 발행 JWT에 서명합니다. 두 경우 모두 OAuth 권한 부여 서버는 JWT의 발급자를 신뢰해야 합니다. 다음은 샘플 JWT 권한 부여 요청을 보여줍니다. 여기서 grant_type 매개변수의 값은 urn:ietf:params:oauth:grant-type:jwt-bearer로 설정됩니다.
+
+```
 POST /token HTTP/1.1
-
 Host: auth.bar.com
-
 Content-Type: application/x-www-form-urlencoded
-
 grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=eyJhbGciOiJFUzI1NiIsImtpZCI6IjE2In0.
-
 eyJpc3Mi[...omitted for brevity...].
-
 J9l-ZhwP[...omitted for brevity...]
-
+```
 The Assertion Framework for OAuth 2.0 Client Authentication and Authorization Grants specification, which is the RFC 7521, defines the parameters in the JWT authorization grant request, as listed out in the following:
 
 - grant_type: This is a required parameter, which defines the format of the assertion, as understood by the authorization server. The value of grant_type is an absolute URI, and it must be urn:ietf:params:oauth:grant-type:jwt-bearer.
@@ -260,21 +197,15 @@ The Assertion Framework for OAuth 2.0 Client Authentication and Authorization Gr
 
 - scope: This is an optional parameter. Unlike in authorization code and implicit grant types, the JWT grant type does not have a way to get the resource owner’s consent for a requested scope. In such case, the authorization server will establish the resource owner’s consent via an out-of-band mechanism. If the authorization grant request carries a value for the scope parameter, then either it should exactly match the out-of-band established scope or less than that.
 
-> **Note**
->
+> **참고**
+> OAuth 권한 부여 서버는 JWT 부여 유형에서 refresh_token을 발행하지 않습니다. access_token이 만료되면 OAuth 클라이언트는 새 JWT를 가져오거나(JWT가 만료된 경우) 동일한 유효한 JWT를 사용하여 새 access_token을 가져와야 합니다. access_token의 수명은 해당 JWT의 수명과 일치해야 합니다.
 
+### JWT 부여 유형의 적용
 
-The OAuth authorization server will not issue a refresh_token under the JWT grant type. If the access_token expires, then the OAuth client has to get a new JWT (if the JWT has expired) or use the same valid JWT to get a new access_token. The lifetime of the access_token should match the lifetime of the corresponding JWT.
+JWT 권한 부여 유형의 여러 애플리케이션이 있습니다. 최종 사용자 또는 리소스 소유자가 OpenID Connect를 통해 웹 애플리케이션에 로그인한 다음(6장) 웹 애플리케이션이 로그인한 사용자를 대신하여 API에 액세스해야 하는 일반적인 사용 사례를 살펴보겠습니다. OAuth 2.0으로 보호됩니다. 그림 12-3은 이 사용 사례와 관련된 주요 상호 작용을 보여줍니다.
 
-Applications of JWT Grant Type
-
-There are multiple applications of the JWT authorization grant type. Let’s have a look at one common use case, where the end user or the resource owner logs in to a web application via OpenID Connect (Chapter 6), then the web application needs to access an API on behalf of the logged-in user, which is secured with OAuth 2.0. Figure 12-3 shows the key interactions related to this use case.
-
- 
-
-Figure 12-3
-
-JWT grant type, a real-world example
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781484220504/files/A323855_2_En_12_Fig3_HTML.jpg)
+Figure 12-3 JWT grant type, a real-world example
 
 The following lists out all the interactions as illustrated in Figure 12-3 by the number:
 
@@ -290,25 +221,21 @@ The following lists out all the interactions as illustrated in Figure 12-3 by th
 
 - The application server, which hosts the API, validates the access token by talking to the OAuth authorization server, which issued the access token (step 6).
 
-JWT Client Authentication
 
-The OAuth 2.0 core specification does not define a concrete way to authenticate OAuth clients to the OAuth authorization server. Mostly it’s the HTTP Basic authentication with client_id and the client_secret. The RFC 7523 defines a way to authenticate OAuth clients with a JWT. The JWT client authentication is not just limited to a particular grant type; it can be used with any OAuth grant types. That’s another beauty in OAuth 2.0—the OAuth grant types are decoupled from the client authentication. The following shows a sample request to the OAuth authorization server under the authorization code grant type, which uses JWT client authentication.
+## JWT 클라이언트 인증
 
+OAuth 2.0 핵심 사양은 OAuth 인증 서버에 대해 OAuth 클라이언트를 인증하는 구체적인 방법을 정의하지 않습니다. 대부분 client_id 및 client_secret을 사용한 HTTP 기본 인증입니다. RFC 7523은 JWT로 OAuth 클라이언트를 인증하는 방법을 정의합니다. JWT 클라이언트 인증은 특정 승인 유형에만 국한되지 않습니다. 모든 OAuth 권한 부여 유형과 함께 사용할 수 있습니다. OAuth 2.0의 또 다른 장점은 OAuth 부여 유형이 클라이언트 인증과 분리된다는 점입니다. 다음은 JWT 클라이언트 인증을 사용하는 권한 부여 코드 부여 유형에서 OAuth 권한 부여 서버에 대한 샘플 요청을 보여줍니다.
+
+```
 POST /token HTTP/1.1
-
 Host: auth.bar.com
-
 Content-Type: application/x-www-form-urlencoded
-
 grant_type=authorization_code&
-
 code=n0esc3NRze7LTCu7iYzS6a5acc3f0ogp4&      client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer&
-
 client_assertion=eyJhbGciOiJSUzI1NiIsImtpZCI6IjIyIn0.
-
 eyJpc3Mi[...omitted for brevity...].
-
 cC4hiUPo[...omitted for brevity...]
+```
 
 The RFC 7523 uses three additional parameters in the OAuth request to the token endpoint to do the client authentication: client_assertion_type, client_assertion, and client_id (optional). The Assertion Framework for OAuth 2.0 Client Authentication and Authorization Grants specification, which is the RFC 7521, defines these parameters. The following lists them out along with their definitions:
 
@@ -318,55 +245,38 @@ The RFC 7523 uses three additional parameters in the OAuth request to the token 
 
 - client_id: This is an optional parameter. Ideally, the client_id must be present inside the client_assertion itself. If this parameter carries a value, it must match the value of the client_id inside the client_assertion. Having the client_id parameter in the request itself could be useful, as the authorization server does not need to parse the assertion first to identify the client.
 
-Applications of JWT Client Authentication
+## Applications of JWT Client Authentication
 
-The JWT client authentication is used to authenticate a client to an OAuth authorization server with a JWT, instead of using HTTP Basic authentication with client_id and client_secret. Why would someone select JWT client authentication over HTTP Basic authentication?
+JWT 클라이언트 인증은 `client_id` 및 `client_secret`과 함께 HTTP 기본 인증을 사용하는 대신 JWT로 OAuth 권한 부여 서버에 대해 클라이언트를 인증하는 데 사용됩니다. 누군가가 HTTP 기본 인증보다 JWT 클라이언트 인증을 선택하는 이유는 무엇입니까?
 
-Let’s take an example. Say we have two companies called foo and bar. The foo company hosts a set of APIs, and the bar company has a set of developers who are developing applications against those APIs. Like in most of the OAuth examples we discussed in this book, the bar company has to register with the foo company to obtain a client_id and client_secret, in order to access its APIs. Since the bar company develops multiple applications (a web app, a mobile app, a rich client app), the same client_id and client_secret obtained from the foo company need to be shared between multiple developers. This is a bit risky as any one of those developers can pass over the secret keys to anyone else—or even misuse them. To fix this, we can use JWT client authentication. Instead of sharing the client_id and the client_secret with its developers, the bar company can create a key pair (a public key and a private key), sign the public key by the key of the company’s certificate authority (CA), and hand them over to its developers. Now, instead of the shared client_id and client_secret, each developer will have its own public key and private key, signed by the company CA. When talking to the foo company’s OAuth authorization server, the applications will use the JWT client authentication, where its own private key signs the JWT—and the token will carry the corresponding public key. The following code snippet shows a sample decoded JWS header and the payload, which matches the preceding criteria. Chapter 7 explains JWS in detail and how it relates to JWT.
-
+예를 들어 보겠습니다. foo와 bar라는 두 회사가 있다고 가정해 보겠습니다. foo 회사는 API 세트를 호스팅하고, 바 회사에는 해당 API에 대한 애플리케이션을 개발하는 개발자 세트가 있습니다. 이 책에서 논의한 대부분의 OAuth 예제와 마찬가지로, 변호사 회사는 API에 액세스하기 위해 foo 회사에 등록하여 client_id 및 `client_secret`을 얻어야 합니다. 바 회사는 여러 애플리케이션(웹 앱, 모바일 앱, 리치 클라이언트 앱)을 개발하기 때문에 foo 회사에서 얻은 동일한 `client_id`와 `client_secret`을 여러 개발자가 공유해야 합니다. 개발자 중 한 명이 비밀 키를 다른 사람에게 넘기거나 오용할 수 있기 때문에 이것은 약간 위험합니다. 이 문제를 해결하기 위해 JWT 클라이언트 인증을 사용할 수 있습니다. client_id 및 `client_secret`을 개발자와 공유하는 대신 Bar 회사는 키 쌍(공개 키 및 개인 키)을 생성하고 회사의 인증 기관(CA) 키로 공개 키에 서명하고 전달합니다. 개발자에게. 이제 공유 `client_id` 및 `client_secret` 대신 각 개발자는 회사 CA에서 서명한 고유한 공개 키와 개인 키를 갖게 됩니다. foo 회사의 OAuth 인증 서버와 통신할 때 애플리케이션은 자체 개인 키가 JWT에 서명하는 JWT 클라이언트 인증을 사용하고 토큰은 해당 공개 키를 전달합니다. 다음 코드 조각은 이전 기준과 일치하는 샘플 디코딩된 JWS 헤더 및 페이로드를 보여줍니다. 7장에서는 JWS에 대해 자세히 설명하고 JWT와 어떻게 관련되는지 설명합니다.
+```
 {
-
   "alg": "RS256"
-
   "x5c": [
-
-          "MIIE3jCCA8agAwIBAgICAwEwDQYJKoZIhvcNAQEFBQ......",
-
-          "MIIE3jewlJJMddds9AgICAwEwDQYJKoZIhvUjEcNAQ......",
-
-         ]
-
+    "MIIE3jCCA8agAwIBAgICAwEwDQYJKoZIhvcNAQEFBQ......",
+    "MIIE3jewlJJMddds9AgICAwEwDQYJKoZIhvUjEcNAQ......",
+    ]
 }
-
 {
-
   "sub": "3MVG9uudbyLbNPZN8rZTCj6IwpJpGBv49",
-
   "aud": "https://login.foo.com",
-
   "nbf": 1457330111,
-
   "iss": "bar.com",
-
   "exp": 1457330711,
-
   "iat": 1457330111,
-
   "jti": "44688e78-2d30-4e88-8b86-a6e25cd411fd"
-
 }
+```
 
-The authorization server at the foo company first needs to verify the JWT with the attached public key (which is the value of the x5c parameter in the preceding code snippet) and then needs to check whether the corresponding public key is signed by the bar company’s certificate authority. If that is the case, then it’s a valid JWT and would successfully complete the client authentication. Also note that the value of the original client_id created for the bar company is set as the subject of the JWT.
+foo 회사의 인증 서버는 먼저 첨부된 공개 키(이전 코드 스니펫의 x5c 매개변수 값)로 JWT를 확인한 다음 해당 공개 키가 바 회사의 인증서로 서명되었는지 확인해야 합니다. 권한. 이 경우 유효한 JWT이며 클라이언트 인증을 성공적으로 완료합니다. 또한 바 회사에 대해 생성된 원래 client_id의 값이 JWT의 주제로 설정된다는 점에 유의하십시오.
 
-Still we have a challenge. How do we revoke a certificate that belongs to a given developer, in case he/she resigns or it is found that the certificate is misused? To facilitate this, the authorization server has to maintain a certificate revocation list (CRL) by the client_id. In other words, each client_id can maintain its own certificate revocation list. To revoke a certificate, the client (in this case, the bar company) has to talk to the CRL API hosted in the authorization server. The CRL API is a custom API that must be hosted at the OAuth authorization server to support this model. This API must be secured with OAuth 2.0 client credentials grant type. Once it receives a request to update the CRL, it will update the CRL corresponding to the client who invokes the API, and each time the client authentication happens, the authorization server must check the public certificate in the JWT against the CRL. If it finds a match, then the request should be turned down immediately. Also, at the time the CRL of a particular client is updated, all the access tokens and refresh tokens issued against a revoked public certificate must be revoked too. In case you worry about the overhead it takes to support a CRL, you probably can use short-lived certificates and forget about revocation. Figure 12-4 shows the interactions between the foo and the bar companies.
+여전히 우리에게는 도전이 있습니다. 해당 개발자가 사임하거나 인증서가 오용된 것으로 판명된 경우 해당 개발자에게 속한 인증서를 어떻게 취소합니까? 이를 용이하게 하기 위해 인증 서버는 `client_id`로 인증서 해지 목록(CRL)을 유지 관리해야 합니다. 즉, 각 `client_id`는 자체 인증서 해지 목록을 유지할 수 있습니다. 인증서를 취소하려면 클라이언트(이 경우 바 회사)가 인증 서버에서 호스팅되는 CRL API와 통신해야 합니다. CRL API는 이 모델을 지원하기 위해 OAuth 권한 부여 서버에서 호스팅되어야 하는 사용자 지정 API입니다. 이 API는 OAuth 2.0 클라이언트 자격 증명 부여 유형으로 보호되어야 합니다. CRL 업데이트 요청을 받으면 API를 호출한 클라이언트에 해당하는 CRL을 업데이트하고 클라이언트 인증이 발생할 때마다 권한 부여 서버는 CRL에 대해 JWT의 공용 인증서를 확인해야 합니다. 일치하는 항목을 찾으면 요청을 즉시 거부해야 합니다. 또한 특정 클라이언트의 CRL이 갱신될 때 해지된 공인인증서에 대해 발급된 모든 접근 토큰과 갱신 토큰도 해지해야 합니다. CRL을 지원하는 데 걸리는 오버헤드가 걱정되는 경우 단기 인증서를 사용하고 해지를 잊어버릴 수 있습니다. 그림 12-4는 foo와 바 회사 간의 상호 작용을 보여줍니다.
 
- 
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781484220504/files/A323855_2_En_12_Fig4_HTML.jpg)
+Figure 12-4 JWT client authentication, a real-world example
 
-Figure 12-4
-
-JWT client authentication, a real-world example
-
-Parsing and Validating JWT
+## Parsing and Validating JWT
 
 The OAuth authorization server must parse and validate the JWT, both in the JWT grant type and in the client authentication. The following lists out the criteria for token validation:
 
@@ -384,14 +294,15 @@ The OAuth authorization server must parse and validate the JWT, both in the JWT 
 
 - The JWT must be digitally signed or carry a Message Authentication Code (MAC) defined by its issuer.
 
-## Summary
 
-- Identity federation is about propagating user identities across boundaries. These boundaries can be between distinct enterprises or even distinct identity management systems within the same enterprise.
+## 요약
 
-- Two OAuth 2.0 profiles—SAML 2.0 grant type and JWT grant type—focus on building federation scenarios for API security.
+- ID 연합은 경계를 넘어 사용자 ID를 전파하는 것입니다. 이러한 경계는 별개의 기업 또는 동일한 기업 내의 별개의 ID 관리 시스템 사이에 있을 수 있습니다.
 
-- The SAML profile for OAuth 2.0, which is defined in the RFC 7522, extends the capabilities of the OAuth 2.0 core specification. It introduces a new authorization grant type as well as a way of authenticating OAuth 2.0 clients, based on a SAML assertion.
+- 두 개의 OAuth 2.0 프로필(SAML 2.0 부여 유형 및 JWT 부여 유형)은 API 보안을 위한 연합 시나리오 구축에 중점을 둡니다.
 
-- The JSON Web Token (JWT) profile for OAuth 2.0, which is defined in the RFC 7523, extends the capabilities of the OAuth 2.0 core specification. It introduces a new authorization grant type as well as a way of authenticating OAuth 2.0 clients, based on a JWT.
+- RFC 7522에 정의된 OAuth 2.0용 SAML 프로필은 OAuth 2.0 핵심 사양의 기능을 확장합니다. SAML 어설션을 기반으로 OAuth 2.0 클라이언트를 인증하는 방법과 함께 새로운 권한 부여 유형을 소개합니다.
+
+- RFC 7523에 정의된 OAuth 2.0용 JSON 웹 토큰(JWT) 프로필은 OAuth 2.0 핵심 사양의 기능을 확장합니다. JWT를 기반으로 OAuth 2.0 클라이언트를 인증하는 방법과 새로운 권한 부여 유형을 소개합니다.
 
  

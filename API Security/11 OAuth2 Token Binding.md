@@ -1,42 +1,38 @@
-11. OAuth 2.0 Token Binding
+# 11. OAuth 2.0 Token Binding
 
-Most of the OAuth 2.0 deployments do rely upon bearer tokens. A bearer token is like “cash.” If I steal 10 bucks from you, I can use it at a Starbucks to buy a cup of coffee—no questions asked. I do not need to prove that I own the ten-dollar note. Unlike cash, if I use my credit card, I need to prove the possession. I need to prove I own it. I need to sign to authorize the transaction, and it’s validated against the signature on the card. The bearer tokens are like cash—once stolen, an attacker can use it to impersonate the original owner. Credit cards are like proof of possession (PoP) tokens.
+대부분의 OAuth 2.0 배포는 전달자 토큰에 의존합니다. 무기명 토큰은 "현금"과 같습니다. 당신에게서 10달러를 훔치면 스타벅스에서 커피 한 잔을 사는 데 사용할 수 있습니다. 10달러 지폐는 소유권을 증명할 필요가 없습니다. 현금과 달리 신용카드는 소지품을 증명해야 합니다. 나의 소유를 증명해야 합니다. 거래를 승인하려면 서명해야 하며 카드의 서명과 대조하여 확인됩니다. 무기명 토큰은 현금과 같습니다. 한 번 도난당한 공격자는 이를 사용하여 원래 소유자를 가장할 수 있습니다. 신용 카드는 소유 증명(PoP) 토큰과 같습니다.
 
-OAuth 2.0 recommends using Transport Layer Security (TLS) for all the interactions between the client, authorization server, and resource server. This makes the OAuth 2.0 model quite simple with no complex cryptography involved—but at the same time, it carries all the risks associated with a bearer token. There is no second level of defense. Also not everyone is fully bought into the idea of using OAuth 2.0 bearer tokens—just trusting the underlying TLS communication. I’ve met several people—mostly from the financial domain—who are reluctant to use OAuth 2.0, just because of the bearer tokens.
+OAuth 2.0은 클라이언트, 인증 서버 및 리소스 서버 간의 모든 상호 작용에 TLS(전송 계층 보안)를 사용할 것을 권장합니다. 이것은 복잡한 암호화가 포함되지 않은 OAuth 2.0 모델을 매우 단순하게 만들지만 동시에 전달자 토큰과 관련된 모든 위험을 수반합니다. 두 번째 수준의 방어는 없습니다. 또한 모든 사람이 OAuth 2.0 전달자 토큰을 사용하는 아이디어에 완전히 동의하는 것은 아닙니다. 단지 기본 TLS 통신을 신뢰하는 것뿐입니다. 나는 단지 무기명 토큰 때문에 OAuth 2.0을 사용하기를 꺼리는 여러 사람들(주로 금융 영역에서)을 만났습니다.
 
-An attacker may attempt to eavesdrop authorization code/access token/refresh token (see Chapter 4 for details) in transit from the authorization server to the client, using any of the following means:
+공격자는 다음 수단 중 하나를 사용하여 인증 서버에서 클라이언트로 전송되는 인증 코드/액세스 토큰/갱신 토큰(자세한 내용은 4장 참조)을 도청할 수 있습니다.
 
-- Malware installed in the browser (public clients).
+- 브라우저(공용 클라이언트)에 설치된 악성코드.
+- 브라우저 기록(공용 클라이언트/URI 조각).
+- 클라이언트와 권한 부여 서버 또는 리소스 서버 간의 TLS 통신을 가로채십시오(하트블리드 및 로그잼과 같은 TLS 계층의 취약점 악용).
+- TLS는 지점 간(종단 간 아님)입니다. 프록시 서버에 액세스할 수 있는 공격자는 단순히 모든 토큰을 기록할 수 있습니다. 또한 많은 프로덕션 배포에서 TLS 연결이 에지에서 종료되고 그 이후부터는 새로운 TLS 연결 또는 일반 HTTP 연결이 됩니다. 두 경우 모두 토큰이 채널을 떠나는 즉시 더 이상 안전하지 않습니다.
 
-- Browser history (public clients/URI fragments).
+## 토큰 바인딩 이해
 
-- Intercept the TLS communication between the client and the authorization server or the resource server (exploiting the vulnerabilities in the TLS layer like Heartbleed and Logjam).
+OAuth 2.0 토큰 바인딩 제안은 보안 토큰을 TLS 레이어에 암호화하여 바인딩하여 토큰 내보내기 및 재생 공격을 방지합니다. TLS에 의존하며 토큰을 TLS 연결 자체에 바인딩하기 때문에 토큰을 훔치는 사람은 다른 채널을 통해 토큰을 사용할 수 없습니다.
 
-- TLS is point to point (not end to end)—an attacker having access to a proxy server could simply log all the tokens. Also, in many production deployments, the TLS connection is terminated at the edge, and from there onward, it’s either a new TLS connection or a plain HTTP connection. In either case, as soon as a token leaves the channel, it’s no more secure.
-
-Understanding Token Binding
-
-OAuth 2.0 token binding proposal cryptographically binds security tokens to the TLS layer, preventing token export and replay attacks. It relies on TLS—and since it binds the tokens to the TLS connection itself, anyone who steals a token cannot use it over a different channel.
-
-We can break down the token binding protocol into three main phases (see Figure 11-1).
+토큰 바인딩 프로토콜을 세 가지 주요 단계로 나눌 수 있습니다(그림 11-1 참조).
 
  
-
 Figure 11-1
 
 Three main phases in the token binding protocol
 
-Token Binding Negotiation
+토큰 바인딩 협상
 
-During the negotiation phase, the client and the server negotiate a set of parameters to use for token binding between them. This is independent of the application layer protocols—as it happens during the TLS handshake (see Appendix C). We discuss more about this in the next section. The token binding negotiation is defined in the RFC 8472. Keep in mind we do not negotiate any keys in this phase, only the metadata.
+협상 단계에서 클라이언트와 서버는 그들 사이의 토큰 바인딩에 사용할 매개변수 세트를 협상합니다. 이는 TLS 핸드셰이크 중에 발생하므로 앱 계층 프로토콜과 무관합니다(부록 C 참조). 다음 섹션에서 이에 대해 더 논의합니다. 토큰 바인딩 협상은 RFC 8472에 정의되어 있습니다. 이 단계에서는 키를 협상하지 않고 메타데이터만 협상한다는 점을 명심하십시오.
 
-Key Generation
+키 생성
 
-During the key generation phase, the client generates a key pair according to the parameters negotiated in the negotiation phase. The client will have a key pair for each host it talks to (in most of the cases).
+키 생성 단계에서 클라이언트는 협상 단계에서 협상된 매개변수에 따라 키 쌍을 생성합니다. 클라이언트는 통신하는 각 호스트에 대한 키 쌍을 갖습니다(대부분의 경우).
 
-Proof of Possession
+소유 증명
 
-During the proof of possession phase, the client uses the keys generated in the key generation phase to prove the possession. Once the keys are agreed upon, in the key generation phase, the client proves the possession of the key by signing the exported keying material (EKM) from the TLS connection. The RFC 5705 allows an application to get additional application-specific keying material derived from the TLS master secret (see Appendix C). The RFC 8471 defines the structure of the token binding message, which includes the signature and other key materials, but it does not define how to carry the token binding message from the client to the server. It’s up to the higher-level protocols to define it. The RFC 8473 defines how to carry the token binding message over an HTTP connection (see Figure 11-2).
+소유 증명 단계에서 클라이언트는 키 생성 단계에서 생성된 키를 사용하여 소유를 증명합니다. 키에 동의하면 키 생성 단계에서 클라이언트는 TLS 연결에서 내보낸 키 자료(EKM)에 서명하여 키 소유를 증명합니다. RFC 5705를 사용하면 앱이 TLS 마스터 암호에서 파생된 추가 앱별 키 자료를 얻을 수 있습니다(부록 C 참조). RFC 8471은 서명 및 기타 주요 자료를 포함하는 토큰 바인딩 메시지의 구조를 정의하지만 클라이언트에서 서버로 토큰 바인딩 메시지를 전달하는 방법을 정의하지 않습니다. 그것을 정의하는 것은 상위 수준의 프로토콜에 달려 있습니다. RFC 8473은 HTTP 연결을 통해 토큰 바인딩 메시지를 전달하는 방법을 정의합니다(그림 11-2 참조).
 
  
 
@@ -60,7 +56,7 @@ Every time a new TLS connection is negotiated (TLS handshake) between the client
 
 In practice, Nginx (https://github.com/google/ngx_token_binding) and Apache (https://github.com/zmartzone/mod_token_binding) have support for token binding. An implementation of Token Binding Protocol Negotiation TLS Extension in Java is available here: https://github.com/pingidentity/java10-token-binding-negotiation.
 
-Key Generation
+### Key Generation
 
 The Token Binding Protocol specification (RFC 8471) defines the parameters related to key generation. These are the ones agreed upon during the negotiation phase.
 
@@ -72,7 +68,7 @@ The Token Binding Protocol specification (RFC 8471) defines the parameters relat
 
 In case a browser acts as the client, then the browser itself has to generate the keys and maintain them against the hostname of the server. You can find the status of this feature development for Chrome from here (www.chromestatus.com/feature/5097603234529280). Then again the token binding is not only for a browser, it’s useful in all the interactions between a client and a server—irrespective of the client being thin or thick.
 
-Proof of Possession
+### Proof of Possession
 
 A token binding is established by a user agent (or the client) generating a private/public key pair (possibly, within a secure hardware module, such as trusted platform module (TPM)) per target server, providing the public key to the server, and proving the possession of the corresponding private key, on every TLS connection to the server. The generated public key is reflected in the token binding ID between the client and the server. At the server end, the verification happens in two steps.
 
@@ -86,7 +82,7 @@ Once the TLS connection is established between a client and a server, the EKM wi
 
 Figure 11-3
 
-The structure of the token binding message
+## The structure of the token binding message
 
 How to carry the token binding message from the client to the server is not defined in the Token Binding Protocol specification, but in the Token Binding for HTTP specification or the RFC 8473. In other words, the core token binding specification lets the higher-level protocols make the decision on that. The Token Binding for HTTP specification introduces a new HTTP header called Sec-Token-Binding —and it carries the base64url-encoded value of the token binding message. The Sec-Token-Binding header field MUST NOT be included in HTTP responses—MUST include only once in an HTTP request.
 
@@ -98,147 +94,74 @@ Let’s see how the token binding works for OAuth 2.0 refresh tokens . A refresh
 
  
 
-Figure 11-4
+Figure 11-4 OAuth 2.0 refresh grant type
 
-OAuth 2.0 refresh grant type
 
-1. 1.
+1. 클라이언트와 권한 부여 서버 간의 연결은 TLS에 있어야 합니다.
 
-The connection between the client and the authorization server must be on TLS.
+2. OAuth 2.0 토큰 바인딩을 지원하는 클라이언트는 TLS 핸드셰이크 자체 동안 OAuth 2.0 토큰 바인딩을 지원하는 인증 서버와 필수 매개변수를 협상합니다.
 
- 
+3. TLS 핸드셰이크가 완료되면 OAuth 2.0 클라이언트는 개인 키와 공개 키를 생성하고 기본 TLS 연결에서 내보낸 키 자료(EKM)에 개인 키로 서명하고 토큰 바인딩 메시지를 작성합니다. (정확히 말하면 클라이언트는 EKM + 토큰 바인딩 유형 + 키 매개변수에 서명합니다.)
 
-2. 2.
+4. base64url로 인코딩된 토큰 바인딩 메시지는 클라이언트와 OAuth 2.0 인증 서버 간의 연결에 대한 Sec-Token-Binding HTTP 헤더 값으로 추가됩니다.
 
-The client which supports OAuth 2.0 token binding, during the TLS handshake itself, negotiates the required parameters with the authorization server, which too supports OAuth 2.0 token binding.
+5. 클라이언트는 Sec-Token-Binding HTTP 헤더와 함께 토큰 끝점에 표준 OAuth 요청을 보냅니다.
 
- 
+6. 인증 서버는 서명을 포함한 Sec-Token-Binding 헤더의 값을 확인하고 발행된 갱신 토큰에 대해 토큰 바인딩 ID(토큰 바인딩 메시지에도 포함됨)를 기록합니다. 프로세스를 상태 비저장으로 만들기 위해 권한 부여 서버는 토큰 바인딩 ID의 해시를 새로 고침 토큰 자체에 포함할 수 있으므로 별도로 기억/저장할 필요가 없습니다.
 
-3. 3.
+7. 나중에 OAuth 2.0 클라이언트는 동일한 토큰 끝점에 대해 새로 고침 토큰을 사용하여 액세스 토큰을 새로 고치려고 합니다. 이제 클라이언트는 토큰 바인딩 메시지를 생성하기 위해 이전에 사용한 것과 동일한 개인 키와 공개 키 쌍을 사용해야 하며 다시 한 번 base64url로 인코딩된 값을 Sec-Token-Binding HTTP 헤더에 포함해야 합니다. 토큰 바인딩 메시지는 새로 고침 토큰이 원래 발급된 경우와 동일한 토큰 바인딩 ID를 전달해야 합니다.
 
-Once the TLS handshake is completed, the OAuth 2.0 client will generate a private key and a public key and will sign the exported keying material (EKM) from the underlying TLS connection with the private key—and builds the token binding message. (To be precise, the client will sign EKM + token binding type + key parameters.)
+8. OAuth 2.0 인증 서버는 이제 Sec-Token-Binding HTTP 헤더의 유효성을 검사한 다음 바인딩 메시지의 토큰 바인딩 ID가 동일한 메시지의 새로 고침 토큰에 첨부된 원래 토큰 바인딩 ID와 동일한지 확인해야 합니다. 요구. 이 검사는 새로 고침 토큰을 원래 토큰 바인딩 외부에서 사용할 수 없도록 합니다. 인증 서버가 토큰 바인딩 ID의 해시 값을 새로 고침 토큰 자체에 포함하기로 결정한 경우 이제 Sec-Token-Binding HTTP 헤더에서 토큰 바인딩 ID의 해시를 계산하고 포함된 것과 비교해야 합니다. 새로 고침 토큰에.
 
- 
+9. 누군가가 새로 고침 토큰을 훔쳐 원래 토큰 바인딩 외부에서 사용하기를 원하면 클라이언트와 서버 간의 연결에 해당하는 개인/공개 키 쌍도 훔쳐야 합니다.
 
-4. 4.
 
-The base64url-encoded token binding message will be added as the value to the Sec-Token-Binding HTTP header to the connection between the client and the OAuth 2.0 authorization server.
+토큰 바인딩에는 두 가지 유형이 있으며 새로 고침 토큰과 관련하여 논의한 내용을 제공된 토큰 바인딩이라고 합니다. 클라이언트와 서버 간에 직접 토큰 교환이 발생하는 경우에 사용합니다. 다른 유형은 참조 토큰 바인딩으로 알려져 있으며, 이는 액세스 토큰과 같은 다른 서버에 제공하기 위한 토큰을 요청할 때 사용됩니다. 액세스 토큰은 클라이언트와 권한 부여 서버 간의 연결에서 발급되지만 클라이언트와 리소스 서버 간의 연결에서 사용됩니다.
 
- 
+OAuth 2.0 인증 코드/액세스 토큰에 대한 토큰 바인딩
 
-5. 5.
+인증 코드 부여 유형에서 액세스 토큰에 대한 토큰 바인딩이 어떻게 작동하는지 봅시다. OAuth 2.0 인증 코드 부여 유형에서 클라이언트는 먼저 브라우저(사용자 에이전트)를 통해 인증 코드를 얻은 다음 OAuth 2.0 인증 서버의 토큰 끝점과 대화하여 액세스 토큰 및 새로 고침 토큰으로 교환합니다(그림 참조). 11-5).
 
-The client will send a standard OAuth request to the token endpoint along with the Sec-Token-Binding HTTP header.
 
- 
+Figure 11-5 OAuth 2.0 authorization code flow
 
-6. 6.
+1. 최종 사용자가 브라우저에서 OAuth 2.0 클라이언트 응용 프로그램의 로그인 링크를 클릭하면 브라우저는 클라이언트 응용 프로그램(웹 서버에서 실행됨)에 대해 HTTP GET을 수행해야 하고 브라우저는 TLS를 설정해야 합니다. 먼저 OAuth 2.0 클라이언트와 연결합니다. OAuth 2.0 토큰 바인딩을 지원하는 브라우저는 TLS 핸드셰이크 자체 중에 OAuth 2.0 토큰 바인딩도 지원하는 클라이언트 앱과 필수 매개변수를 협상합니다. TLS 핸드셰이크가 완료되면 브라우저는 개인 키와 공개 키(클라이언트 도메인용)를 생성하고 개인 키로 기본 TLS 연결에서 내보낸 키 자료(EKM)에 서명하고 토큰 바인딩 메시지를 작성합니다. base64url로 인코딩된 토큰 바인딩 메시지는 브라우저와 OAuth 2.0 클라이언트(HTTP GET) 간의 연결에 대한 Sec-Token-Binding HTTP 헤더의 값으로 추가됩니다.
 
-The authorization server validates the value of Sec-Token-Binding header, including the signature, and records the token binding ID (which is also included in the token binding message) against the issued refresh token. To make the process stateless, the authorization server can include the hash of the token binding ID into the refresh token itself—so it does not need to remember/store it separately.
+2. 1단계(모든 토큰 바인딩 유효성 검사가 완료되었다고 가정)에 대한 응답으로 클라이언트는 사용자를 OAuth 2.0 인증 서버로 리디렉션하도록 요청하는 302 응답을 브라우저에 보냅니다. 또한 응답에서 클라이언트는 true로 설정된 HTTP 헤더 Include-Referred-Token-Binding-ID를 포함합니다. 이것은 브라우저가 권한 서버에 대한 요청에 브라우저와 클라이언트 사이에 설정된 토큰 바인딩 ID를 포함하도록 지시합니다. 또한 클라이언트 앱은 요청에 code_challenge 및 code_challenge_method의 두 가지 추가 매개변수를 포함합니다. 이러한 매개변수는 PKCE(Proof Key for Code Exchange) 또는 OAuth 2.0용 RFC 7636에 정의되어 있습니다. 토큰 바인딩에서 이 두 매개변수는 정적 값인 code_challenge=referred_tb 및 code_challenge_method=referred_tb를 전달합니다.
 
- 
+3. 브라우저는 TLS 핸드셰이크 자체 중에 권한 부여 서버와 필요한 매개변수를 협상합니다. TLS 핸드셰이크가 완료되면 브라우저는 개인 키와 공개 키(인증 서버 도메인용)를 생성하고 개인 키로 기본 TLS 연결에서 내보낸 키 자료(EKM)에 서명하고 토큰 바인딩 메시지를 작성합니다. . 클라이언트는 Sec-Token-Binding HTTP 헤더와 함께 인증 끝점에 표준 OAuth 요청을 보냅니다. 이 Sec-Token-Binding HTTP 헤더는 이제 두 개의 토큰 바인딩을 포함합니다(하나의 토큰 바인딩 메시지에서 - 그림 11-3 참조). 하나는 브라우저와 인증 서버 간의 연결을 위한 것이고 다른 하나는 브라우저와 클라이언트를 위한 것입니다. 앱(참조된 바인딩).
 
-7. 7.
+4. 인증 서버는 인증 코드와 함께 브라우저를 통해 사용자를 OAuth 클라이언트 앱으로 다시 리디렉션합니다. 인증 코드는 참조된 토큰 바인딩의 토큰 바인딩 ID에 대해 발급됩니다.
 
-Later, the OAuth 2.0 client tries to use the refresh token against the same token endpoint to refresh the access token. Now, the client has to use the same private key and public key pair used before to generate the token binding message and, once again, includes the base64url-encoded value of it to the Sec-Token-Binding HTTP header. The token binding message has to carry the same token binding ID as in the case where the refresh token was originally issued.
+5. 브라우저는 클라이언트 앱에 POST를 수행하며 여기에는 인증 서버의 인증 코드도 포함됩니다. 브라우저는 자신과 클라이언트 앱 간에 설정된 동일한 토큰 바인딩 ID를 사용하고 Sec-Token-Binding HTTP 헤더를 추가합니다.
 
- 
+6. 클라이언트 응용 프로그램이 인증 코드를 받으면(Sec-Token-Binding 유효성 검사가 성공하면) 이제 인증 서버의 토큰 끝점과 통신합니다. 그 전에 클라이언트는 인증 서버와 토큰 바인딩을 설정해야 합니다. 토큰 요청에는 PKCE RFC에 정의된 code_verifier 매개변수도 포함됩니다. 이 매개변수는 인증 코드에 첨부된 토큰 바인딩 ID이기도 한 클라이언트와 브라우저 간에 제공된 토큰 바인딩 ID를 전달합니다. 인증 서버에서 발급할 액세스 토큰은 보호된 리소스에 대해 사용되기 때문에 클라이언트는 자신과 리소스 서버 간의 토큰 바인딩을 이 토큰 바인딩 메시지에 참조 바인딩으로 포함해야 합니다. 토큰 요청을 받으면 OAuth 2.0 인증 서버는 이제 Sec-Token-Binding HTTP 헤더의 유효성을 검사한 다음 code_verifier 매개변수의 토큰 바인딩 ID가 인증에 첨부된 원래 토큰 바인딩 ID와 동일한지 확인해야 합니다. 발급 시점의 코드입니다. 이 검사는 원래 토큰 바인딩 외부에서 코드를 사용할 수 없도록 합니다. 그런 다음 권한 부여 서버는 참조된 토큰 바인딩에 바인딩된 액세스 토큰과 클라이언트와 권한 부여 서버 간의 연결에 바인딩된 새로 고침 토큰을 발급합니다.
 
-8. 8.
+7. 이제 클라이언트 응용 프로그램이 액세스 토큰을 전달하는 리소스 서버에서 API를 호출합니다. 이것은 클라이언트와 리소스 서버 간에 토큰 바인딩을 수행합니다.
 
-The OAuth 2.0 authorization server now must validate the Sec-Token-Binding HTTP header and then needs to make sure that the token binding ID in the binding message is the same as the original token binding ID attached to the refresh token in the same request. This check will make sure that the refresh token cannot be used outside the original token binding. In case the authorization server decides to embed the hashed value of the token binding ID to the refresh token itself, now it has to calculate the hash of the token binding ID in the Sec-Token-Binding HTTP header and compare it with what is embedded into the refresh token.
+8. 리소스 서버는 이제 인증 서버의 자체 검사 끝점과 통신하고 액세스 토큰에 연결된 바인딩 ID를 반환하므로 리소스 서버는 자신과 클라이언트 앱 간에 사용된 동일한 바인딩 ID인지 확인할 수 있습니다. .
 
- 
+### TLS Termination
 
-9. 9.
+많은 프로덕션 배포에는 TLS 연결을 종료하는 역방향 프록시가 포함되어 있습니다. 이것은 클라이언트와 서버 사이에 있는 Apache 또는 Nginx 서버에 있을 수 있습니다. 역방향 프록시에서 연결이 종료되면 서버는 TLS 계층에서 무슨 일이 일어났는지 알 수 없습니다. 보안 토큰이 들어오는 TLS 연결에 바인딩되었는지 확인하려면 서버가 토큰 바인딩 ID를 알아야 합니다. 역방향 프록시를 종료하는 TLS를 사용한 HTTPS 토큰 바인딩, 사양 초안(https://tools.ietf.org/html/draft-ietf-tokbind-ttrp-09)은 바인딩 ID가 역방향 프록시에서 역방향 프록시로 전달되는 방식을 표준화합니다. 백엔드 서버, HTTP 헤더. Provided-Token-Binding-ID 및 Referred-Token-Binding-ID HTTP 헤더는 이 사양에 의해 도입되었습니다(그림 11-6 참조).
 
-If someone steals the refresh token and is desperate to use it outside the original token binding, then he/she also has to steal the private/public key pair corresponding to the connection between the client and the server.
 
- 
+Figure 11-6 The reverse proxy passes the Provided-Token-Binding-ID and Referred-Token-Binding-ID HTTP headers to the backend server
 
-There are two types of token bindings—and what we discussed with respect to the refresh token is known as provided token binding. This is used when the token exchange happens directly between the client and the server. The other type is known as referred token binding, which is used when requesting tokens, which are intended to present to a different server—for example, the access token. The access token is issued in a connection between the client and the authorization server—but used in a connection between the client and the resource server.
 
-Token Binding for OAuth 2.0 Authorization Code/Access Token
+## 요약
 
-Let’s see how the token binding works for access tokens, under the authorization code grant type. Under the OAuth 2.0 authorization code grant type, the client first gets the authorization code via the browser (user agent) and then exchanges it to an access token and a refresh token by talking to the token endpoint of the OAuth 2.0 authorization server (see Figure 11-5).
+- OAuth 2.0 토큰 바인딩 제안은 보안 토큰을 TLS 레이어에 암호화하여 바인딩하여 토큰 내보내기 및 재생 공격을 방지합니다.
 
- 
+- 토큰 바인딩은 TLS에 의존하며 토큰을 TLS 연결 자체에 바인딩하기 때문에 토큰을 훔치는 사람은 다른 채널을 통해 토큰을 사용할 수 없습니다.
 
-Figure 11-5
+- 우리는 토큰 바인딩 프로토콜을 협상 단계, 키 생성 단계 및 소유 증명 단계의 세 가지 주요 단계로 나눌 수 있습니다.
 
-OAuth 2.0 authorization code flow
+- 협상 단계에서 클라이언트와 서버는 토큰 바인딩에 사용할 매개변수 집합을 협상합니다.
 
-1. 1.
+- 키 생성 단계에서 클라이언트는 협상 단계에서 협상된 매개변수에 따라 키 쌍을 생성합니다.
 
-When the end user clicks the login link on the OAuth 2.0 client application on the browser, the browser has to do an HTTP GET to the client application (which is running on a web server), and the browser has to establish a TLS connection with the OAuth 2.0 client first. The browser, which supports OAuth 2.0 token binding, during the TLS handshake itself, negotiates the required parameters with the client application, which too supports OAuth 2.0 token binding. Once the TLS handshake is completed, the browser will generate a private key and public key (for the client domain) and will sign the exported keying material (EKM) from the underlying TLS connection with the private key—and builds the token binding message. The base64url-encoded token binding message will be added as the value to the Sec-Token-Binding HTTP header to the connection between the browser and the OAuth 2.0 client—which is the HTTP GET.
-
- 
-
-2. 2.
-
-In response to step 1 (assuming all the token binding validations are done), the client will send a 302 response to the browser, asking to redirect the user to the OAuth 2.0 authorization server. Also in the response, the client will include the HTTP header Include-Referred-Token-Binding-ID, which is set to true. This instructs the browser to include the token binding ID established between the browser and the client in the request to the authorization server. Also, the client application will include two additional parameters in the request: code_challenge and code_challenge_method. These parameters are defined in the Proof Key for Code Exchange (PKCE) or RFC 7636 for OAuth 2.0. Under token binding, these two parameters will carry static values, code_challenge=referred_tb and code_challenge_method=referred_tb.
-
- 
-
-3. 3.
-
-The browser, during the TLS handshake itself, negotiates the required parameters with the authorization server. Once the TLS handshake is completed, the browser will generate a private key and public key (for the authorization server domain) and will sign the exported keying material (EKM) from the underlying TLS connection with the private key—and builds the token binding message. The client will send the standard OAuth request to the authorization endpoint along with the Sec-Token-Binding HTTP header. This Sec-Token-Binding HTTP header now includes two token bindings (in one token binding message—see Figure 11-3), one for the connection between the browser and the authorization server, and the other one is for the browser and the client application (referred binding).
-
- 
-
-4. 4.
-
-The authorization server redirects the user back to the OAuth client application via browser—along with the authorization code. The authorization code is issued against the token binding ID in the referred token binding.
-
- 
-
-5. 5.
-
-The browser will do a POST to the client application, which also includes the authorization code from the authorization server. The browser will use the same token binding ID established between itself and the client application—and adds the Sec-Token-Binding HTTP header.
-
- 
-
-6. 6.
-
-Once the client application gets the authorization code (and given that the Sec-Token-Binding validation is successful), it will now talk to the authorization server’s token endpoint. Prior to that, the client has to establish a token binding with the authorization server. The token request will also include the code_verifier parameter (defined in the PKCE RFC), which will carry the provided token binding ID between the client and the browser—which is also the token binding ID attached to the authorization code. Since the access token, which will be issued by the authorization server, is going to be used against a protected resource, the client has to include the token binding between itself and the resource server into this token binding message as a referred binding. Upon receiving the token request, the OAuth 2.0 authorization server now must validate the Sec-Token-Binding HTTP header and then needs to make sure that the token binding ID in the code_verifier parameter is the same as the original token binding ID attached to the authorization code at the point of issuing it. This check will make sure that the code cannot be used outside the original token binding. Then the authorization server will issue an access token, which is bound to the referred token binding, and a refresh token, which is bound to the connection between the client and the authorization server.
-
- 
-
-7. 7.
-
-The client application now invokes an API in the resource server passing the access token. This will carry the token binding between the client and the resource server.
-
- 
-
-8. 8.
-
-The resource server will now talk to the introspection endpoint of the authorization server—and it will return back the binding ID attached to the access token, so the resource server can check whether it’s the same binding ID used between itself and the client application.
-
- 
-
-TLS Termination
-
-Many production deployments do include a reverse proxy—which terminates the TLS connection. This can be at an Apache or Nginx server sitting between the client and the server. Once the connection is terminated at the reverse proxy, the server has no clue what happened at the TLS layer. To make sure the security tokens are bound to the incoming TLS connection, the server has to know the token binding ID. The HTTPS Token Binding with TLS Terminating Reverse Proxies, the draft specification (https://tools.ietf.org/html/draft-ietf-tokbind-ttrp-09), standardizes how the binding IDs are passed from the reverse proxy to the back-end server, as HTTP headers. The Provided-Token-Binding-ID and Referred-Token-Binding-ID HTTP headers are introduced by this specification (see Figure 11-6).
-
- 
-
-Figure 11-6
-
-The reverse proxy passes the Provided-Token-Binding-ID and Referred-Token-Binding-ID HTTP headers to the backend server
-
-## Summary
-
-- OAuth 2.0 token binding proposal cryptographically binds security tokens to the TLS layer, preventing token export and replay attacks.
-
-- Token binding relies on TLS—and since it binds the tokens to the TLS connection itself, anyone who steals a token cannot use it over a different channel.
-
-- We can break down the token binding protocol into three main phases: negotiation phase, key generation phase, and proof of possession phase.
-
-- During the negotiation phase, the client and the server negotiate a set of parameters to use for token binding between them.
-
-- During the key generation phase, the client generates a key pair according to the parameters negotiated in the negotiation phase.
-
-- During the proof of possession phase, the client uses the keys generated in the key generation phase to prove the possession.
+- 소유 증명 단계에서 클라이언트는 키 생성 단계에서 생성된 키를 사용하여 소유를 증명합니다.
 
  
 

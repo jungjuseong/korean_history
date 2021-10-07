@@ -64,7 +64,7 @@ public class GatewayApplication {
 }
 ```
 
-이제 API 게이트웨이를 시작하고 `cURL` 클라이언트와 통신하는 방법을 살펴보겠습니다. `ch05/sample02` 디렉토리에서 실행되는 다음 명령어는 Maven으로 API 게이트웨이를 시작하는 방법을 보여준다. `Zuul' API 게이트웨이`도 또 다른 `Spring Boot` 애플리케이션이기 때문에 시작하는 방법은 이전에 `Order` 서비스에서 했던 방법과 동일합니다.
+이제 API 게이트웨이를 시작하고 `cURL` 클라이언트와 통신하는 방법을 살펴보겠습니다. `ch05/sample02` 디렉토리에서 실행되는 다음 명령어는 Maven으로 API 게이트웨이를 시작하는 방법을 보여준다. `Zuul' API 게이트웨이`도 또 다른 `Spring Boot` 앱이기 때문에 시작하는 방법은 이전에 `Order` 서비스에서 했던 방법과 동일합니다.
 
 ```
 \> mvn spring-boot:run
@@ -501,9 +501,9 @@ OAuth 2.0 인증 서버에서 JWT 액세스 토큰을 얻으면 이전과 같은
 {"customer_id":"101021","order_id":"11","payment_method":{"card_type":"VISA","expiration":"01/22","name":"John Doe","billing_address":"201, 1st Street, San Jose, CA"},"items":[{"code":"101","qty":1},{"code":"103","qty":5}],"shipping_address":"201, 1st Street, San Jose, CA"}
 ```
 
-## 웹 애플리케이션 방화벽(WAF)의 역할
+## 웹 앱 방화벽(WAF)의 역할
 
-API 게이트웨이는 인증, 권한 부여 및 조절 정책을 중앙에서 시행하는 정책 시행 지점(PEP)입니다. 공개 API 배포에서는 API 게이트웨이만으로는 충분하지 않습니다. 또한 API 게이트웨이 앞에 있는 방화벽(WAF)이 필요한다(그림 5-4 참조). `WAF`의 주요 역할은 `DDoS` 공격으로부터 API 배포를 보호하는 것입니다. `OWASP`에서 식별한 알려진 위협과 함께 OpenAPI 사양에 대한 위협 탐지 및 메시지 유효성 검사를 수행한다. 가트너는 2020년까지 공개 웹 애플리케이션의 50% 이상이 `Akamai`, `Imperva`, `Cloudflare`, `AWS` 등과 같은 클라우드 기반 WAF 서비스 플랫폼으로 보호될 것으로 예측한다.
+API 게이트웨이는 인증, 권한 부여 및 조절 정책을 중앙에서 시행하는 정책 시행 지점(PEP)입니다. 공개 API 배포에서는 API 게이트웨이만으로는 충분하지 않습니다. 또한 API 게이트웨이 앞에 있는 방화벽(WAF)이 필요한다(그림 5-4 참조). `WAF`의 주요 역할은 `DDoS` 공격으로부터 API 배포를 보호하는 것입니다. `OWASP`에서 식별한 알려진 위협과 함께 OpenAPI 사양에 대한 위협 탐지 및 메시지 유효성 검사를 수행한다. 가트너는 2020년까지 공개 웹 앱의 50% 이상이 `Akamai`, `Imperva`, `Cloudflare`, `AWS` 등과 같은 클라우드 기반 WAF 서비스 플랫폼으로 보호될 것으로 예측한다.
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781484220504/files/A323855_2_En_5_Fig4_HTML.jpg)
 
@@ -524,5 +524,5 @@ Figure 5-4 A web application firewall (WAF) intercepts all the traffic coming in
 
 - Zuul은 동적 라우팅, 모니터링, 복원력, 보안 등을 제공하는 API 게이트웨이입니다. Netflix 서버 인프라의 정문 역할을 하며 전 세계 모든 Netflix 사용자의 트래픽을 처리한다.
 
-- 공개 API 배포에서는 API 게이트웨이만으로는 충분하지 않습니다. 또한 API 게이트웨이 앞에 있는 WAF(웹 애플리케이션 방화벽)도 필요한다
+- 공개 API 배포에서는 API 게이트웨이만으로는 충분하지 않습니다. 또한 API 게이트웨이 앞에 있는 WAF(웹 앱 방화벽)도 필요한다
  

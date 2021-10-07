@@ -198,4 +198,4 @@ The phishing attack on Google is a good wake-up call to evaluate and think about
 
 - 작성 당시 제안서 초안인 OAuth 2.0 Security Best Current Practice 문서에서는 RFC 6819가 게시된 이후 OAuth 2.0과 관련된 새로운 위협에 대해 이야기하고 있습니다.
 
-- `OpenID Foundation` 산하 금융 등급 API(FAPI) 작업 그룹은 금융 등급 애플리케이션을 구축하기 위해 안전한 방법으로 OAuth 2.0을 사용하는 방법에 대한 일련의 지침을 게시했습니다.
+- `OpenID Foundation` 산하 금융 등급 API(FAPI) 작업 그룹은 금융 등급 앱을 구축하기 위해 안전한 방법으로 OAuth 2.0을 사용하는 방법에 대한 일련의 지침을 게시했습니다.

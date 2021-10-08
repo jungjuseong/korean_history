@@ -80,7 +80,7 @@ To test the API with a `cURL` client, use the following command from a different
 
 이 예에서 생성된 인증서를 `자체 서명된 인증서`라고 한다. 즉, 외부 CA가 없다. 일반적으로 제품 배포에서는 퍼블릭 인증 기관 또는 기업 수준 인증 기관을 사용하여 퍼블릭 인증서에 서명하므로 인증 기관을 신뢰하는 모든 클라이언트가 이를 확인할 수 있다. 마이크로 서비스 배포 또는 내부 API 배포에서 서비스 간 통신을 보호하기 위해 인증서를 사용하는 경우 퍼블릭 인증 기관을 갖는 것에 대해 걱정할 필요가 없다. 자체 인증 기관을 가질 수 있으나 외부 클라이언트 앱에 노출하는 API의 경우 공용 인증 기관에서 서명한 인증서를 받아야 한다.
 
-`Spring Boot` API에 대해 TLS를 활성화하려면 키 저장소 파일(`keystore.jks`)을 샘플의 홈 디렉토리(예: `ch03/sample01/`)에 복사하고 `application.properties` 파일에 다음을 추가한다. git에서 다운로드한 샘플에는 이미 이러한 값이 있으며(해당 값을 주석 해제하기만 하면 됨) 키 저장소와 개인 키 모두에 대한 암호로 `springboot`를 사용한다.
+`Spring Boot` API에 대해 TLS를 활성화하려면 키 저장소 파일(`keystore.jks`)을 샘플의 홈 디렉토리(예: `ch03/sample01/`)에 복사하고 `application.properties` 파일에 다음을 추가한다.
 
 ```
 server.ssl.key-store: keystore.jks
@@ -88,7 +88,8 @@ server.ssl.key-store-password: springboot
 server.ssl.keyAlias: spring
 ```
 
-To validate that everything works fine, use the following command from `ch03/sample01/` directory to spin up the Order API and notice the line which prints the HTTPS port.
+모든 것이 제대로 작동하는지 확인하려면 `ch03/sample01/` 디렉토리에서 다음 명령을 사용하여 `Order` API를 실행하고 `HTTPS` 포트를 확인하십시오.
+
 ```
 \> mvn spring-boot:run
 Tomcat started on port(s): 8080 (https) with context path "

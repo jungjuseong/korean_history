@@ -1,104 +1,148 @@
 ## Part 1. First Steps
 
-788 / 5000
-번역 결과
-보안은 소프트웨어 시스템의 필수적인 비기능적 특성 중 하나입니다. 이 책에서 배우는 가장 중요한 측면 중 하나는 애플리케이션 개발의 초기 단계부터 보안을 고려해야 한다는 것입니다. 1장에서는 애플리케이션 개발 프로세스에서 보안의 위치에 대해 논의하는 것으로 시작합니다. 그런 다음 2장에서 몇 가지 간단한 프로젝트를 구현하여 Spring Security의 백본 아키텍처의 기본 구성 요소를 소개합니다.
-이 부분의 목적은 특히 이 프레임워크를 막 배우기 시작하는 경우 Spring Security를 시작하는 것입니다. 그러나 애플리케이션 수준 보안의 일부 측면과 Spring Security의 기본 아키텍처를 이미 알고 있더라도 이 부분을 복습으로 읽는 것이 좋습니다. 
+보안은 소프트웨어 시스템의 필수적인 비기능적 특성 중 하나입니다. 이 책에서 배우는 가장 중요한 측면 중 하나는 앱 개발의 초기 단계부터 보안을 고려해야 한다는 것입니다. 1장에서는 앱 개발 프로세스에서 보안의 위치에 대해 논의하는 것으로 시작합니다. 그런 다음 2장에서 몇 가지 간단한 프로젝트를 구현하여 Spring Security의 백본 아키텍처의 기본 구성 요소를 소개합니다. 이 부분의 목적은 특히 이 프레임워크를 막 배우기 시작하는 경우 Spring Security를 시작하는 것입니다. 그러나 앱 수준 보안의 일부 측면과 Spring Security의 기본 아키텍처를 이미 알고 있더라도 이 부분을 복습으로 읽는 것이 좋습니다. 
 
 # 1 Security today
 
 This chapter covers
+
 - What Spring Security is and what you can solve by using it
 - What security is for a software application
 - Why software security is essential and why you should care
 - Common vulnerabilities that you’ll encounter at the application level
   
-Figure 1.1 A user mainly thinks about functional requirements. Sometimes, you might see them aware of performance, which is nonfunctional, but unfortunately, it’s quite unusual that a user cares about security. Nonfunctional requirements tend to be more transparent than functional ones.
-There are multiple nonfunctional aspects to consider when working on a software system. In practice, all of these are important and need to be treated responsibly in the process of software development. In this book, we focus on one of these: security. You’ll learn how to protect your application, step by step, using Spring Security.
-But before starting, I’d like to make you aware of the following: depending on how much experience you have, you might find this chapter cumbersome. Don’t worry too much if you don’t understand absolutely all the aspects for now. In this chapter, I want to show you the big picture of security-related concepts. Throughout the book, we work on practical examples, and where appropriate, I’ll refer back to the description I give in this chapter. Where applicable, I’ll also provide you with more details. Here and there, you’ll find references to other materials (books, articles, documentation) on specific subjects that are useful for further reading.
+Figure 1.1 사용자는 주로 기능 요구 사항에 대해 생각합니다. 때로는 작동하지 않는 성능을 인식하는 것을 볼 수 있지만 불행히도 사용자가 보안에 관심을 갖는 것은 매우 이례적입니다. 비기능적 요구사항은 기능적 요구사항보다 더 투명한 경향이 있습니다.
+
+소프트웨어 시스템에서 작업할 때 고려해야 할 여러 비기능적 측면이 있습니다. 실제로 이 모든 것이 중요하며 소프트웨어 개발 과정에서 책임감 있게 다루어야 합니다. 이 책에서는 보안 중 하나에 중점을 둡니다. Spring Security를 ​​사용하여 단계별로 앱을 보호하는 방법을 배우게 됩니다.
+
+하지만 시작하기 전에 다음 사항을 알려드리고 싶습니다. 얼마나 많은 경험을 가지고 있느냐에 따라 이 장이 번거로울 수 있습니다. 지금 모든 측면을 완전히 이해하지 못하더라도 너무 걱정하지 마십시오. 이 장에서는 보안 관련 개념의 큰 그림을 보여드리고자 합니다. 책 전반에 걸쳐 우리는 실제 사례를 연구하고, 적절한 경우 이 장에서 설명하는 내용을 다시 참조할 것입니다. 해당되는 경우 자세한 내용도 알려 드리겠습니다. 여기 저기에서 추가 읽기에 유용한 특정 주제에 대한 다른 자료(도서, 기사, 문서)에 대한 참조를 찾을 수 있습니다.
 
 
 ## 1.1 Spring Security: The what and the why
 
-In this section, we discuss the relationship between Spring Security and Spring. It is important, first of all, to understand the link between the two before starting to use those. If we go to the official website, https://spring.io/projects/spring-security, we see Spring Security described as a powerful and highly customizable framework for authentication and access control. I would simply say it is a framework that enormously simplifies applying (or “baking”) security for Spring applications.
-Spring Security is the primary choice for implementing application-level security in Spring applications. Generally, its purpose is to offer you a highly customizable way of implementing authentication, authorization, and protection against common attacks. Spring Security is an open source software released under the Apache 2.0 license. You can access its source code on GitHub at https://github.com/spring-projects/ spring-security/. I highly recommend that you contribute to the project as well.
+이 섹션에서는 Spring Security와 Spring 간의 관계에 대해 논의합니다. 이를 사용하기 전에 먼저 둘 사이의 연결을 이해하는 것이 중요합니다. 공식 웹사이트 https://spring.io/projects/spring-security로 이동하면 인증 및 액세스 제어를 위한 강력하고 고도로 사용자 정의 가능한 프레임워크로 설명된 Spring Security를 ​​볼 수 있습니다. 단순히 Spring 앱에 대한 보안 적용(또는 "베이킹")을 엄청나게 단순화하는 프레임워크라고 말하고 싶습니다.
 
-> NOTE 
-> You can use Spring Security for both standard web servlets and reactive applications. To use it, you need at least Java 8, although the examples in this book use Java 11, which is the latest long-term supported version.
+Spring Security는 Spring 앱에서 앱 레벨 보안을 구현하기 위한 기본 선택입니다. 일반적으로 그 목적은 인증, 권한 부여 및 일반적인 공격에 대한 보호를 구현하는 고도로 사용자 지정 가능한 방법을 제공하는 것입니다. Spring Security는 Apache 2.0 라이선스에 따라 출시된 오픈 소스 소프트웨어입니다. https://github.com/spring-projects/spring-security/의 GitHub에서 소스 코드에 액세스할 수 있습니다. 당신도 프로젝트에 기여하는 것이 좋습니다.
 
-I can guess that if you opened this book, you work on Spring applications, and you are interested in securing those. Spring Security is most likely the best choice for you. It’s the de facto solution for implementing application-level security for Spring applications. Spring Security, however, doesn’t automatically secure your application. It’s not some kind of magic panacea that guarantees a vulnerability-free app. Developers need to understand how to configure and customize Spring Security around the needs of their applications. How to do this depends on many factors, from the functional requirements to the architecture.
-Technically, applying security with Spring Security in Spring applications is simple. You’ve already implemented Spring applications, so you know that the framework’s philosophy starts with the management of the Spring context. You define beans in the Spring context to allow the framework to manage these based on the configurations you specify. And you use only annotations to make these configurations and leave behind the old-fashioned XML configuration style!
-You use annotations to tell Spring what to do: expose endpoints, wrap methods in transactions, intercept methods in aspects, and so on. The same is true with Spring Security configurations, which is where Spring Security comes into play. What you want is to use annotations, beans, and in general, a Spring-fashioned configuration style comfortably when defining your application-level security. In a Spring application, the behavior that you need to protect is defined by methods.
-To think about application-level security, you can consider your home and the way you allow access to it. Do you place the key under the entrance rug? Do you even have a key for your front door? The same concept applies to applications, and Spring Security helps you develop this functionality. It’s a puzzle that offers plenty of choices for building the exact image that describes your system. You can choose to leave your house completely unsecured, or you can decide not to allow everyone to enter your home.
-The way you configure security can be straightforward like hiding your key under the rug, or it can be more complicated like choosing a variety of alarm systems, video cameras, and locks. In your applications, you have the same options, but as in real life, the more complexity you add, the more expensive it gets. In an application, this cost refers to the way security affects maintainability and performance.
-But how do you use Spring Security with Spring applications? Generally, at the application level, one of the most encountered use cases is when you’re deciding whether someone is allowed to perform an action or use some piece of data. Based on configurations, you write Spring Security components that intercept the requests and that ensure whoever makes the requests has permission to access protected resources. The developer configures components to do precisely what’s desired. If you mount an alarm system, it’s you who should make sure it’s also set up for the windows as well as for the doors. If you forget to set it up for the windows, it’s not the fault of the alarm system that it doesn’t trigger when someone forces a window.
-Other responsibilities of Spring Security components relate to data storage as well as data transit between different parts of the systems. By intercepting calls to these different parts, the components can act on the data. For example, when data is stored, these components can apply encryption or hashing algorithms. The data encodings keep the data accessible only to privileged entities. In a Spring application, the developer has to add and configure a component to do this part of the job wherever it’s needed. Spring Security provides us with a contract through which we know what the framework requires to be implemented, and we write the implementation according to the design of the application. We can say the same thing about transiting data.
-In real-world implementations, you’ll find cases in which two communicating components don’t trust each other. How can the first know that the second one sent a specific message and it wasn’t someone else? Imagine you have a phone call with somebody to whom you have to give private information. How do you make sure that on the other end is indeed a valid individual with the right to get that data, and not somebody else? For your application, this situation applies as well. Spring Security provides components that allow you to solve these issues in several ways, but you have to know which part to configure and then set it up in your system. This way, Spring Security intercepts messages and makes sure to validate communication before the application uses any kind of data sent or received.
-Like any framework, one of the primary purposes of Spring is to allow you to write less code to implement the desired functionality. And this is also what Spring Security does. It completes Spring as a framework by helping you write less code to perform one of the most critical aspects of an application--security. Spring Security provides predefined functionality to help you avoid writing boilerplate code or repeatedly writing the same logic from app to app. But it also allows you to configure any of its components, thus providing great flexibility. To briefly recap this discussion:
-- You use Spring Security to bake application-level security into your applications in the “Spring” way. By this, I mean, you use annotations, beans, the Spring Expression Language (SpEL), and so on.
-- Spring Security is a framework that lets you build application-level security. However, it is up to you, the developer, to understand and use Spring Security properly. Spring Security, by itself, does not secure an application or sensitive data at rest or in flight.
-- This book provides you with the information you need to effectively use Spring Security.
+> **참고**
+> 표준 웹 서블릿과 반응형 앱 모두에 Spring Security를 ​​사용할 수 있습니다. 이 책의 예제에서는 최신 장기 지원 버전인 Java 11을 사용하지만 이를 사용하려면 Java 8 이상이 필요합니다.
 
-Alternatives to Spring Security
+이 책을 펼쳤다면 Spring 앱에 대해 작업하고 있으며 이러한 앱을 보호하는 데 관심이 있다고 추측할 수 있습니다. Spring Security가 가장 좋은 선택일 것입니다. Spring 앱을 위한 앱 레벨 보안을 구현하기 위한 사실상의 솔루션입니다. 그러나 Spring Security는 앱을 자동으로 보호하지 않습니다. 취약점이 없는 앱을 보장하는 일종의 만병통치약이 아닙니다. 개발자는 앱의 필요에 따라 Spring Security를 ​​구성하고 사용자 정의하는 방법을 이해해야 합니다. 이를 수행하는 방법은 기능 요구 사항에서 아키텍처에 이르기까지 많은 요소에 따라 다릅니다. 
 
-This book is about Spring Security, but as with any solution, I always prefer to have a broad overview. Never forget to learn the alternatives that you have for any option. One of the things I’ve learned over time is that there’s no general right or wrong. “Everything is relative” also applies here!
-You won’t find a lot of alternatives to Spring Security when it comes to securing a Spring application. One alternative you could consider is Apache Shiro (https://shiro.apache.org). It offers flexibility in configuration and is easy to integrate with Spring and Spring Boot applications. Apache Shiro sometimes makes a good alternative to the Spring Security approach.
-If you’ve already worked with Spring Security, you’ll find using Apache Shiro easy and comfortable to learn. It offers its own annotations and design for web applications based on HTTP filters, which greatly simplify working with web applications. Also, you can secure more than just web applications with Shiro, from smaller command-line and mobile applications to large-scale enterprise applications. And even if simple, it’s powerful enough to use for a wide range of things from authentication and authorization to cryptography and session management.
-However, Apache Shiro could be too “light” for the needs of your application. Spring Security is not just a hammer, but an entire set of tools. It offers a larger scale of possibilities and is designed specifically for Spring applications. Moreover, it benefits from a larger community of active developers, and it is continuously enhanced.
-1.2 What is software security?
-Software systems today manage large amounts of data, of which a significant part can be considered sensitive, especially given the current General Data Protection Regulations (GDPR) requirements. Any information that you, as a user, consider private is sensitive for your software application. Sensitive data can include harmless information like a phone number, email address, or identification number; although, we generally think more about data that is riskier to lose, like your credit card details. The application should ensure that there’s no chance for that information to be accessed, changed, or intercepted. No parties other than the users to whom this data is intended should be able to interact in any way with it. Broadly expressed, this is the meaning of security.
-NOTE GDPR created a lot of buzz globally after its introduction in 2018. It generally represents a set of European laws that refer to data protection and gives people more control over their private data. GDPR applies to the owners of systems having users in Europe. The owners of such applications risk significant penalties if they don’t respect the regulations imposed.
-We apply security in layers, with each layer requiring a different approach. Compare these layers to a protected castle (figure 1.2). A hacker needs to bypass several obstacles to obtain the resources managed by the app. The better you secure each layer, the lower the chance an individual with bad intentions manages to access data or perform unauthorized operations.
+기술적으로 Spring 앱에서 Spring Security로 보안을 적용하는 것은 간단합니다. 이미 Spring 앱을 구현했으므로 프레임워크의 철학은 Spring 컨텍스트의 관리에서 시작된다는 것을 알고 있습니다. Spring 컨텍스트에서 Bean을 정의하여 프레임워크가 지정한 구성을 기반으로 이를 관리할 수 있도록 합니다. 그리고 주석만 사용하여 이러한 구성을 만들고 구식 XML 구성 스타일을 남깁니다!
+
+주석을 사용하여 Spring에게 수행할 작업(엔드포인트 노출, 트랜잭션에서 메소드 랩핑, aspect에서 메소드 가로채기 등)을 지시합니다. Spring Security가 작동하는 Spring Security 구성에서도 마찬가지입니다. 당신이 원하는 것은 어노테이션, 빈, 그리고 일반적으로 앱 레벨 보안을 정의할 때 편안하게 스프링 방식의 구성 스타일을 사용하는 것입니다. Spring 앱에서 보호해야 하는 동작은 메소드에 의해 정의됩니다.
+
+앱 수준 보안에 대해 생각하려면 집과 집에 대한 액세스를 허용하는 방법을 고려할 수 있습니다. 현관 깔개 밑에 열쇠를 두나요? 현관문 열쇠도 있나요? 동일한 개념이 앱에 적용되며 Spring Security는 이 기능을 개발하는 데 도움이 됩니다. 시스템을 설명하는 정확한 이미지를 구축하기 위한 다양한 선택을 제공하는 퍼즐입니다. 집을 완전히 안전하지 않은 상태로 두거나 모든 사람이 집에 들어오는 것을 허용하지 않도록 선택할 수 있습니다.
+보안을 구성하는 방법은 키를 깔개 아래에 숨기는 것과 같이 간단할 수도 있고 다양한 경보 시스템, 비디오 카메라 및 자물쇠를 선택하는 것과 같이 더 복잡할 수도 있습니다. 앱에는 동일한 옵션이 있지만 실제와 마찬가지로 복잡성이 추가될수록 비용이 더 많이 듭니다. 앱에서 이 비용은 보안이 유지 관리 및 성능에 영향을 미치는 방식을 나타냅니다.
+
+그러나 Spring 앱과 함께 Spring Security를 ​​어떻게 사용합니까? 일반적으로 앱 수준에서 가장 많이 접하는 사용 사례 중 하나는 누군가가 작업을 수행하거나 일부 데이터를 사용할 수 있는지 여부를 결정할 때입니다. 구성을 기반으로 요청을 가로채고 요청하는 사람이 보호된 리소스에 액세스할 수 있는 권한을 갖도록 하는 Spring Security 구성 요소를 작성합니다. 개발자는 원하는 것을 정확하게 수행하도록 구성 요소를 구성합니다. 경보 시스템을 설치하는 경우 창문뿐만 아니라 문에도 설정되어 있는지 확인해야 하는 사람은 바로 귀하입니다. 창문용으로 설정하는 것을 잊었다면 누군가 창문을 강제할 때 작동하지 않는 것은 알람 시스템의 잘못이 아닙니다.
+
+Spring Security 구성 요소의 다른 책임은 시스템의 다른 부분 간의 데이터 전송뿐만 아니라 데이터 저장과 관련됩니다. 이러한 서로 다른 부분에 대한 호출을 가로채서 구성 요소는 데이터에 대해 작동할 수 있습니다. 예를 들어 데이터가 저장될 때 이러한 구성 요소는 암호화 또는 해싱 알고리즘을 적용할 수 있습니다. 데이터 인코딩은 권한 있는 엔터티만 데이터에 액세스할 수 있도록 합니다. Spring 앱에서 개발자는 필요할 때마다 작업의 이 부분을 수행하도록 구성 요소를 추가하고 구성해야 합니다. Spring Security는 프레임워크가 구현되어야 하는 것이 무엇인지 아는 계약을 제공하고 앱 설계에 따라 구현을 작성합니다. 데이터 전송에 대해서도 같은 말을 할 수 있습니다.
+
+실제 구현에서는 두 개의 통신 구성 요소가 서로를 신뢰하지 않는 경우를 찾을 수 있습니다. 첫 번째 사람이 두 번째 사람이 특정 메시지를 보냈고 다른 사람이 아니라는 것을 어떻게 알 수 있습니까? 개인 정보를 제공해야 하는 사람과 전화 통화를 한다고 상상해 보십시오. 상대방이 다른 사람이 아니라 해당 데이터를 얻을 권리가 있는 유효한 개인인지 어떻게 확인합니까? 앱의 경우에도 이 상황이 적용됩니다. Spring Security는 이러한 문제를 여러 가지 방법으로 해결할 수 있는 구성 요소를 제공하지만 구성할 부분을 알고 시스템에서 설정해야 합니다. 이런 식으로 Spring Security는 메시지를 가로채고 앱이 보내거나 받은 모든 종류의 데이터를 사용하기 전에 통신을 확인합니다
+
+다른 프레임워크와 마찬가지로 Spring의 주요 목적 중 하나는 원하는 기능을 구현하기 위해 더 적은 코드를 작성할 수 있도록 하는 것입니다. 그리고 이것이 Spring Security가 하는 일이기도 합니다. 앱의 가장 중요한 측면 중 하나인 보안을 수행하기 위해 적은 코드를 작성하도록 도와줌으로써 Spring을 프레임워크로 완성합니다. Spring Security는 상용구 코드를 작성하거나 앱 간에 동일한 로직을 반복적으로 작성하는 것을 방지하는 사전 정의된 기능을 제공합니다. 그러나 또한 구성 요소를 구성할 수 있으므로 뛰어난 유연성을 제공합니다. 이 논의를 간단히 요약하자면:
+
+- Spring Security를 ​​사용하여 "Spring" 방식으로 앱 수준 보안을 앱에 적용합니다. 즉, 주석, 빈, `SpEL`(Spring Expression Language) 등을 사용합니다.
+
+- Spring Security는 앱 수준의 보안을 구축할 수 있는 프레임워크입니다. 그러나 Spring Security를 ​​제대로 이해하고 사용하는 것은 개발자에게 달려 있습니다. Spring Security는 그 자체로 저장 중이거나 전송 중인 앱이나 민감한 데이터를 보호하지 않습니다.
+
+- 이 책은 Spring Security를 ​​효과적으로 사용하기 위해 필요한 정보를 제공한다.
+
+### Alternatives to Spring Security
+
+이 책은 Spring Security에 관한 것이지만 다른 솔루션과 마찬가지로 저는 항상 광범위한 개요를 선호합니다. 모든 옵션에 대한 대안을 배우는 것을 잊지 마십시오. 시간이 흐르면서 배운 것 중 하나는 일반적인 옳고 그름은 없다는 것입니다. "모든 것은 상대적이다"는 여기에도 적용됩니다!
+
+Spring 앱을 보호할 때 Spring Security에 대한 대안을 많이 찾지 못할 것입니다. 고려할 수 있는 한 가지 대안은 Apache Shiro(https://shiro.apache.org)입니다. 구성의 유연성을 제공하며 Spring 및 Spring Boot 앱과 쉽게 통합됩니다. Apache Shiro는 때때로 Spring Security 접근 방식에 대한 좋은 대안을 만듭니다.
+
+이미 Spring Security로 작업한 적이 있다면 Apache Shiro를 사용하는 것이 쉽고 편안하다는 것을 알게 될 것입니다. HTTP 필터를 기반으로 하는 웹 앱을 위한 고유한 주석 및 디자인을 제공하여 웹 앱 작업을 크게 단순화합니다. 또한 소규모 명령줄 및 모바일 앱에서 대규모 엔터프라이즈 앱에 이르기까지 Shiro를 사용하여 웹 앱 그 이상을 보호할 수 있습니다. 그리고 단순하더라도 인증 및 권한 부여에서 암호화 및 세션 관리에 이르기까지 광범위한 작업에 사용할 수 있을 만큼 강력합니다.
+
+그러나 `Apache Shiro`는 앱의 요구 사항에 비해 너무 "가벼울" 수 있습니다. Spring Security는 단순한 망치가 아니라 전체 도구 세트입니다. 더 큰 가능성을 제공하며 Spring 앱을 위해 특별히 설계되었습니다. 또한 더 큰 활성 개발자 커뮤니티의 이점을 얻고 지속적으로 향상됩니다.
+
+## 1.2 What is software security?
+
+오늘날 소프트웨어 시스템은 특히 현재의 GDPR(일반 데이터 보호 규정) 요구 사항을 고려할 때 중요한 부분이 민감한 것으로 간주될 수 있는 많은 양의 데이터를 관리합니다. 사용자로서 귀하가 비공개로 간주하는 모든 정보는 귀하의 소프트웨어 앱에 민감한 정보입니다. 민감한 데이터에는 전화번호, 이메일 주소 또는 식별 번호와 같은 무해한 정보가 포함될 수 있습니다. 그러나 일반적으로 신용 카드 세부 정보와 같이 잃을 위험이 더 큰 데이터에 대해 더 많이 생각합니다. 앱은 해당 정보에 액세스, 변경 또는 가로챌 기회가 없도록 해야 합니다. 이 데이터가 의도된 사용자 이외의 당사자는 어떤 식으로든 데이터와 상호 작용할 수 없습니다. 넓게 표현하면 이것이 보안의 의미입니다.
+
+> **참고** GDPR은 2018년에 도입된 후 전 세계적으로 많은 화제를 불러 일으켰습니다. 일반적으로 데이터 보호와 관련하여 사람들에게 개인 데이터에 대한 더 많은 제어 권한을 부여하는 일련의 유럽 법률을 나타냅니다. GDPR은 유럽에 사용자가 있는 시스템 소유자에게 적용됩니다. 이러한 앱의 소유자는 부과된 규정을 준수하지 않을 경우 상당한 처벌을 받을 위험이 있습니다.
+우리는 계층별로 보안을 적용하며 각 계층에는 다른 접근 방식이 필요합니다. 이 층을 보호된 성(그림 1.2)과 비교하십시오. 해커는 앱에서 관리하는 리소스를 얻기 위해 여러 장애물을 우회해야 합니다. 각 계층을 더 잘 보호할수록 나쁜 의도를 가진 개인이 데이터에 액세스하거나 무단 작업을 수행할 가능성이 낮아집니다.
  
-Figure 1.2 The Dark Wizard (a hacker) has to bypass multiple obstacles (security layers) to steal the Magic Sword (user resources) from the Princess (your application).
-Security is a complex subject. In the case of a software system, security doesn’t apply only at the application level. For example, for networking, there are issues to be taken into consideration and specific practices to be used, while for storage, it’s another discussion altogether. Similarly, there’s a different philosophy in terms of deployment, and so on. Spring Security is a framework that belongs to application-level security. In this section, you’ll get a general picture of this security level and its implications.
-Application-level security (figure 1.3) refers to everything that an application should do to protect the environment it executes in, as well as the data it processes and stores. Mind that this isn’t only about the data affected and used by the application. An application might contain vulnerabilities that allow a malicious individual to affect the entire system!
+그림 1.2 Dark Wizard(해커)는 Princess(귀하의 앱)에서 Magic Sword(사용자 리소스)를 훔치기 위해 여러 장애물(보안 계층)을 우회해야 합니다.
+
+보안은 복잡한 주제입니다. 소프트웨어 시스템의 경우 보안은 앱 수준에서만 적용되는 것은 아닙니다. 예를 들어 네트워킹의 경우 고려해야 할 문제와 사용할 특정 관행이 있지만 스토리지의 경우 완전히 다른 논의입니다. 마찬가지로 배포 등의 측면에서 다른 철학이 있습니다. Spring Security는 앱 레벨 보안에 속하는 프레임워크입니다. 이 섹션에서는 이 보안 수준과 그 의미에 대한 일반적인 그림을 볼 수 있습니다.
+
+앱 수준 보안(그림 1.3)은 앱이 처리하고 저장하는 데이터뿐만 아니라 앱이 실행되는 환경을 보호하기 위해 수행해야 하는 모든 것을 나타냅니다. 이것은 앱에서 영향을 받고 사용하는 데이터에만 국한되지 않습니다. 앱에는 악의적인 개인이 전체 시스템에 영향을 줄 수 있는 취약점이 있을 수 있습니다!
  
-Figure 1.3 We apply security in layers, and each layer depends on those below it. In this book, we discuss Spring Security, which is a framework used to implement application-level security at the top-most level.
-To be more explicit, let’s discuss using some practical cases. We’ll consider a situation in which we deploy a system as in figure 1.4. This situation is common for a system designed using a microservices architecture, especially if you deploy it in multiple availability zones in the cloud.
- 
-Figure 1.4 If a malicious user manages to get access to the virtual machine (VM) and there’s no applied application-level security, a hacker can gain control of the other applications in the system. If communication is done between two different availability zones (AZ), a malicious individual will find it easier to intercept the messages. This vulnerability allows them to steal data or to impersonate users.
-With such microservice architectures, we can encounter various vulnerabilities, so you should exercise caution. As mentioned earlier, security is a cross-cutting concern that we design on multiple layers. It’s a best practice when addressing the security concerns of one of the layers to assume as much as possible that the above layer doesn’t exist. Think about the analogy with the castle in figure 1.2. If you manage the “layer” with 30 soldiers, you want to prepare them to be as strong as possible. And you do this even knowing that before reaching them, one would need to cross the fiery bridge.
-With this in mind, let’s consider that an individual driven by bad intentions would be able to log in to the virtual machine (VM) that’s hosting the first application. Let’s also assume that the second application doesn’t validate the requests sent by the first application. The attacker can then exploit this vulnerability and control the second application by impersonating the first one.
-Also, consider that we deploy the two services to two different locations. Then the attacker doesn’t need to log in to one of the VMs as they can directly act in the middle of communications between the two applications.
-NOTE An availability zone (AZ in figure 1.4) in terms of cloud deployment is a separate data center. This data center is situated far enough geographically (and has other dependencies) from other data centers of the same region that, if one availability zone fails, the probability that others are failing too is minimal. In terms of security, an important aspect is that traffic between two different data centers generally goes across a public network.
-Monolithic and microservices
-The discussion on monolithic and microservices architectural styles is a whole different tome. I refer to these in multiple places in this book, so you should at least be aware of the terminology. For an excellent discussion of the two architectural styles, I recommend that you read Chris Richardson’s Microservices Patterns (Manning, 2018).
-By monolithic architecture, we refer to an application in which we implement all the responsibilities in the same executable artifact. Consider this as one application that fulfills all use cases. The responsibilities can sometimes be implemented within different modules to make the application more comfortable to maintain. But you can’t separate the logic of one from the logic of others at runtime. Generally, monolithic architectures offer less flexibility for scaling and deployment management.
-With a microservices system, we implement the responsibilities within different executable artifacts. You can see the system as being formed of multiple applications that execute at the same time and communicate between themselves when needed via the network. While this offers more flexibility for scaling, it introduces other difficulties. We can enumerate here latencies, security concerns, network reliability, distributed persistence, and deployment management.
-I referred earlier to authentication and authorization. And, indeed, these are often present in most applications. Through authentication, an application identifies a user (a person or another application). The purpose of identifying these is to be able to decide afterward what they should be allowed to do--that’s authorization. I provide quite a lot of details on authentication and authorization, starting with chapter 3 and continuing throughout the book.
-In an application, you often find the need to implement authorization in different scenarios. Consider another situation: most applications have restrictions regarding the user for obtaining access certain functionality. Achieving this implies first the need to identify who creates an access to request for a specific feature--that’s authentication. As well, we need to know their privileges to allow the user to use that part of the system. As the system becomes more complex, you’ll find different situations that require a specific implementation related to authentication and authorization.
-For example, what if you’d like to authorize a particular component of the system against a subset of data or operations on behalf of the user? Let’s say the printer needs access to read the user’s documents. Should you simply share the credentials of the user with the printer? But that allows the printer more rights than needed! And it also exposes the credentials of the user. Is there a proper way to do this without impersonating the user? These are essential questions, and the kind of questions you encounter when developing applications: questions that we not only want to answer, but for which you’ll see applications with Spring Security in this book.
-Depending on the chosen architecture for the system, you’ll find authentication and authorization at the level of the entire system, as well as for any of the components. And as you’ll see further along in this book, with Spring Security, you’ll sometimes prefer to use authorization even for different tiers of the same component. In chapter 16, we’ll discuss more on global method security, which refers to this aspect. The design gets even more complicated when you have a predefined set of roles and authorities.
-I would also like to bring to your attention data storage. Data at rest adds to the responsibility of the application. Your app shouldn’t store all its data in a readable format. The application sometimes needs to keep the data either encrypted with a private key or hashed. Secrets like credentials and private keys can also be considered data at rest. These should be carefully stored, usually in a secrets vault.
-NOTE We classify data as “at rest” or “in transition.” In this context, data at rest refers to data in computer storage or, in other words, persisted data. Data in transition applies to all the data that’s exchanged from one point to another. Different security measures should, therefore, be enforced, depending on the type of data.
-Finally, an executing application must manage its internal memory as well. It may sound strange, but data stored in the heap of the application can also present vulnerabilities. Sometimes the class design allows the app to store sensitive data like credentials or private keys for a long time. In such cases, someone who has the privilege to make a heap dump could find these details and then use them maliciously.
-With a short description of these cases, I hope I’ve managed to provide you with an overview of what we mean by application security, as well as the complexity of this subject. Software security is a tangled subject. One who is willing to become an expert in this field would need to understand (as well as to apply) and then test solutions for all the layers that collaborate within a system. In this book, however, we’ll focus only on presenting all the details of what you specifically need to understand in terms of Spring Security. You’ll find out where this framework applies and where it doesn’t, how it helps, and why you should use it. Of course, we’ll do this with practical examples that you should be able to adapt to your own unique use cases.
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH01_F03_Spilca.png)
+
+Figure 1.3 우리는 계층에 보안을 적용하고 각 계층은 그 아래에 있는 계층에 의존합니다. 이 책에서는 최상위 수준에서 앱 수준의 보안을 구현하는 데 사용되는 프레임워크인 Spring Security에 대해 설명합니다.
+
+좀 더 명확하게 하기 위해 몇 가지 실제 사례를 사용하여 논의해 보겠습니다. 그림 1.4와 같이 시스템을 배포하는 상황을 고려할 것입니다. 이 상황은 특히 클라우드의 여러 가용 영역에 배포하는 경우 마이크로서비스 아키텍처를 사용하여 설계된 시스템에서 일반적입니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH01_F04_Spilca.png)
+그림 1.4 악의적인 사용자가 가상 ​​머신(VM)에 액세스할 수 있고 앱 수준 보안이 적용되지 않은 경우 해커는 시스템의 다른 앱을 제어할 수 있습니다. 두 개의 서로 다른 가용 영역(AZ) 간에 통신이 이루어지면 악의적인 개인이 메시지를 가로채기가 더 쉽다는 것을 알게 됩니다. 이 취약점으로 인해 데이터를 훔치거나 사용자를 가장할 수 있습니다.
+
+이러한 마이크로서비스 아키텍처에서는 다양한 취약점에 직면할 수 있으므로 주의해야 합니다. 앞서 언급했듯이 보안은 우리가 여러 계층에서 설계하는 교차 관심사입니다. 계층 중 하나의 보안 문제를 해결할 때 가능한 한 위 계층이 존재하지 않는다고 가정하는 것이 모범 사례입니다. 그림 1.2의 성에 대한 비유를 생각해 보십시오. 30명의 병사로 "계층"을 관리한다면 가능한 한 강력하게 준비하고 싶습니다. 그리고 당신은 그들에게 도달하기 전에 불타는 다리를 건너야 한다는 것을 알면서도 이것을 합니다.
+
+이를 염두에 두고 나쁜 의도를 가진 개인이 첫 번째 앱을 호스팅하는 가상 머신(VM)에 로그인할 수 있다고 가정해 보겠습니다. 또한 두 번째 앱이 첫 번째 앱에서 보낸 요청의 유효성을 검사하지 않는다고 가정해 보겠습니다. 그런 다음 공격자는 이 취약점을 악용하고 첫 번째 앱을 가장하여 두 번째 앱을 제어할 수 있습니다.
+또한 두 서비스를 서로 다른 두 위치에 배포한다고 가정합니다. 그러면 공격자는 VM 중 하나에 로그인할 필요가 없습니다. VM이 두 앱 간의 통신 중간에 직접 행동할 수 있기 때문입니다.
+
+> **참고** 클라우드 구축 측면에서 가용 영역(그림 1.4의 AZ)은 별도의 데이터 센터입니다. 이 데이터 센터는 동일한 지역의 다른 데이터 센터에서 지리적으로 충분히 멀리 떨어져 있으며(다른 종속성이 있음), 한 가용 영역에 장애가 발생하면 다른 가용 영역에서도 장애가 발생할 가능성이 최소화됩니다. 보안 측면에서 중요한 측면은 두 개의 서로 다른 데이터 센터 간의 트래픽이 일반적으로 공용 네트워크를 통과한다는 것입니다.
+
+#### Monolithic and microservices
+
+모놀리식 및 마이크로서비스 아키텍처 스타일에 대한 논의는 완전히 다른 책입니다. 나는 이 책의 여러 곳에서 이것들을 언급하므로 최소한 용어는 알고 있어야 합니다. 두 가지 아키텍처 스타일에 대한 훌륭한 논의를 보려면 Chris Richardson의 Microservices Patterns(Manning, 2018)를 읽어보시기 바랍니다.
+
+모놀리식 아키텍처란 동일한 실행 가능한 아티팩트에서 모든 책임을 구현하는 앱을 말합니다. 이것을 모든 사용 사례를 충족하는 하나의 앱으로 간주하십시오. 앱을 보다 쉽게 ​​유지 관리할 수 있도록 책임을 다른 모듈 내에서 구현하는 경우가 있습니다. 그러나 런타임에 한 사람의 논리를 다른 사람의 논리와 분리할 수는 없습니다. 일반적으로 모놀리식 아키텍처는 확장 및 배포 관리에 대한 유연성이 떨어집니다.
+
+마이크로서비스 시스템을 사용하여 다양한 실행 가능한 아티팩트 내에서 책임을 구현합니다. 동시에 실행되고 네트워크를 통해 필요할 때 서로 통신하는 여러 앱으로 구성된 시스템을 볼 수 있습니다. 이것은 확장에 더 많은 유연성을 제공하지만 다른 어려움을 야기합니다. 여기에서 대기 시간, 보안 문제, 네트워크 안정성, 분산 지속성 및 배포 관리를 열거할 수 있습니다.
+
+앞에서 인증 및 권한 부여에 대해 언급했습니다. 그리고 실제로 이러한 것들은 대부분의 앱에 종종 존재합니다. 인증을 통해 앱은 사용자(사람 또는 다른 앱)를 식별합니다. 이들을 식별하는 목적은 나중에 그들이 무엇을 하도록 허용되어야 하는지 결정할 수 있도록 하는 것입니다. 이것이 바로 승인입니다. 나는 3장에서 시작하여 책 전체에 걸쳐 계속되는 인증 및 권한 부여에 대한 많은 세부 정보를 제공합니다.
+
+앱에서 다양한 시나리오에서 권한 부여를 구현해야 하는 경우가 종종 있습니다. 다른 상황을 고려하십시오. 대부분의 앱에는 특정 기능에 대한 액세스 권한을 얻기 위해 사용자에 대한 제한이 있습니다. 이를 달성하려면 먼저 인증이라는 특정 기능에 대한 요청에 대한 액세스 권한을 생성한 사람을 식별해야 합니다. 또한 사용자가 시스템의 해당 부분을 사용할 수 있도록 허용하려면 권한을 알아야 합니다. 시스템이 복잡해짐에 따라 인증 및 권한 부여와 관련된 특정 구현이 필요한 다양한 상황을 찾을 수 있습니다.
+
+예를 들어, 사용자를 대신하여 데이터 또는 작업의 하위 집합에 대해 시스템의 특정 구성 요소에 권한을 부여하려면 어떻게 해야 합니까? 프린터가 사용자의 문서를 읽기 위해 액세스 권한이 필요하다고 가정해 보겠습니다. 단순히 사용자의 자격 증명을 프린터와 공유해야 합니까? 그러나 그것은 프린터에게 필요한 것보다 더 많은 권한을 허용합니다! 또한 사용자의 자격 증명을 노출합니다. 사용자를 가장하지 않고 이를 수행하는 적절한 방법이 있습니까? 이것들은 필수적인 질문이며 앱을 개발할 때 접하게 되는 종류의 질문입니다. 우리가 대답하고 싶을 뿐만 아니라 이 책에서 Spring Security를 ​​사용하는 앱을 볼 수 있는 질문입니다.
+
+시스템에 대해 선택한 아키텍처에 따라 구성 요소뿐만 아니라 전체 시스템 수준에서 인증 및 권한 부여를 찾을 수 있습니다. 그리고 이 책에서 더 자세히 살펴보겠지만 Spring Security를 ​​사용하면 동일한 구성 요소의 다른 계층에 대해서도 승인을 사용하는 것을 선호할 때가 있습니다. 16장에서 이 측면을 참조하는 전역 메서드 보안에 대해 더 논의할 것입니다. 미리 정의된 역할 및 권한 집합이 있는 경우 설계가 훨씬 더 복잡해집니다.
+
+나는 또한 당신의 관심 데이터 저장 장치를 가져오고 싶습니다. 미사용 데이터는 앱의 책임에 추가됩니다. 앱은 모든 데이터를 읽을 수 있는 형식으로 저장해서는 안 됩니다. 앱은 때때로 개인 키로 암호화되거나 해시된 데이터를 유지해야 합니다. 자격 증명 및 개인 키와 같은 비밀도 저장 데이터로 간주될 수 있습니다. 이것들은 일반적으로 비밀 금고에 조심스럽게 보관해야 합니다.
+
+> **참고** 데이터를 "휴지 중" 또는 "전환 중"으로 분류합니다. 이 컨텍스트에서 미사용 데이터는 컴퓨터 저장소에 있는 데이터, 즉 영구 데이터를 나타냅니다. 전환 중인 데이터는 한 지점에서 다른 지점으로 교환되는 모든 데이터에 적용됩니다. 따라서 데이터 유형에 따라 다른 보안 조치를 시행해야 합니다.
+
+마지막으로 실행 중인 앱은 내부 메모리도 관리해야 합니다. 이상하게 들릴 수도 있지만 앱의 힙에 저장된 데이터도 취약점을 나타낼 수 있습니다. 때로는 클래스 디자인을 통해 앱이 자격 증명이나 개인 키와 같은 민감한 데이터를 오랫동안 저장할 수 있습니다. 이러한 경우 힙 덤프를 만들 수 있는 권한이 있는 사람이 이러한 세부 정보를 찾아 악의적으로 사용할 수 있습니다.
+
+이러한 경우에 대한 간략한 설명을 통해 앱 보안이 의미하는 바와 이 주제의 복잡성에 대한 개요를 제공할 수 있기를 바랍니다. 소프트웨어 보안은 복잡한 주제입니다. 이 분야의 전문가가 되고자 하는 사람은 시스템 내에서 협업하는 모든 계층에 대한 솔루션을 이해하고 적용한 다음 테스트해야 합니다. 그러나 이 책에서는 Spring Security 측면에서 특히 이해해야 하는 모든 세부 사항을 제시하는 데만 집중할 것입니다. 이 프레임워크가 어디에 적용되고 어디에 적용되지 않는지, 어떻게 도움이 되며, 왜 사용해야 하는지 알게 될 것입니다. 물론, 우리는 당신의 고유한 사용 사례에 적응할 수 있어야 하는 실용적인 예를 가지고 이것을 할 것입니다.
 
 ## 1.3 Why is security important?
-The best way to start thinking about why security is important is from your point of view as a user. Like anyone else, you use applications, and these have access to your data. These can change your data, use it, or expose it. Think about all the apps you use, from your email to your online banking service accounts. How would you evaluate the sensitivity of the data that is managed by all these systems? How about the actions that you can perform using these systems? Similarly to data, some actions are more important than others. You don’t care very much about some of those, while others are more significant. Maybe for you, it’s not that important if someone would somehow manage to read some of your emails. But I bet you’d care if someone else could empty your bank accounts.
-Once you’ve thought about security from your point of view, try to see a more objective picture. The same data or actions might have another degree of sensitivity to other people. Some might care a lot more than you if their email is accessed and someone could read their messages. Your application should make sure to protect everything to the desired degree of access. Any leak that allows the use of data and functionalities, as well as the application, to affect other systems is considered a vulnerability, and you need to solve it.
-Not respecting security comes with a price that I’m sure you aren’t willing to pay. In general, it’s about money. But the cost can differ, and there are multiple ways through which you can lose profitability. It isn’t only about losing money from a bank account or using a service without paying for it. These things indeed imply cost. The image of a brand or a company is also valuable, and losing a good image can be expensive--sometimes even more costly than the expenses directly resulting from the exploitation of a vulnerability in the system! The trust that users have in your application is one of its most valuable assets, and it can make the difference between success or failure.
 
-Here are a few fictitious examples. Think about how you would see these as a user. How can these affect the organization responsible for the software?
+보안이 왜 중요한지 생각하는 가장 좋은 방법은 사용자의 관점에서 보는 것입니다. 다른 사람과 마찬가지로 귀하는 앱을 사용하며 이러한 앱은 귀하의 데이터에 액세스할 수 있습니다. 이들은 데이터를 변경하거나 사용하거나 노출할 수 있습니다. 이메일에서 온라인 뱅킹 서비스 계정에 이르기까지 사용하는 모든 앱에 대해 생각해 보십시오. 이러한 모든 시스템에서 관리하는 데이터의 민감도를 어떻게 평가하시겠습니까? 이러한 시스템을 사용하여 수행할 수 있는 작업은 어떻습니까? 데이터와 마찬가지로 일부 작업은 다른 작업보다 더 중요합니다. 당신은 그들 중 일부에 대해 별로 신경 쓰지 않는 반면, 다른 것들은 더 중요합니다. 아마도 당신에게는 누군가가 어떻게든 당신의 이메일 중 일부를 읽을 수 있다면 그렇게 중요하지 않을 것입니다. 하지만 다른 사람이 당신의 은행 계좌를 비울 수 있다면 당신은 신경을 쓸 것입니다.
 
-- A back-office application should manage the internal data of an organization but, somehow, some information leaks out.
-- Users of a ride-sharing application observe that money is debited from their accounts on behalf of trips that aren’t theirs.
-- After an update, users of a mobile banking application are presented with transactions that belong to other users.
+자신의 관점에서 보안에 대해 생각했다면 더 객관적인 그림을 보려고 노력하십시오. 동일한 데이터 또는 작업이 다른 사람들에게 다른 정도의 민감도를 가질 수 있습니다. 어떤 사람들은 이메일에 액세스하고 누군가가 메시지를 읽을 수 있다면 당신보다 훨씬 더 신경을 쓸 수 있습니다. 앱은 모든 것을 원하는 액세스 수준으로 보호해야 합니다. 데이터와 기능, 앱을 사용하여 다른 시스템에 영향을 줄 수 있는 모든 누출은 취약점으로 간주되며 해결해야 합니다.
 
-In the first situation, the organization using the software, as well as its employees, can be affected. In some instances, the company could be liable and could lose a significant amount of money. In this situation, users don’t have the choice to change the application, but the organization can decide to change the provider of their software.
+보안을 존중하지 않으면 지불할 의사가 없는 대가가 따릅니다. 일반적으로 돈에 관한 것입니다. 그러나 비용은 다를 수 있으며 수익성을 잃을 수 있는 여러 가지 방법이 있습니다. 은행 계좌에서 돈을 잃거나 비용을 지불하지 않고 서비스를 사용하는 것만이 아닙니다. 이러한 것들은 실제로 비용을 의미합니다. 브랜드나 회사의 이미지도 가치가 있으며 좋은 이미지를 잃는 것은 비용이 많이 들 수 있습니다. 때로는 시스템의 취약점을 악용하여 직접적으로 발생하는 비용보다 훨씬 더 비쌉니다. 사용자가 앱에 대해 갖는 신뢰는 앱의 가장 소중한 자산 중 하나이며 성공과 실패를 가를 수 있습니다.
 
-In the second case, users will probably choose to change the service provider. The image of the company developing the application would be dramatically affected. The cost lost in terms of money in this case is much less than the cost in terms of image. Even if payments are returned to the affected users, the application will still lose some customers. This affects profitability and can even lead to bankruptcy. And in the third case, the bank could see dramatic consequences in terms of trust, as well as legal repercussions.
+다음은 몇 가지 가상의 예입니다. 이것을 사용자로서 어떻게 볼 것인지 생각해 보십시오. 이것이 소프트웨어를 담당하는 조직에 어떤 영향을 미칠 수 있습니까?
 
-In most of these scenarios, investing in security is safer than what happens if someone exploits a vulnerability in your system. For all of the examples, only a small weakness could cause each outcome. For the first example, it could be a broken authentication or a cross-site request forgery (CSRF). For the second and third examples, it could be a lack of method access control. And for all of these examples, it could be a combination of vulnerabilities.
-Of course, from here we can go even further and discuss the security in defense-related systems. If you consider money important, add human lives to the cost! Can you even imagine what could be the result if a health care system was affected? What about systems that control nuclear power? You can reduce any risk by investing early in the security of your application and by allocating enough time for security professionals to develop and test your security mechanisms.
-NOTE The lessons learned from those who failed before you are that the cost of an attack is usually higher than the investment cost of avoiding the vulnerability.
-In the rest of this book, you’ll see examples of ways to apply Spring Security to avoid situations like the ones presented. I guess there will never be enough word written about how important security is. When you have to make a compromise on the security of your system, try to estimate your risks correctly.
+- 백오피스 앱은 조직의 내부 데이터를 관리해야 하지만 어떻게든 일부 정보가 누출됩니다.
+- 카 셰어링 앱 사용자는 자신의 계정이 아닌 여행을 대신하여 자신의 계정에서 돈이 인출되는 것을 관찰합니다.
+- 업데이트 후 모바일 뱅킹 앱 사용자에게는 다른 사용자에게 속한 거래가 표시됩니다. 
+
+첫 번째 상황에서는 소프트웨어를 사용하는 조직과 해당 직원이 영향을 받을 수 있습니다. 어떤 경우에는 회사가 책임을 지고 상당한 금액을 잃을 수 있습니다. 이 상황에서 사용자는 앱을 변경할 수 없지만 조직은 소프트웨어 공급자를 변경할 수 있습니다.
+
+두 번째 경우 사용자는 서비스 공급자를 변경하기로 선택할 것입니다. 앱을 개발하는 회사의 이미지가 크게 영향을 받을 것입니다. 이 경우 비용 측면에서 손실되는 비용은 이미지 측면의 비용보다 훨씬 적습니다. 영향을 받는 사용자에게 지불금이 반환되더라도 앱은 여전히 ​​일부 고객을 잃게 됩니다. 이는 수익성에 영향을 미치고 파산으로 이어질 수도 있습니다. 그리고 세 번째 경우 은행은 법적 영향뿐만 아니라 신뢰 측면에서 극적인 결과를 볼 수 있습니다.
+
+이러한 대부분의 시나리오에서 보안에 대한 투자는 누군가가 시스템의 취약점을 악용하는 경우보다 더 안전합니다. 모든 예에서 작은 약점만이 각 결과를 초래할 수 있습니다. 첫 번째 예의 경우 인증이 깨졌거나 CSRF(교차 사이트 요청 위조)가 될 수 있습니다. 두 번째 및 세 번째 예의 경우 메서드 액세스 제어가 부족할 수 있습니다. 그리고 이러한 모든 예에서 취약점의 조합일 수 있습니다.
+
+물론 여기에서 더 나아가 방위 관련 시스템의 보안에 대해 논의할 수 있습니다. 돈을 중요하게 생각한다면 그 대가에 인명을 더하라! 의료 시스템이 영향을 받을 경우 어떤 결과가 나타날 수 있는지 상상할 수 있습니까? 원자력을 제어하는 ​​시스템은 어떻습니까? 앱 보안에 조기에 투자하고 보안 전문가가 보안 메커니즘을 개발하고 테스트할 수 있도록 충분한 시간을 할당하면 위험을 줄일 수 있습니다.
+참고 이전에 실패한 사람들로부터 배운 교훈은 공격 비용이 일반적으로 취약성을 피하는 투자 비용보다 높다는 것입니다.
+
+이 책의 나머지 부분에서는 제시된 것과 같은 상황을 피하기 위해 Spring Security를 ​​적용하는 방법의 예를 보게 될 것입니다. 보안이 얼마나 중요한지에 대해 쓰여진 단어는 결코 충분하지 않을 것입니다. 시스템 보안을 타협해야 하는 경우 위험을 올바르게 추정하십시오.
 
 ## 1.4 웹에서 일반적인 보안 취약점
 
-Before we discuss how to apply security in your applications, you should first know what you’re protecting the application from. To do something malicious, an attacker identifies and exploits the vulnerabilities of your application. We often describe vulnerability as a weakness that could allow the execution of actions that are unwanted, usually done with malicious intentions.
-An excellent start to understanding vulnerabilities is being aware of the Open Web Application Security Project, also known as OWASP (https://www.owasp.org). At OWASP, you’ll find descriptions of the most common vulnerabilities that you should avoid in your applications. Let’s take a few minutes and discuss these theoretically before diving into the next chapters, where you’ll start to apply concepts from Spring Security. Among the common vulnerabilities that you should be aware of, you’ll find these:
+앱에 보안을 적용하는 방법을 논의하기 전에 먼저 앱을 보호하는 대상을 알아야 합니다. 악의적인 작업을 수행하기 위해 공격자는 앱의 취약성을 식별하고 악용합니다. 우리는 종종 취약성을 일반적으로 악의적인 의도로 수행되는 원치 않는 작업을 실행할 수 있는 약점으로 설명합니다.
+
+취약성을 이해하기 위한 훌륭한 시작은 OWASP(https://www.owasp.org)라고도 하는 개방형 웹 앱 보안 프로젝트를 인식하는 것입니다. OWASP에서는 앱에서 피해야 하는 가장 일반적인 취약점에 대한 설명을 찾을 수 있습니다. Spring Security의 개념을 적용하기 시작할 다음 장으로 들어가기 전에 잠시 시간을 내어 이론적으로 논의해 보겠습니다. 알고 있어야 하는 일반적인 취약점 중에서 다음을 찾을 수 있습니다.
 
 - 깨진 인증
 - 세션 고정
@@ -109,34 +153,39 @@ An excellent start to understanding vulnerabilities is being aware of the Open W
 - 액세스 제어 방법이 미흡
 - 알려진 취약점이 있는 의존성 사용
 
-These items are related to application-level security, and most of these are also directly related to using Spring Security. We’ll discuss their relationship with Spring Security and how to protect your application from these in detail in this book, but first, an overview.
+이러한 항목은 앱 수준의 보안과 관련이 있으며 대부분 Spring Security 사용과 직접 관련이 있습니다. 이 책에서 Spring Security와의 관계와 이들로부터 앱을 보호하는 방법에 대해 자세히 설명하지만 먼저 개요를 살펴보겠습니다.
 
 ### 1.4.1 인증과 권한부여에서 취약점
 
-인증은 누군가 애플리케이션을 사용하려고 하는지를 식별하는 과정이다. 누구 또는 무엇인가가 앱을 사용할 때는 그들을 식별하여 권한을 허용할지 여부를 결정하고자 한다. 실제 앱에서는 익명의 사용자를 허용하기도 하지만 대부분의 경우 사용자를 식별한 후에만 서비스 또는 데이터를 사용할 수 있다. 사용자를 파악했다면 권한 부여를 처리할 수 있다.
+인증은 누군가 앱을 사용하려고 하는지를 식별하는 과정이다. 누구 또는 무엇인가가 앱을 사용할 때는 그들을 식별하여 권한을 허용할지 여부를 결정하고자 한다. 실제 앱에서는 익명의 사용자를 허용하기도 하지만 대부분의 경우 사용자를 식별한 후에만 서비스 또는 데이터를 사용할 수 있다. 사용자를 파악했다면 권한 부여를 처리할 수 있다.
 권한 부여는 인증된 요청자가 특정 기능과 데이터를 사용할 권한을 부여하는 과정이다. 예를 들어 모바일 뱅킹 앱에서는 인증된 사용자만 자신의 계좌에서 이체를 할 수 있다.
 나쁜 의도를 가진 누군가가 그에게 없는 기능과 데이터의 액세스를 획득한다면 인증이 깨진 것이라고 말할 수 있다. 스프링 시큐리티와 같은 프레임워크는 이와 같은 침해 가능성을 낮춰주지만 정확하게 사용하지 않으면 그런 일이 생길 수 있다. 예를 들어 특정한 역할을 가진 승인된 사용자만 사용하도록 특정 엔드포인트 액세스를 정의 할 수 있다. 데이터 레벨에서 제약이 없다면 누군가가 다른 사용자의 데이터를 사용할 방법을 찾아낼지도 모른다.
-아래 그림을 보면 인증된 사용자는 /products/{name}를 액세스 할 수 있다. 브라우저로부터 웹 앱은 이 엔드포인트를 불러 시용자의 제품 정보를 표시한다. 하지만 앱이 정보를 리턴할 때 제품이 누군것인지를 검증하지 않으면 어떻게 될까? 어떤 사용자는 다른 사용자의 정보를 얻는 방법을 알아낼 것이다. 이 상황은 애플리케이션 설계 시작부터 고려할 사항 중에 하나이다.
- 
-Figure 1.5 A user that is logged in can see their products. If the application server only checks if the user is logged in, then the user can call the same endpoint to retrieve the products of some other user. In this way, John is able to see data that belongs to Bill. The issue that causes this problem is that the application doesn’t authenticate the user for data retrieval as well.
-Throughout the book, we’ll refer to vulnerabilities. We’ll discuss vulnerabilities starting with the basic configuration of authentication and authorization in chapter 3. Then, we’ll discuss how vulnerabilities relate to the integration of Spring Security and Spring Data and how to design an application to avoid those, with OAuth 2.
+아래 그림을 보면 인증된 사용자는 /products/{name}를 액세스 할 수 있다. 브라우저로부터 웹 앱은 이 엔드포인트를 불러 시용자의 제품 정보를 표시한다. 하지만 앱이 정보를 리턴할 때 제품이 누군것인지를 검증하지 않으면 어떻게 될까? 어떤 사용자는 다른 사용자의 정보를 얻는 방법을 알아낼 것이다. 이 상황은 앱 설계 시작부터 고려할 사항 중에 하나이다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH01_F05_Spilca.png)
+Figure 1.5 로그인한 사용자는 자신의 제품을 볼 수 있습니다. 앱 서버가 사용자가 로그인했는지 여부만 확인하는 경우 사용자는 동일한 끝점을 호출하여 다른 사용자의 제품을 검색할 수 있습니다. 이런 식으로 John은 Bill에게 속한 데이터를 볼 수 있습니다. 이 문제를 일으키는 문제는 앱이 데이터 검색을 위해 사용자를 인증하지 않는다는 것입니다.
+
+책 전체에서 우리는 취약점을 언급할 것입니다. 3장에서 인증 및 권한 부여의 기본 구성부터 시작하여 취약점에 대해 논의할 것입니다. 그런 다음 취약점이 Spring Security와 Spring Data의 통합과 어떤 관련이 있으며 OAuth 2를 사용하여 이를 방지하기 위한 앱을 설계하는 방법에 대해 논의합니다.
 
 ### 1.4.2 세션 고정이란?
 
-세션 고정 침해는 더 특수하고 고위험의 약점이다. 이것이 생기면 공격자는 앞서 생성된 세션 ID를 재사용하여 적합한 사용자로 위장하는 것을 허용한다. 이러한 침해는 인증 과정에서 생길 수 있는데 웹 애플리케이션이 고유한 세션 ID를 할당하지 않는 경우이다. 이것은 잠재적으로 기존의 세션 ID를 재사용으로 이어질 수 있다. 이 취약점을 악용하려면 적합한 세션 ID를 얻어 희생자의 브라우저에서 사용하도록 하면 된다.
-웹 애플리케이션을 구현하는 방법에 따라 누군가가 이러한 취약점을 사용할 수 있는 다양한 방식이 있다. 예를 들어 애플리케이션이 URL에 세션 ID를 보여주면 희생자는 악성 링크를 클릭하도록 속임을 당할 수 있다. 애플리케이션이 히든 속성을 사용하면 공격자는 희생자를 속여서 외부 폼을 사용하도록 하여 서버에게 전송하게 할 수 있다. 애플리케이션이 세션 값을 쿠키에 저장하면 공격자는 스크립트를 주입하여 희생자의 브라우저가 실행하게 할 수 있다.
+세션 고정 침해는 더 특수하고 고위험의 약점이다. 이것이 생기면 공격자는 앞서 생성된 세션 ID를 재사용하여 적합한 사용자로 위장하는 것을 허용한다. 이러한 침해는 인증 과정에서 생길 수 있는데 웹 앱이 고유한 세션 ID를 할당하지 않는 경우이다. 이것은 잠재적으로 기존의 세션 ID를 재사용으로 이어질 수 있다. 이 취약점을 악용하려면 적합한 세션 ID를 얻어 희생자의 브라우저에서 사용하도록 하면 된다.
+웹 앱을 구현하는 방법에 따라 누군가가 이러한 취약점을 사용할 수 있는 다양한 방식이 있다. 예를 들어 앱이 URL에 세션 ID를 보여주면 희생자는 악성 링크를 클릭하도록 속임을 당할 수 있다. 앱이 히든 속성을 사용하면 공격자는 희생자를 속여서 외부 폼을 사용하도록 하여 서버에게 전송하게 할 수 있다. 앱이 세션 값을 쿠키에 저장하면 공격자는 스크립트를 주입하여 희생자의 브라우저가 실행하게 할 수 있다.
 
 ### 1.4.3 WHAT IS CROSS-SITE SCRIPTING (XSS)?
 
 XSS라고 하는 크로스 사이트 스크립트는 클라이언트 측 스크립트를 서버에 노출된 웹 서버스에 주입을 허용하여 다른 사용자들이 이를 실행하게 한다. 사용하거나 보관하기 전에 요청을 알맞게 “소독”해서 원하지 않은 외부 스크립트의 실행을 막을 수 있다. 잠재적 영향으로 계정 사취에 연관되거나 DDOS와 같은 분산 공격에 참가하게 된다.
 예를 들면, 사용자가 메시지 또는 답글을 포스팅한다. 메시지를 포스팅한 후에 사이트는 메시지를 표시하여 페이지 방문자가 볼 수 있도록 한다. 매일 수백명의 사용자가 이 사이트를 방문한다고 가정하자. 만일 이 사용자가 브라우저가 실행할 스크립트를 포스팅하면 어떻게 될까? 
- 
-Figure 1.6 A user posts a comment containing a script, on a web forum. The user defines the script such that it makes requests that try to post or get massive amounts of data from another application (App X), which represents the victim of the attack. If the web forum app allows cross-site scripting (XSS), all the users who display the page with the malicious comment receive it as it is.
- 
-Figure 1.7 Users access a page that displays a malicious script. Their browsers execute the script and then try to post or get substantial amounts of data from App X.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH01_F06_Spilca.png)
+Figure 1.6 사용자가 웹 포럼에 스크립트가 포함된 댓글을 게시합니다. 사용자는 공격의 피해자를 나타내는 다른 앱(App X)에서 대량의 데이터를 게시하거나 가져오려는 요청을 하도록 스크립트를 정의합니다. 웹 포럼 앱에서 XSS(교차 사이트 스크립팅)를 허용하면 악성 댓글이 있는 페이지를 표시하는 모든 사용자가 그대로 받습니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH01_F07_Spilca.png)
+Figure 1.7 사용자는 악성 스크립트를 표시하는 페이지에 액세스합니다. 그들의 브라우저는 스크립트를 실행한 다음 App X에서 상당한 양의 데이터를 게시하거나 얻으려고 시도합니다.
 
 ### 1.4.4 WHAT IS CROSS-SITE REQUEST FORGERY (CSRF)?
-크로스 사이트 요청 위조(CSRF) 취약점도 일반적이다. CSRF 공격은 특정 서버의 액션을 호출하는 URL을 추출하여 애플리케이션 외부에서 사용되는 것을 가정한다. 서버가 요청의 오리진을 체크하지 않고 실행을 신뢰하면 다른 곳에서 온 것을 실행할 수 도 있다. CSRF를 통해 공격자는 원하지 않는 액션을 사용자가 실행하도록 할 수 있다. 이런 취약점으로 공격자는 시스템의 데이터를 수정하는 액션을 목표로 한다.
+
+크로스 사이트 요청 위조(CSRF) 취약점도 일반적이다. CSRF 공격은 특정 서버의 액션을 호출하는 URL을 추출하여 앱 외부에서 사용되는 것을 가정한다. 서버가 요청의 오리진을 체크하지 않고 실행을 신뢰하면 다른 곳에서 온 것을 실행할 수 도 있다. CSRF를 통해 공격자는 원하지 않는 액션을 사용자가 실행하도록 할 수 있다. 이런 취약점으로 공격자는 시스템의 데이터를 수정하는 액션을 목표로 한다.
  
 Figure 1.8 Steps of a cross-site request forgery (CSRF). After logging into their account, the user accesses a page that contains forgery code. The malicious code then executes actions on behalf of the unsuspecting user.
 이러한 취약점을 완화하는 방법 중에 하나는 요청자를 식별하는 토큰 또는 크로스 오리진 리소스 공유(CORS)를 사용하는 것이다. 즉 요청의 오리진을 검증한다.
@@ -145,27 +194,33 @@ Figure 1.8 Steps of a cross-site request forgery (CSRF). After logging into thei
 
 시스템 상의 인젝션 공격은 널리 퍼져있다. 인젝션 공격에서 공격자가 채택한 취약점은 시스템에 특정한 데이터를 넣어 주는 것이다. 목적이 시스템에 위해를 가하는 것으로서 원치 않는 방식으로 데이터를 변경하거나 공격자가 접근하면 안되는 데이터를 조회하는 것이다.
 여러가지 타입의 인젝션 공격이 있다. 앞서 언급한 XSS 조차도 인젝션 취약점으로 볼 수 있다. 결국 인젝션 공격은 시스템에 위해를 가하는 클라이언트 측 스크립트를 주입하는 것이다. 또 다른 타입으로는 SQL 인젝션, OS 명령어 인젝션, LDAP 인젝션 등이 있다.
-Injection types of vulnerabilities are important, and the results of exploiting these can be change, deletion, or access to data in the systems being compromised. For example, if your application is somehow vulnerable to LDAP injection, an attacker could benefit from bypassing the authentication and from there control essential parts of the system. The same can happen for XPath or OS command injections.
-One of the oldest and perhaps well-known types of injection vulnerability is SQL injection. If your application has an SQL injection vulnerability, an attacker can try to change or run different SQL queries to alter, delete, or extract data from your system. In the most advanced SQL injection attacks, an individual can run OS commands on the system, leading to a full system compromise.
+
+취약점의 주입 유형은 중요하며, 이를 악용한 결과는 손상되는 시스템의 데이터에 대한 변경, 삭제 또는 액세스가 될 수 있습니다. 예를 들어, 앱이 LDAP 주입에 취약한 경우 공격자는 인증을 우회하여 시스템의 필수 부분을 제어함으로써 이익을 얻을 수 있습니다. XPath 또는 OS 명령 주입에 대해서도 동일한 일이 발생할 수 있습니다.
+
+가장 오래되고 아마도 잘 알려진 유형의 주입 취약점 중 하나는 SQL 주입입니다. 앱에 SQL 주입 취약점이 있는 경우 공격자는 시스템에서 데이터를 변경, 삭제 또는 추출하기 위해 다른 SQL 쿼리를 변경하거나 실행하려고 할 수 있습니다. 가장 진보된 SQL 주입 공격에서는 개인이 시스템에서 OS 명령을 실행할 수 있어 전체 시스템이 손상될 수 있습니다.
 
 ### 1.4.6 DEALING WITH THE EXPOSURE OF SENSITIVE DATA
 
 복잡성 측면에서 기밀 데이터의 공개가 가장 이해하기 쉽고 취약성 중 가장 덜 복잡한 것처럼 보이지만 가장 일반적인 실수 중 하나이다. 아마도 대부분의 튜토리얼과 예제들이 단순함을 이유로 설정 파일에 직접 자격 증명을 정의하기 때문이다. 다른 뭔가에 초점을 맞춘 가상의 예의 경우에는 의미가 있다.
 
-> NOTE Most of the time, developers learn continuously from theoretical examples. Generally, examples are simplified to allow the reader to focus on a specific topic. But a downside of this simplification is that developers get used to wrong approaches. Developers might mistakenly think that everything they read is a good practice.
+> **참고** 대부분의 경우 개발자는 이론적인 예를 통해 지속적으로 학습합니다. 일반적으로 예제는 독자가 특정 주제에 집중할 수 있도록 단순화되었습니다. 그러나 이러한 단순화의 단점은 개발자가 잘못된 접근 방식에 익숙해진다는 것입니다. 개발자는 자신이 읽는 모든 것이 좋은 습관이라고 잘못 생각할 수 있습니다.
 
 이 측면은 스프링 시큐리티와 어떻게 연관이 있을까? 여기서는 자격 증명과 프라이빗 키를 예제에서 다룰 것이다. 비밀 값을 설정 파일에서 사용하지만 이런 데이터는 금고에 저장해야 한다. 개발 시스템에서 개발자가 이런 데이터를 볼 수 없도록 해야 한다. 생산 시스템에도 최소한의 사람만 사설 데이터를 액세스할 수 있어야 한다.
+
 그러한 값들을 설정 파일에 두면 소스 코드를 볼 수 있는 누구나 사설 값에 접근할 수 있다. 더구나 이러한 사설 값들의 변경 이력이 소스코드 저장소에서 볼 수가 있다. 또한 민감한 데이터 노출과 관련된 것은 컨솔이나 데이터베이스에 저장된 로그 정보이다. 개발자가 놓친 민감 데이터를 로그에서 발견하기도 한다.
 
-> NOTE Never log something that isn’t public information. By public, I mean that anyone can see or access the info. Things like private keys or certificates aren’t public and shouldn’t be logged together with your error, warning, or info messages.
-Next time you log something from your application, make sure what you log doesn’t look like one of these messages:
+> **참고** 공개 정보가 아닌 항목은 절대 기록하지 마십시오. 공개란 누구나 정보를 보거나 액세스할 수 있음을 의미합니다. 개인 키 또는 인증서와 같은 것은 공개되지 않으며 오류, 경고 또는 정보 메시지와 함께 기록되어서는 안 됩니다.
+다음에 앱에서 무언가를 기록할 때 기록하는 내용이 다음 메시지 중 하나와 유사하지 않은지 확인하십시오.
+
+```
 [error] The signature of the request is not correct. The correct key to be used should have been X.
 [warning] Login failed for username X and password Y. User with username X has password Z.
 [info] A login was performed with success by user X with password Y.
+```
 
-Be careful of what your server returns to the client, especially, but not limited to, cases where the application encounters exceptions. Often due to lack of time or experience, developers forget to implement all such cases. This way (and usually happening after a wrong request), the application returns too many details that expose the implementations.
+특히 앱에서 예외가 발생하는 경우(이에 국한되지 않음) 서버가 클라이언트에 반환하는 내용에 주의하십시오. 종종 시간이나 경험 부족으로 인해 개발자는 이러한 모든 경우를 구현하는 것을 잊습니다. 이런 식으로(그리고 일반적으로 잘못된 요청 후에 발생) 앱은 구현을 노출하는 너무 많은 세부 정보를 반환합니다.
 
-This application behavior is also a vulnerability through data exposure. If your app encounters a NullPointerException because the request is wrong (part of it is missing, for example), then the exception shouldn’t appear in the body of the response. At the same time, the HTTP status should be 400 rather than 500. HTTP status codes of type 4XX are designed to represent problems on the client side. A wrong request is, in the end, a client issue, so the application should represent it accordingly. HTTP status codes of type 5XX are designed to inform you that there is a problem on the server. Do you see something wrong in the response presented by the next snippet?
+이 앱 동작은 데이터 노출을 통한 취약점이기도 합니다. 요청이 잘못되어 앱에서 `NullPointerException`이 발생하는 경우(예: 일부가 누락됨) 응답 본문에 예외가 표시되지 않아야 합니다. 동시에 HTTP 상태는 500이 아니라 400이어야 합니다. 유형 4XX의 HTTP 상태 코드는 클라이언트 측 문제를 나타내도록 설계되었습니다. 잘못된 요청은 결국 클라이언트 문제이므로 앱은 그에 따라 요청해야 합니다. 유형 5XX의 HTTP 상태 코드는 서버에 문제가 있음을 알리기 위해 고안되었습니다. 다음 스니펫에서 제공하는 응답에 잘못된 것이 있습니까?
 
 ```
 {
@@ -175,7 +230,9 @@ This application behavior is also a vulnerability through data exposure. If your
     "path": "/product/add"
 }
 ```
-The message of the exception seems to be disclosing an IP address. An attacker can use this address to understand the network configuration and, eventually, find a way to control the VMs in your infrastructure. Of course, with only this piece of data, one can’t do any harm. But collecting different disclosed pieces of information and putting these together could provide everything that’s needed to adversely affect a system. Having exception stacks in the response is not a good choice either, for example:
+
+예외 메시지는 IP 주소를 공개하는 것 같습니다. 공격자는 이 주소를 사용하여 네트워크 구성을 이해하고 결국에는 인프라의 VM을 제어하는 방법을 찾을 수 있습니다. 물론 이 데이터만으로는 해를 끼칠 수 없습니다. 그러나 공개된 다양한 정보를 수집하고 이를 종합하면 시스템에 부정적인 영향을 미치는 데 필요한 모든 것을 제공할 수 있습니다. 응답에 예외 스택이 있는 것도 좋은 선택이 아닙니다. 예를 들면 다음과 같습니다.
+
 ```
 ➥ .runWorker(ThreadPoolExecutor.java:1128) ~[na:na]
 at java.base/java.util.concurrent.ThreadPoolExecutor$Worker
@@ -185,9 +242,10 @@ at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable
 at java.base/java.lang.Thread.run(Thread.java:830) ~[na:na]
 ```
 
-This approach also discloses the application’s internal structure. From the stack of an exception, you can see the naming notations as well as objects used for specific actions and the relationships among these. But even worse than that, logs sometimes can disclose versions of dependencies that your application uses. (Did you spot that Tomcat core version in the preceding exception stack?)
+이 접근 방식은 앱의 내부 구조도 공개합니다. 예외 스택에서 명명 표기법과 특정 작업에 사용되는 개체 및 이들 간의 관계를 볼 수 있습니다. 그러나 그보다 더 나쁜 것은 로그가 앱에서 사용하는 종속성 버전을 공개할 수 있다는 점입니다. (이전 예외 스택에서 Tomcat 코어 버전을 발견하셨습니까?)
 
-We should avoid using vulnerable dependencies. However, if we find ourselves using a vulnerable dependency by mistake, at least we don’t want to point this mistake out. Even if the dependency isn’t known as a vulnerable one, this can be because nobody has found the vulnerability yet. Exposures as in the previous snippet can motivate an attacker to find vulnerabilities in that specific version because they now know that’s what your system uses. It’s inviting them to harm your system. And an attacker often uses even the smallest detail against a system, for example:
+취약한 종속성을 사용하지 않아야 합니다. 그러나 실수로 취약한 종속성을 사용하는 자신을 발견하면 적어도 이 실수를 지적하고 싶지 않습니다. 종속성이 취약한 것으로 알려져 있지 않더라도 아직 아무도 취약성을 찾지 못했기 때문일 수 있습니다. 이전 스니펫에서와 같이 노출되면 공격자가 해당 특정 버전의 취약점을 찾도록 동기를 부여할 수 있습니다. 시스템에 해를 끼치도록 초대합니다. 그리고 공격자는 종종 시스템에 대해 가장 작은 세부 사항까지도 사용합니다. 예를 들면 다음과 같습니다.
+
 ```
 Response A:
 {
@@ -204,7 +262,8 @@ Response B:
     "path": "/login "
 }
 ```
-In this example, the responses A and B are different results of calling the same authentication endpoint. They don’t seem to expose any information related to the class design or system infrastructure, but these hide another problem. If the messages disclose context information, then these can as well hide vulnerabilities. The different messages based on different inputs provided to the endpoint can be used to understand the context of execution. In this case, these could be used to know when a username is correct but the password is wrong. And this can make the system more liable to a brute force attack. The response provided back to the client shouldn’t help in identifying a possible guess of a specific input. In this case, it should have provided in both situations the same message:
+이 예에서 응답 A와 B는 동일한 인증 끝점을 호출한 다른 결과입니다. 클래스 디자인이나 시스템 인프라와 관련된 정보를 노출하지 않는 것 같지만 또 다른 문제를 숨깁니다. 메시지가 컨텍스트 정보를 공개하면 취약성을 숨길 수도 있습니다. 엔드포인트에 제공된 다양한 입력을 기반으로 하는 다양한 메시지를 사용하여 실행 컨텍스트를 이해할 수 있습니다. 이 경우 사용자 이름은 정확하지만 암호가 잘못된 경우를 확인하는 데 사용할 수 있습니다. 그리고 이것은 시스템을 무차별 대입 공격에 더 취약하게 만들 수 있습니다. 클라이언트에게 다시 제공된 응답은 특정 입력에 대한 가능한 추측을 식별하는 데 도움이 되지 않아야 합니다. 이 경우 두 상황 모두에서 동일한 메시지를 제공해야 합니다.
+
 ```
 {
     "status": 401,
@@ -217,89 +276,104 @@ This precaution looks small, but if not taken, in some contexts, exposing sensit
 
 ### 1.4.7 WHAT IS THE LACK OF METHOD ACCESS CONTROL?
 
-애플리케이션 레벨에서도 계층 중 하나에만 권한 부여를 적용하지 않는다. 때로는 특정 유스케이스를 호출할 수 없도록 해야 한다.(예를 들어 현재 인증된 사용자의 권한으로는 허용하지 않는다면)
-간단한 웹 애플리케이션이 있다고 하자. 앱에 엔드포인트를 노출하는 콘트롤러가 있고 컨트롤러는 일부 로직을 구현하면서 저장소를 통해 관리되는 데이터 서비스를 직접 호출한다. 엔드포인트 레벨에서만 권한 부여가 되는 상황을 상상해보자(REST 엔드포인트를 통해서 메소드를 액세스헐 수 있음). 개발자는 콘트롤러 계층에서만 권한 부여 규칙을 적용하고 싶을 것이다.
- 
+앱 레벨에서도 계층 중 하나에만 권한 부여를 적용하지 않는다. 때로는 특정 유스케이스를 호출할 수 없도록 해야 한다.(예를 들어 현재 인증된 사용자의 권한으로는 허용하지 않는다면)
+
+간단한 웹 앱이 있다고 하자. 앱에 엔드포인트를 노출하는 콘트롤러가 있고 컨트롤러는 일부 로직을 구현하면서 저장소를 통해 관리되는 데이터 서비스를 직접 호출한다. 엔드포인트 레벨에서만 권한 부여가 되는 상황을 상상해보자(REST 엔드포인트를 통해서 메소드를 액세스헐 수 있음). 개발자는 콘트롤러 계층에서만 권한 부여 규칙을 적용하고 싶을 것이다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH01_F09_Spilca.png)
 Figure 1.9 개발자는 권한 부여 규칙을 콘트롤러 레이어에 적용한다. 하지만 저장소는 사용자를 모르며 데이터 조회를 제약하지 않는다. 만일 서비스가 현재 승인된 사용자에 속하지 않은 계정을 요청받아도 이를 처리한다.
+
 위의 그림의 경우가 정확히 작동하지만 콘트롤러 레벨에서 권한 부여 규칙의 적용은 에러의 소지를 남긴다. 이 경우에 앞으로의 구현에서 테스트 없이 노출이 될 수 있다. 그림 1.10은 같은 저장소에 의존하는 다른 기능을 추가하면 어떤 일이 생길 수 있는지를 확인할 수 있다.
 이런 상황이 나타날 수 있으며 저장소 뿐만 아니라 어떤 계층에서도 처리할 수 있다. 
- 
-Figure 1.10 새로 추가한 TransactionController가 의존성 체인에서  AccountRepository를 사용한다. 개발자는 이 콘트롤러에도 권한 부여 규칙을 다시 적용해야 한다. 하지만 저장소 자체에서 인증된 사용자가 아니면 데이터를 노출하지 않도록 하는 것이 더 낫다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH01_F10_Spilca.png)
+Figure 1.10 새로 추가한 `TransactionController`가 의존성 체인에서  `AccountRepository`를 사용한다. 개발자는 이 콘트롤러에도 권한 부여 규칙을 다시 적용해야 한다. 하지만 저장소 자체에서 인증된 사용자가 아니면 데이터를 노출하지 않도록 하는 것이 더 낫다.
 
 ### 1.4.8 USING DEPENDENCIES WITH KNOWN VULNERABILITIES
 
-애플리케이션 레벨의 보안의 필수 측면에서 우리가 사용하는 의존성에 주의를 기울여야 한다. 취약점은 애플리케이션 자체가 아니라 빌드에 사용하는 라이브러리와 같은 종속성이다. 취약점이 있다고 알려진 라이브러리의 해당 버전은 제거해야 한다.
+앱 레벨의 보안의 필수 측면에서 우리가 사용하는 의존성에 주의를 기울여야 한다. 취약점은 앱 자체가 아니라 빌드에 사용하는 라이브러리와 같은 종속성이다. 취약점이 있다고 알려진 라이브러리의 해당 버전은 제거해야 한다.
+
 다행히 메이븐 또는 gradle 설정에 플러그인을 추가하여 빠르게 수행할 수 있는 정적 분석에 대한 여러가지 가능성이 있다. 오픈소스를 사용하는 개발 방법이 효과적이고 빠른 진화가 가능하지만 오류 발생 가능성이 높아질 수도 있다.
 
-When developing any piece of software, we have to take all the needed measures to avoid the use of any dependency that has known vulnerabilities. If we discover that we’ve used such a dependency, then we not only have to correct this fast, we also have to investigate if the vulnerability was already exploited in our applications and then take the needed measures.
+소프트웨어를 개발할 때 알려진 취약점이 있는 종속성의 사용을 피하기 위해 필요한 모든 조치를 취해야 합니다. 우리가 그러한 의존성을 사용했다는 것을 발견한다면, 우리는 이것을 빨리 수정해야 할 뿐만 아니라 취약점이 이미 우리 앱에서 악용되었는지 조사한 다음 필요한 조치를 취해야 합니다.
 
-## 1.5 Security applied in various architectures
+## 1.5 다양한 아키텍처에 적용된 보안
 
-In this section, we discuss applying security practices depending on the design of your system. It’s important to understand that different software architectures imply different possible leaks and vulnerabilities. In this first chapter, I want to make you aware of the philosophy to which I’ll refer to throughout the book.
+이 섹션에서는 시스템 설계에 따라 보안 사례를 적용하는 방법에 대해 설명합니다. 서로 다른 소프트웨어 아키텍처가 서로 다른 가능한 누출 및 취약성을 의미한다는 것을 이해하는 것이 중요합니다. 이 첫 번째 장에서는 책 전체에서 언급할 철학을 알려드리고자 합니다.
 
-Architecture strongly influences choices in configuring Spring Security for your applications; so do functional and nonfunctional requirements. When you think of a tangible situation, to protect something, depending on what you want to protect, you use a metal door, bulletproof glass, or a barrier. You couldn’t just use a metal door in all the situations. If what you protect is an expensive painting in a museum, you still want people to be able to see it. You don’t, however, want them to be able to touch it, damage it, or even take it with them. In this case, functional requirements affect the solution we take for secure systems.
-It could be that you need to make a good compromise with other quality attributes like, for example, performance. It’s like using a heavy metal door instead of a lightweight barrier at the parking entrance. You could do that, and for sure, the metal door would be more secure, but it takes much more time to open and close it. The time and cost of opening and closing the heavy door aren’t worth it; of course, assuming that this isn’t some kind of special parking for expensive cars.
-Because the security approach is different depending on the solution we implement, the configuration in Spring Security is also different. In this section, we discuss some examples based on different architectural styles, that take into consideration various requirements that affect the approach to security. These aspects are linked to all the configurations that we’ll work on with Spring Security in the following chapters.
-In this section, I present some of the practical scenarios you might have to deal with and those we’ll work through in the rest of the book. For a more detailed discussion on techniques for securing apps in microservices systems, I recommend you also read Microservices Security in Action by Prabath Siriwardena and Nuwan Dias (Manning, 2019).
+아키텍처는 앱에 대한 Spring Security 구성 선택에 큰 영향을 미칩니다. 기능적 요구사항과 비기능적 요구사항도 마찬가지입니다. 가시적인 상황을 생각할 때 무언가를 보호하기 위해 보호하고 싶은 것에 따라 금속 문, 방탄 유리 또는 장벽을 사용합니다. 모든 상황에서 금속 문만 사용할 수는 없습니다. 당신이 보호하는 것이 박물관의 값비싼 그림이라면 여전히 사람들이 그것을 볼 수 있기를 원합니다. 그러나 당신은 그들이 그것을 만지거나 손상시키거나 심지어 가져갈 수 있기를 원하지 않습니다. 이 경우 기능 요구 사항은 보안 시스템을 위해 취하는 솔루션에 영향을 미칩니다.
+
+예를 들어 성능과 같은 다른 품질 속성과 잘 타협해야 할 수도 있습니다. 주차장 입구에 가벼운 장벽 대신 무거운 금속 문을 사용하는 것과 같습니다. 당신은 그렇게 할 수 있고, 확실히 금속 문이 더 안전할 것이지만, 그것을 열고 닫는 데 훨씬 더 많은 시간이 걸립니다. 무거운 문을 열고 닫는 시간과 비용은 그만한 가치가 없습니다. 물론 비싼 차를 위한 일종의 특별 주차장이 아니라는 가정하에 말이다.
+
+우리가 구현하는 솔루션에 따라 보안 접근 방식이 다르기 때문에 Spring Security의 설정도 다릅니다. 이 섹션에서는 보안 접근 방식에 영향을 미치는 다양한 요구 사항을 고려하는 다양한 아키텍처 스타일을 기반으로 하는 몇 가지 예에 대해 설명합니다. 이러한 측면은 다음 장에서 Spring Security로 작업할 모든 구성에 연결됩니다.
+
+이 섹션에서는 처리해야 할 몇 가지 실용적인 시나리오와 이 책의 나머지 부분에서 다룰 시나리오를 제시합니다. 마이크로서비스 시스템에서 앱을 보호하기 위한 기술에 대한 자세한 논의를 보려면 Prabath Siriwardena와 Nuwan Dias의 Microservices Security in Action(Manning, 2019)도 읽어볼 것을 권장합니다.
 
 ### 1.5.1 DESIGNING A ONE-PIECE WEB APPLICATION
 
-Let’s start with the case where you develop a component of a system that represents a web application. In this application, there’s no direct separation in development between the backend and the frontend. The way we usually see these kinds of applications is through the general servlet flow: the application receives an HTTP request and sends back an HTTP response to a client. Sometimes, we might have a server-side session for each client to store specific details over more HTTP requests. In the examples provided in the book, we use Spring MVC (figure 1.11).
-You’ll find a great discussion about developing web applications and REST services with Spring in chapters 2 and 6 of Craig Walls’s Spring In Action, 6th ed. (Manning, 2020):
+웹 앱을 나타내는 시스템 구성 요소를 개발하는 경우부터 시작하겠습니다. 이 앱에서는 백엔드와 프론트엔드 간의 개발에 직접적인 분리가 없습니다. 일반적으로 이러한 종류의 앱을 보는 방식은 일반 서블릿 흐름을 통한 것입니다. 앱은 HTTP 요청을 수신하고 HTTP 응답을 클라이언트에 다시 보냅니다. 때로는 더 많은 HTTP 요청에 대해 특정 세부 정보를 저장하기 위해 각 클라이언트에 대한 서버 측 세션이 있을 수 있습니다. 책에서 제공하는 예제에서는 Spring MVC를 사용합니다(그림 1.11).
+
+Craig Walls의 Spring In Action, 6판의 2장과 6장에서 Spring을 사용한 웹 앱 및 REST 서비스 개발에 대한 훌륭한 토론을 찾을 수 있습니다. (매닝, 2020):
 
 https://livebook.manning.com/book/spring-in-action-sixth-edition/chapter-2/
 https://livebook.manning.com/book/spring-in-action-sixth-edition/chapter-6/
  
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH01_F11_Spilca.png)
 Figure 1.11 스프링 MVC 플로우. DispatcherServlet (1) 요청 경로의 콘트롤러 메소드 매핑을 찾는다 (2) 콘트롤러 메소드 실행 (3) 렌더 뷰를 얻음. 요청자에게 HTTP 응답을 전달하면 브라우저가 이를 표시한다.
 
 일단 세션을 얻으면 CSRF는 물론 세션 고정 취약점의 가능성을 의심할 필요가 있다. 또한 HTTP 세션 자체에 저장된 것이 무엇인지도 확인해야 한다.
-서버측 세션은 반영구적이다. 세션은 상태 저장 데이터이므로 수명이 더 길다. 메모리에 오래 상주할수록 이들이 조회 당할 확률이 더 많아진다. 예를 들어 힙 덤프를 접근할 수 있는 사람이 앱의 내부 메모리 정보를 읽을 수도 있다. 힙 덤프를 얻기 힘들다고 생각하지 말자. 특히 스프링 부트로 애플리케이션을 개발할 때 Actuator 역시 애플리케이션의 일부라는 것을 알수 있다. Actuator는 설정하기에 따라 엔드포인트 호출만 힙 덤프를 리턴할 수 있다. 즉 덤프를 얻기 위해 VM에 대한 루트 권한이 반드시 필요한 것은 아니다.
+서버측 세션은 반영구적이다. 세션은 상태 저장 데이터이므로 수명이 더 길다. 메모리에 오래 상주할수록 이들이 조회 당할 확률이 더 많아진다. 예를 들어 힙 덤프를 접근할 수 있는 사람이 앱의 내부 메모리 정보를 읽을 수도 있다. 힙 덤프를 얻기 힘들다고 생각하지 말자. 특히 스프링 부트로 앱을 개발할 때 Actuator 역시 앱의 일부라는 것을 알수 있다. Actuator는 설정하기에 따라 엔드포인트 호출만 힙 덤프를 리턴할 수 있다. 즉 덤프를 얻기 위해 VM에 대한 루트 권한이 반드시 필요한 것은 아니다.
 
 이 경우 CSRF 취약점으로 돌아가 보면 가장 완화할 수 있는 가장 쉬원 방법이 anti-CSRF 토큰을 사용하는 것이다. 다행히 스프링에서는 이 기능을 제공한다. CSRF 보호는 CORS 오리진 검증처럼 기본적으로 활성화되어 있다. 사용자 인증과 권한 부여를 위해 암묵적인 로긴 폼을 사용할지를 선택할 수 있다. 이를 통해 로그인 및 로그아웃의 룩앤필은 무시하더라도 인증 및 권한 부여 구성과의 기본 통합하는 이점을 얻을 수 있다. 또한 세션 고정 취약점도 완화할 수 있다.
-인증과 권한부여를 구현한다면 이는 유효한 자격이 있는 사용자가 있다는 것을 의미한다. 애플리케이션이 사용자 자격 증명을 관리하거나 다른 시스템이 이를 하도록 선택할 수 있다(예를 들어 Facebook, Google의 자격 증명). 어떤 경우든 스프링 시큐리티는 사용자 관리 설정을 비교적 쉬운 방법으로 도와준다. 사용자 정보를 데이터베이스에 저장하거나 웹 서비스를 사용하거나 또는 다른 플랫폼에 연결하는 것을 선택할 수 있다.
+인증과 권한부여를 구현한다면 이는 유효한 자격이 있는 사용자가 있다는 것을 의미한다. 앱이 사용자 자격 증명을 관리하거나 다른 시스템이 이를 하도록 선택할 수 있다(예를 들어 Facebook, Google의 자격 증명). 어떤 경우든 스프링 시큐리티는 사용자 관리 설정을 비교적 쉬운 방법으로 도와준다. 사용자 정보를 데이터베이스에 저장하거나 웹 서비스를 사용하거나 또는 다른 플랫폼에 연결하는 것을 선택할 수 있다.
 
-### 1.5.2 DESIGNING SECURITY FOR A BACKEND/FRONTEND SEPARATION
+### 1.5.2 백엔드/프론트엔드 분리를 위한 보안 설계
 
-요즘에는 웹 애플리케이션 개발에서 프론트엔드와 백엔드를 분리되어 있는 것을 자주 본다. 프론트 엔드는 REST 엔드포인트로 백엔드와 통신한다. 우리는 가능하면 서버측 세션은 피하고 클라이언트측 세션으로 대치할 것이다. 이러한 방식의 시스템 설계는 모바일 개발과 유사하다. 
- 
-Figure 1.12 The browser executes a frontend application. This application calls REST endpoints exposed by the backend to perform some operations requested by the user.
+요즘에는 웹 앱 개발에서 프론트엔드와 백엔드를 분리되어 있는 것을 자주 본다. 프론트 엔드는 REST 엔드포인트로 백엔드와 통신한다. 우리는 가능하면 서버측 세션은 피하고 클라이언트측 세션으로 대치할 것이다. 이러한 방식의 시스템 설계는 모바일 개발과 유사하다. 
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH01_F12_Spilca.png)
+
+Figure 1.12 브라우저는 프론트엔드 앱을 실행합니다. 이 앱은 백엔드에서 노출된 REST 엔드포인트를 호출하여 사용자가 요청한 일부 작업을 수행합니다.
 
 보안 측면에서는 또다른 고려 사항이 있다. 첫째로 CSRF와 CORS 설정이 좀 더 복잡해진다. 시스템을 수평으로 확장하기 원하지만 반드시 프론트엔드와 백엔드가 같은 오리진이 아닐 수 있다.
 
 가장 단순하지만 실용적 솔루션으로서 최소한의 바람직한 방법은 엔드포인트 인증에 HTTP Basic을 사용하는 것이다. 이 방식이 이해하기 쉽고 일반적으로 인증에 관한 첫번째 이론적 예제로 사용되지만 피하고 싶은 누출이 있다. 예를 들어 HTTP Basic은 각 호출에 자격 증명을 보낸다는 의미이다. 2장에서 보면 자격 증명은 암호화되어 있지 않다. 브라우저가 username과 password를 Base64 인코딩으로 보낸다. 이 방식에서 자격 증명는 각 엔드포인트 호출의 헤더에서 네트워크에 남아 있다. 또한 자격 증명이 로그인 한 사용자를 나타낸다면 여러분은 사용자가 모든 요청마다 자격 증명을 체출하라고 원하지는 않는다. 또한 자격 증명을 클라이언트 측에 저장하길 원하지도 않는다. 이러한 관행은 권장하지 않는다.
 
-Having the stated reasons in mind, chapter 12 gives you an alternative for authentication and authorization that offers a better approach, the OAuth 2 flow, and the following section provides an overview of this approach.
+명시된 이유를 염두에 두고 12장에서는 더 나은 접근 방식인 OAuth 2 흐름을 제공하는 인증 및 권한 부여에 대한 대안을 제공하고 다음 섹션에서는 이 접근 방식에 대한 개요를 제공합니다.
 
-> A short reminder of application scalability
+> 앱 확장성에 대한 간략한 알림
 
-Scalability refers to the quality of a software application in which it can serve more or fewer requests while adapting the resources used, without the need to change the application or its architecture. Mainly, we classify scalability into two types: vertical and horizontal.
-When a system is scaled vertically, the resources of the system on which it executes are adapted to the need of the application (for example, when there are more requests, more memory and processing power are added to the system).
-We accomplish horizontal scalability by changing the number of instances of the same application that are in execution (for example, if there are more requests, another instance is started to serve the increased need). Of course, I assume the newly spun-up application instances consume resources offered by additional hardware, sometimes even in multiple data centers. If the demand decreases, we can reduce the instance numbers.
+확장성은 앱이나 아키텍처를 변경할 필요 없이 사용되는 리소스를 조정하면서 더 많거나 더 적은 요청을 처리할 수 있는 소프트웨어 앱의 품질을 나타냅니다. 주로 확장성을 수직 및 수평의 두 가지 유형으로 분류합니다.
+시스템이 수직으로 확장되면 시스템이 실행되는 시스템의 리소스가 앱의 요구 사항에 맞게 조정됩니다(예: 요청이 많을수록 시스템에 더 많은 메모리와 처리 능력이 추가됨).
+
+실행 중인 동일한 앱의 인스턴스 수를 변경하여 수평 확장성을 달성합니다(예: 더 많은 요청이 있는 경우 증가된 요구를 충족하기 위해 다른 인스턴스가 시작됨). 물론, 새로 스핀업된 앱 인스턴스가 때로는 여러 데이터 센터에서도 추가 하드웨어에서 제공하는 리소스를 소비한다고 가정합니다. 수요가 감소하면 인스턴스 수를 줄일 수 있습니다. 
 
 ### 1.5.3 UNDERSTANDING THE OAUTH 2 FLOW
 
 이 절은 Oauth2 플로우 전반을 고수준으로 설명한다. Oauth2를 적용하는 이유와 취약점에 어떻게 관련되는지에 초점을 둔다. 각 요청마다 백엔드에게 자격 증명을 다시 보내지 않으며 클라이언트 측에 저장하지 않는 방법을 다룬다. Oauth2 플로우는 이 경우에 인증과 권한 부여를 구현하는데 더 나은 방법을 제공한다.
 Oauth2 프레임워크는 인증 서버와 리소스 서버를 정의한다. 인증 서버의 목적은 사용자를 인증하고 그 사용자가 사용할 수 있는 특권을 명시한 토큰을 제공한다. 이 기능을 구현한 백엔드 부분을 리소스 서버라고 한다. 호출이 가능한 엔드포인트를 보호된 리소스라고 여긴다. 획득한 토큰을 토대로 인증을 수행한 후에는 리소스에 대한 호출이 허용되거나 거부된다. 그림 1.13은 표준적인 Oauth2 인증 플로우를 나타낸다. 단계별로 다음과 같이 진행한다.
 
-1.	사용자가 애플리케이션의 유스케이스를 액세스한다(also known as the client). 애플리케이션은 백엔드의 리소스를 호출해야 한다.
-2.	리소스를 호출할 수 있으려면 먼저 액세스 토큰을 획득해야 하므로 인증 서버에게 요청한다. 요청에서 사용자 자격증명 또는 상황에 따라 리프레시 토큰을 보낸다.
-3.	자격 증명 또는 리프레시 토큰이 맞으면 인증 서버는 액세스 토큰을 리턴한다.
-4.	리소스 서버에 대한 요청의 헤더에 액세스 토큰을 사용한다.
- 
+1. 사용자가 앱의 유스케이스를 액세스한다(also known as the client). 앱은 백엔드의 리소스를 호출해야 한다.
+2. 리소스를 호출할 수 있으려면 먼저 액세스 토큰을 획득해야 하므로 인증 서버에게 요청한다. 요청에서 사용자 자격증명 또는 상황에 따라 리프레시 토큰을 보낸다.
+3. 자격 증명 또는 리프레시 토큰이 맞으면 인증 서버는 액세스 토큰을 리턴한다.
+4. 리소스 서버에 대한 요청의 헤더에 액세스 토큰을 사용한다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH01_F13_Spilca.png)
+
 Figure 1.13 암호 그랜트 타입의 OAuth2 인증 플로우. (1) 사용자가 요청한 액션을 실행 (2) 인증 서버에게 액세스 토큰을 요청. (3) 토큰을 받음 (4) 액세스 토큰으로 리소스 서버로부터 리소스를 액세스.
 
 토큰은 사무실 빌딩 내부에서 사용하는 출입 카드와 비슷한다. 당신이 방문자라면 먼저 프론트에서 신분 증명을 한 후 출입카드를 받는다. 출입 카드로 어떤 문은 열 수 있지만 모든 문을 열 수 있을 필요는 없다. 액세스 토큰도 마찬가지이다. 인증 후에 호출자에게 토튼을 발급하며 이를 근거로 열람 권한이 있는 리소스를 액세스할 수 있다.  
 토큰은 일정한 수명이 있으며 대개는 짧다. 토큰의 유효기간이 끝나면 앱은 새것을 얻어야 한다. 그런 경우 서버는 이전의 토큰은 폐기해야 한다. 이런 방식의 장점은 다음과 같다.
 
 - 클라이언트는 사용자 자격 증명을 저장할 필요가 없다. 액세스 토큰이 유일하게 저장할 필요가 있는 액세스 정보이다.
-- 애플리케이션은 사용자 자격 증명을 네트워크 상에 노출하지 않는다.
+- 앱은 사용자 자격 증명을 네트워크 상에 노출하지 않는다.
 - 누군가 토큰을 탈취하면 사용자 자격증명 대신 토큰을 폐기하면 된다.
 - 토큰은 사용자 대신 리소스를 액세스하는 제3의 엔티티로 사용할 수 있다. 물론 공격자가 토큰을 탈취할 수 있다. 하지만 토큰의 수명은 정해져 있으므로 이 
 - 취약점을 사용할 수 있는 기간이 제한적이다.
 
-> NOTE To make it simple and only give you an overview, I’ve described the OAuth 2 flow called the password grant type. OAuth 2 defines multiple grant types and, as you’ll see in chapters 12 through 15, the client application does not always have the credentials. If we use the authorization code grant, the application redirects the authentication in the browser directly to a login implemented by the authorization server. But more on this later in the book.
+> **참고** 간단하고 개요만 제공하기 위해 암호 부여 유형이라는 OAuth 2 흐름을 설명했습니다. OAuth 2는 여러 승인 유형을 정의하며 12~15장에서 볼 수 있듯이 클라이언트 앱에 항상 자격 증명이 있는 것은 아닙니다. 인증 코드 부여를 사용하는 경우 앱은 브라우저의 인증을 인증 서버가 구현한 로그인으로 직접 리디렉션합니다. 그러나 이 책의 뒷부분에서 이에 대해 더 자세히 설명합니다.
 
-물론 Oauth2 플로우 조차도 모든 것이 완벽하것은 아니며 애플리케이션 설계에 알맞게 조정할 필요가 있다. 나올 수 있는 질문 중에는 이 토큰의 관리하는 최상의 방법은 무엇인가? 이다. 우리는 여러가지 가능성을 다룬다.
+물론 Oauth2 플로우 조차도 모든 것이 완벽하것은 아니며 앱 설계에 알맞게 조정할 필요가 있다. 나올 수 있는 질문 중에는 이 토큰의 관리하는 최상의 방법은 무엇인가? 이다. 우리는 여러가지 가능성을 다룬다.
 
 - 토큰을 앱의 메모리에 저장
 - 토큰을 데이터베이스에 저장
@@ -314,31 +388,41 @@ Figure 1.13 암호 그랜트 타입의 OAuth2 인증 플로우. (1) 사용자가
 - IP 주소에 대한 검증을 적용
 - 
 정적 키를 사용하는 것이 가장 약한 방법이다. 요청과 응답 헤더에서 키를 사용한다. 요청과 응답의 헤더 값이 부정확하면 수락하지 않는다. 물론 이것은 키 값을 네트워크에서 교환한다는 것을 가정한다. 트래픽이 데이터 센터 외부로 나가면 탈취되기 쉽다. 키 값을 획득한 누군가는 엔트포인트 호출이 가능해진다. 이 방식을 사용하려면 허용하는 IP 주소와 병행한다.
+
 통신의 신뢰성을 테스트하는 더 나은 방법은 암호화된 시그니처를 사용하는 것이다. 이 방식에서 키는 요청과 응답을 사인하는데 사용한다. 키를 네트워크 상에 전송할 필요가 없다는 점은 정적 인증 값 방식보다 장점이다. 각자는 그 들의 키로 시그니처를 검증할 수 있다. 두 개의 비대칭 키 쌍으로 구현할 수 있다. 이 방식은 우리가 비밀 키를 절대로 교환하지 않음을 가정한다. 더 간단한 버전은 대칭키를 사용하는 것이며 설정에서 한번만 교환하면 된다. 단점으로는 시그니처의 계산에 리소스를 더 소비한다는 점이다. 
- 
-Figure 1.14 To make a successful call to another backend, the request should havethe correct signature or shared key.
-If you know an address or range of addresses from where a request should come, then together with one of the solutions mentioned previously, IP address validation can be applied. This method implies that the application rejects requests if coming from IP addresses other than the ones that you configure to be accepted. However, in most cases, IP validation is not done at the application level but much earlier, in the networking layer.
 
-## 1.6 What will you learn in this book?
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH01_F14_Spilca.png)
+Figure 1.14 다른 백엔드를 성공적으로 호출하려면 요청에 올바른 서명 또는 공유 키가 있어야 합니다.
 
-This book offers a practical approach to learning Spring Security. Throughout the rest of the book, we’ll deep dive into Spring Security, step by step, proving concepts with simple to more complex examples. To get the most out of this book, you should be comfortable with Java programming, as well as with the basics of the Spring Framework. If you haven’t used the Spring Framework or you don’t feel comfortable yet using its basics, I recommend you first read Spring In Action, 6th ed., by Craig Walls (Manning, 2020). Another great resource is Spring Boot In Action by Craig Walls (Manning, 2015). But in this book, you’ll learn
+요청이 있어야 하는 주소 또는 주소 범위를 알고 있는 경우 이전에 언급한 솔루션 중 하나와 함께 IP 주소 유효성 검사를 적용할 수 있습니다. 이 방법은 앱이 수락하도록 구성한 IP 주소가 아닌 다른 IP 주소에서 오는 경우 요청을 거부함을 의미합니다. 그러나 대부분의 경우 IP 유효성 검사는 앱 수준에서 수행되지 않고 훨씬 더 일찍 네트워킹 계층에서 수행됩니다.
 
-- 스프링 시큐리티의 아키텍처와 기본 컴포넌트와 애플리케이션 보호를 위한 사용 방법
-- 스프링 시큐리티로 인증과 권한 부여. Oauth2와 OpenID Connect 플로우 그리고 제품에 적용하는 방법
-- 애플리케이션의 다른 레이어에 시큐리티를 구현하는 방법
+## 1.6 이 책에서 무엇을 배울 것인가?
+
+이 책은 Spring Security를 배우기 위한 실용적인 접근 방식을 제공합니다. 이 책의 나머지 부분에서 우리는 Spring Security에 대해 단계별로 심층적으로 파고들어 간단한 예제에서 보다 복잡한 예제로 개념을 증명할 것입니다. 이 책을 최대한 활용하려면 Java 프로그래밍과 Spring Framework의 기본 사항에 익숙해야 합니다. 
+
+Spring Framework를 사용하지 않았거나 기본 사항을 사용하는 것이 익숙하지 않다면 먼저 Craig Walls의 Spring In Action, 6th ed.(Manning, 2020)를 읽는 것이 좋습니다. 또 다른 훌륭한 리소스는 Craig Walls의 Spring Boot In Action(Manning, 2015)입니다. 하지만 이 책에서 다음을 배우게 될 것입니다. 
+
+- 스프링 시큐리티의 아키텍처와 기본 컴포넌트와 앱 보호를 위한 사용 방법
+- 스프링 시큐리티로 인증과 권한 부여. `Oauth2`와 `OpenID Connect` 플로우 그리고 제품에 적용하는 방법
+- 앱의 다른 레이어에 시큐리티를 구현하는 방법
 - Different configuration styles and best practices for using those in your project
-- 리액티브 애플리케이션에서 Spring Security
+- 리액티브 앱에서 Spring Security
 - 시큐리티 테스팅
 
-To make the learning process smooth for each described concept, we’ll work on multiple simple examples. At the end of each significant subject, we’ll review the essential concepts you’ve learned with a more complex application in chapters whose titles begin with “Hands-On.”
-When we finish, you’ll know how to apply Spring Security for the most practical scenarios and understand where to use it and its best practices. I also strongly recommend that you work on all the examples that accompany the explanations.
+설명된 각 개념에 대한 학습 프로세스를 원활하게 하기 위해 여러 가지 간단한 예를 살펴보겠습니다. 각 중요한 주제의 끝에서 제목이 "Hands-On"으로 시작하는 장에서 더 복잡한 앱으로 배운 필수 개념을 검토합니다.
 
-## Summary
+이 과정을 마치면 가장 실용적인 시나리오에 Spring Security를 ​​적용하는 방법과 이를 사용하는 위치와 모범 사례를 이해하게 될 것입니다. 또한 설명과 함께 제공되는 모든 예제를 작업할 것을 강력히 권장합니다.
 
-- Spring Security is the leading choice for securing Spring applications. It offers a significant number of alternatives that apply to different styles and architectures.
-- You should apply security in layers for your system, and for each layer, you need to use different practices.
-- Security is a cross-cutting concern you should consider from the beginning of a software project.
-- Usually, the cost of an attack is higher than the cost of investment in avoiding vulnerabilities to begin with.
-- The Open Web Application Security Project is an excellent place to refer to when it comes to vulnerabilities and security concerns.
-- Sometimes the smallest mistakes can cause significant harm. For example, exposing sensitive data through logs or error messages is a common way to introduce vulnerabilities in your application.
+## 요약
+
+- Spring Security는 Spring 앱 보안을 위한 최고의 선택입니다. 다양한 스타일과 아키텍처에 적용되는 상당한 수의 대안을 제공합니다.
+  
+- 시스템의 계층에 보안을 적용해야 하며 각 계층에 대해 서로 다른 방식을 사용해야 합니다.
+  
+- 보안은 소프트웨어 프로젝트 초기부터 고려해야 하는 포괄적인 관심사입니다.
+- 일반적으로 공격 비용은 처음부터 취약성을 피하기 위한 투자 비용보다 높습니다.
+  
+- Open Web Application Security Project는 취약점 및 보안 문제와 관련하여 참조할 수 있는 훌륭한 장소입니다.
+  
+- 때로는 작은 실수가 큰 피해를 줄 수 있습니다. 예를 들어, 로그 또는 오류 메시지를 통해 민감한 데이터를 노출하는 것은 앱에 취약점을 도입하는 일반적인 방법입니다.
 

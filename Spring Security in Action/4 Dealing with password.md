@@ -1,6 +1,6 @@
 
  
-4 Dealing with passwords
+# 4 Dealing with passwords
 This chapter covers
 - Implementing and working with the PasswordEncoder
 - Using the tools offered by the Spring Security Crypto module
@@ -225,10 +225,16 @@ Behind the scenes, the standard byte encryptor uses 256-byte AES encryption to e
 BytesEncryptor e = Encryptors.stronger(password, salt);
 The difference is small and happens behind the scenes, where the AES encryption on 256-bit uses Galois/Counter Mode (GCM) as the mode of operation. The standard mode uses cipher block chaining (CBC), which is considered a weaker method.
 TextEncryptors come in three main types. You create these three types by calling the Encryptors.text(), Encryptors.delux(), or Encryptors.queryableText() methods. Besides these methods to create encryptors, there is also a method that returns a dummy TextEncryptor, which doesn’t encrypt the value. You can use the dummy TextEncryptor for demo examples or cases in which you want to test the performance of your application without spending time spent on encryption. The method that returns this no-op encryptor is Encryptors.noOpText(). In the following code snippet, you’ll find an example of using a TextEncryptor. Even if it is a call to an encryptor, in the example, encrypted and valueToEncrypt are the same:
+
+```java
 String valueToEncrypt = "HELLO";
 TextEncryptor e = Encryptors.noOpText();
 String encrypted = e.encrypt(valueToEncrypt);
+```
+
 The Encryptors.text() encryptor uses the Encryptors.standard() method to manage the encryption operation, while the Encryptors.delux() method uses an Encryptors.stronger() instance like this:
+
+```java
 String salt = KeyGenerators.string().generateKey();
 String password = "secret";
 String valueToEncrypt = "HELLO";
@@ -236,25 +242,26 @@ String valueToEncrypt = "HELLO";
 TextEncryptor e = Encryptors.text(password, salt);       ❶
 String encrypted = e.encrypt(valueToEncrypt);
 String decrypted = e.decrypt(encrypted);
+```
 ❶ Creates a TextEncryptor object that uses a salt and a password
 For Encryptors.text() and Encryptors.delux(), the encrypt() method called on the same input repeatedly generates different outputs. The different outputs occur because of the randomly generated initialization vectors used in the encryption process. In the real world, you’ll find cases in which you don’t want this to happen, as in the case of the OAuth API key, for example. We’ll discuss OAuth 2 more in chapters 12 through 15. This kind of input is called queryable text, and for this situation, you would make use of an Encryptors.queryableText() instance. This encryptor guarantees that sequential encryption operations will generate the same output for the same input. In the following example, the value of the encrypted1 variable equals the value of the encrypted2 variable:
+
+```java
 String salt = KeyGenerators.string().generateKey();
 String password = "secret";
 String valueToEncrypt = "HELLO";
 
-TextEncryptor e = 
-  Encryptors.queryableText(password, salt);       ❶
+TextEncryptor e = Encryptors.queryableText(password, salt);       ❶
 
 String encrypted1 = e.encrypt(valueToEncrypt);
-
 String encrypted2 = e.encrypt(valueToEncrypt);
+```
+
 ❶ Creates a queryable text encryptor
-Summary
+
+## Summary
 - The PasswordEncoder has one of the most critical responsibilities in authentication logic--dealing with passwords.
 - Spring Security offers several alternatives in terms of hashing algorithms, which makes the implementation only a matter of choice.
 - Spring Security Crypto module (SSCM) offers various alternatives for implementations of key generators and encryptors.
 - Key generators are utility objects that help you generate keys used with cryptographic algorithms.
 - Encryptors are utility objects that help you apply encryption and decryption of data.
-- Copy
-- Add Highlight
-- Add Note

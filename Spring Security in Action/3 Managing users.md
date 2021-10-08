@@ -615,12 +615,10 @@ Now start the app and call the /hello endpoint. You need to authenticate with us
 curl -u john:12345 http://localhost:8080/hello
 The response to the call is
 Hello!
-Summary
+
+## Summary
 - The UserDetails interface is the contract you use to describe a user in Spring Security.
 - The UserDetailsService interface is the contract that Spring Security expects you to implement in the authentication architecture to describe the way the application obtains user details.
 - The UserDetailsManager interface extends the UserDetailsService and adds the behavior related to creating, changing, or deleting a user.
 - Spring Security provides a few implementations of the UserDetailsManager contract. Among these are InMemoryUserDetailsManager, JdbcUser-DetailsManager, and LdapUserDetailsManager.
 - The JdbcUserDetailsManager has the advantage of directly using JDBC and does not lock the application in to other frameworks.
-- Copy
-- Add Highlight
-- Add Note

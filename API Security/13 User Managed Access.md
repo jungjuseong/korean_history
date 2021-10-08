@@ -1,79 +1,46 @@
 
-13. User-Managed Access
+# 13. User-Managed Access
 
-Prabath Siriwardena1 
+OAuth 2.0은 액세스 위임을 위한 인증 프레임워크를 도입했습니다. 이를 통해 Bob은 Facebook 자격 증명을 공유하지 않고도 Facebook 담벼락에 대한 읽기 액세스 권한을 타사 애플리케이션에 위임할 수 있습니다. 사용자 관리 액세스(UMA)는 이 모델을 다른 수준으로 확장합니다. 여기서 Bob은 타사 응용 프로그램에 대한 액세스 권한을 위임할 수 있을 뿐만 아니라 동일한 타사 응용 프로그램을 사용하는 Peter에게도 권한을 위임할 수 있습니다.
 
-(1)
+UMA는 OAuth 2.0 프로필입니다. OAuth 2.0은 권한 서버에서 리소스 서버를 분리합니다. UMA는 한 단계 더 나아가 중앙 권한 부여 서버에서 분산된 리소스 서버 집합을 제어할 수 있습니다. 또한 자원 소유자는 권한 부여 서버에서 정책 세트를 정의할 수 있으며, 이는 클라이언트가 보호 자원에 대한 액세스 권한을 부여받을 때 평가될 수 있습니다. 따라서 임의의 클라이언트 또는 요청 당사자의 액세스 요청을 승인하기 위해 리소스 소유자가 있어야 할 필요가 없습니다. 권한 부여 서버는 리소스 소유자가 정의한 정책을 기반으로 결정을 내릴 수 있습니다.
 
-San Jose, CA, USA
+이 장에서 논의할 UMA의 최신 버전은 UMA 2.0입니다. UMA 진화에 대해 더 알고 싶다면 부록 D: UMA 진화를 확인하십시오.
 
- 
+## Use Cases
 
-OAuth 2.0 introduced an authorization framework for access delegation. It lets Bob delegate read access to his Facebook wall to a third-party application, without sharing Facebook credentials. User-Managed Access (UMA, pronounced “OOH-mah”) extends this model to another level, where Bob can not only delegate access to a third-party application but also to Peter who uses the same third-party application.
+Chase Bank, Bank of America 및 Wells Fargo에 여러 은행 계좌가 있다고 가정해 보겠습니다. 개인 재무 관리(PFM) 애플리케이션을 통해 모든 은행 계좌를 관리하는 `Peter`라는 재무 관리자를 고용했습니다. 이 애플리케이션은 종종 여러 은행 계좌에서 정보를 가져옴으로써 예산을 더 잘 책정하고 전반적인 재무 상태를 이해하는 데 도움이 됩니다. 여기에서 PFM을 사용하여 은행 계좌에 액세스하려면 `Peter`에게 제한된 액세스 권한을 부여해야 합니다. 우리는 모든 은행이 API를 통해 기능을 노출하고 PFM이 뱅킹 API를 사용하여 데이터를 검색한다고 가정합니다.
 
-UMA is an OAuth 2.0 profile. OAuth 2.0 decouples the resource server from the authorization server. UMA takes one step further: it lets you control a distributed set of resource servers from a centralized authorization server. Also the resource owner can define a set of policies at the authorization server, which can be evaluated at the time a client is granted access to a protected resource. This eliminates the need of having the presence of the resource owner to approve access requests from arbitrary clients or requesting parties. The authorization server can make the decision based on the policies defined by the resource owner.
+매우 높은 수준에서 UMA가 이 문제를 해결하는 방법을 살펴보겠습니다(그림 13-1 참조). 먼저 모든 은행이 신뢰하는 인증 서버에서 액세스 제어 정책을 정의해야 합니다. 이 권한 부여 정책은 Peter에게 PFM 앱을 통해 Wells Fargo, Chase 및 Bank of America 은행 계좌에 대한 읽기 액세스 권한을 부여해야 한다고 말합니다. 그런 다음 각 은행을 승인 서버에 소개해야 하므로 Peter가 귀하의 은행 계좌에 액세스하려고 할 때마다 각 은행은 승인 서버와 통신하여 Peter가 그렇게 할 수 있는지 묻습니다. Peter가 PFM 앱을 통해 은행 계좌에 액세스하려면 PFM 앱이 먼저 인증 서버와 통신해야 하며 Peter를 대신하여 토큰을 받아야 합니다. 이 과정에서 토큰을 발행하기 전에 권한 부여 서버는 사용자가 정의한 액세스 제어 정책을 평가합니다.
 
-The latest version of UMA, which we discuss in this chapter, is UMA 2.0. If you are interested in learning more about UMA evolution, please check Appendix D: UMA Evolution.
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781484220504/files/A323855_2_En_13_Fig1_HTML.jpg)
 
-Use Cases
+Figure 13-1 계정 소유자는 개인 재무 관리 앱을 통해 자신의 계정 관리를 재무 관리자에게 위임합니다.
 
-Let’s say you have multiple bank accounts with Chase Bank, Bank of America, and Wells Fargo. You have hired a financial manager called Peter, who manages all your bank accounts through a personal financial management (PFM) application, which helps to budget better and understand the overall financial position, by often pulling information from multiple bank accounts. Here, you need to give limited access to Peter, to use the PFM to access your bank accounts. We assume all the banks expose their functionality over APIs and PFM uses banking APIs to retrieve data.
+다른 예를 들어보겠습니다. Google 문서가 있다고 가정해 보겠습니다. 이것을 모든 사람과 공유하는 것이 아니라 foo 및 bar 회사 관리 팀의 모든 사람과 공유하고 싶습니다(그림 13-2 참조). 이것이 UMA와 어떻게 작동하는지 봅시다.
 
-At a very high level, let’s see how UMA solves this problem (see Figure 13-1). First you need to define an access control policy at the authorization server, which all your banks trust. This authorization policy would say Peter should be given read access via the PFM app to Wells Fargo, Chase, and Bank of America bank accounts. Then you also need to introduce each bank to the authorization server, so whenever Peter tries to access your bank accounts, each bank talks to the authorization server and asks whether Peter is allowed to do that. For Peter to access a bank account via PFM app, the PFM app first needs to talk to the authorization server and gets a token on behalf of Peter. During this process, before issuing the token, the authorization server evaluates the access control policy you defined.
+먼저 Google이 신뢰하는 인증 서버가 있으므로 누군가가 Google 문서에 액세스하려고 할 때마다 Google은 인증 서버와 통신하여 해당 사용자에게 액세스 권한이 있는지 확인합니다. 또한 foo 및 bar 회사의 관리자만 Google 문서에 액세스할 수 있다는 정책을 인증 서버에서 정의합니다
 
- 
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781484220504/files/A323855_2_En_13_Fig2_HTML.jpg)
+Figure 13-2 Google 문서 소유자는 특정 역할을 가진 다른 회사의 제3자에게 Google 문서에 대한 액세스 권한을 위임합니다.
 
-Figure 13-1
+사람(예: Peter)이 Google 문서에 액세스하려고 하면 Google이 승인 서버로 리디렉션합니다. 그런 다음 인증 서버는 Peter를 Foo ID 공급자(또는 Peter의 홈 ID 공급자)로 리디렉션합니다. Foo ID 공급자는 Peter를 인증하고 권한 부여 서버에 대한 클레임으로서 Peter의 역할을 다시 보냅니다. 이제 권한 부여 서버는 Peter의 역할과 Peter가 속한 회사를 알고 있기 때문에 Peter가 관리자 역할에 속하는 경우 Google Docs 앱에 토큰을 발급하고 Google Docs API를 통해 해당 Google 문서를 검색하는 데 사용할 수 있습니다.
 
-An account owner delegates the administration of his/her accounts to a Financial Manager via a Personal Financial Management App
+## UMA 2.0 Roles
 
-Let’s take another example. Say you have a Google Doc. You do not want to share this with everyone, but with anyone from the management team of foo and bar companies (see Figure 13-2). Let’s see how this works with UMA.
+UMA는 4장의 OAuth 2.0에서 논의한 네 가지 역할(리소스 소유자, 리소스 서버, 클라이언트 및 권한 부여 서버) 외에 하나의 역할을 더 도입합니다. 다음은 UMA와 관련된 다섯 가지 역할을 모두 나열합니다.
 
-First you have an authorization server, which Google trusts, so whenever someone wants to access your Google Doc, Google talks to the authorization server to see whether that person has the rights to do so. You also define a policy at the authorization server, which says only the managers from foo and bar companies can access your Google Doc.
+1. 리소스 소유자: 앞의 두 사용 사례에서 귀하는 리소스 소유자입니다. 첫 번째 경우에는 은행 계좌를 소유하고 두 번째 사용 사례에서는 Google 문서를 소유했습니다.
 
- 
+2. 리소스 서버: 보호된 리소스를 호스팅하는 곳입니다. 앞의 첫 번째 사용 사례에서 각 은행은 리소스 서버이고 두 번째 사용 사례에서는 Google Docs API를 호스팅하는 서버가 리소스 서버입니다.
 
-Figure 13-2
+3. 클라이언트: 리소스 소유자를 대신하여 리소스에 액세스하려는 애플리케이션입니다. 앞의 첫 번째 사용 사례에서 개인 재무 관리(PFM) 애플리케이션은 클라이언트이고 두 번째 사용 사례에서는 Google 문서도구 웹 애플리케이션입니다.
 
-A Google Doc owner delegates access to a Google Doc to a third party from a different company with specific roles
+4. 권한 부여 서버: 클라이언트 애플리케이션에 OAuth 2.0 액세스 토큰을 발급하는 보안 토큰 서비스(STS) 역할을 하는 엔터티입니다.
 
-When a person (say Peter) tries to access your Google Doc, Google will redirect you to the authorization server. Then the authorization server will redirect Peter to Foo identity provider (or the home identity provider of Peter). Foo identity provider will authenticate Peter and send back Peter’s role as a claim to the authorization server. Now, since authorization server knows Peter’s role, and also the company Peter belongs to, if Peter belongs to a manager role, it will issue a token to Google Docs app, which it can use to retrieve the corresponding Google Doc via the Google Docs API.
+5. 요청 당사자: 이것은 UMA의 새로운 기능입니다. 앞의 첫 번째 사용 사례에서는 재무 관리자인 Peter가 요청 당사자이고 두 번째 사용 사례에서는 Foo 회사의 관리자인 Peter가 요청 당사자입니다. 요청 당사자는 리소스 소유자를 대신하여 클라이언트 애플리케이션을 통해 리소스에 액세스합니다.
 
-UMA 2.0 Roles
-
-UMA introduces one more role in addition to the four roles (resource owner, resource server, client, and authorization server) we discussed under OAuth 2.0, in Chapter 4. The following lists out all five roles involved in UMA:
-
-1. 1.
-
-Resource owner: In the preceding two use cases, you are the resource owner. In the first case, you owned the bank account, and in the second use case, you owned the Google Doc.
-
- 
-
-2. 2.
-
-Resource server: This is the place which hosts protected resources. In the preceding first use case, each bank is a resource server—and in the second use case, the server, which hosts Google Docs API, is the resource server.
-
- 
-
-3. 3.
-
-Client: This is the application, which wants to access a resource on behalf of the resource owner. In the preceding first use case, the personal financial management (PFM) application is the client, and in the second use case, it is the Google Docs web application.
-
- 
-
-4. 4.
-
-Authorization server: This is the entity, which acts as the security token service (STS) to issue OAuth 2.0 access tokens to client applications.
-
- 
-
-5. 5.
-
-Requesting party: This is something new in UMA. In the preceding first use case, Peter, the financial manager, is the requesting party, and in the second use case, Peter who is a manager at Foo company is the requesting party. The requesting party accesses a resource via a client application, on behalf of the resource owner.
-
- 
-
-UMA Protocol
+## UMA Protocol
 
 There are two specifications developed under Kantara Initiative, which define UMA protocol. The core specification is called UMA 2.0 Grant for OAuth 2.0 Authorization. The other one is the Federated Authorization for UMA 2.0, which is optional.
 

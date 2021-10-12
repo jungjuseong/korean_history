@@ -5,8 +5,8 @@
 - Spring 애플리케이션의 전역 메소드 보안
 - 권한, 역할, 권한에 따른 메소드 사전 승인
 - 권한, 역할, 권한에 따른 메소드 사후 승인
--
-지금까지 인증을 구성하는 다양한 방법에 대해 논의했습니다. 2장에서 가장 간단한 접근 방식인 HTTP Basic으로 시작하여 5장에서 양식 로그인을 설정하는 방법을 보여 드렸습니다. 12장에서 15장까지 OAuth 2를 다루었습니다. 그러나 권한 부여 측면에서는 구성에 대해서만 논의했습니다. 끝점 수준. 앱이 웹 애플리케이션이 아니라고 가정합니다. 
+
+지금까지 인증을 구성하는 다양한 방법에 대해 논의했습니다. 2장에서 가장 간단한 접근 방식인 HTTP Basic으로 시작하여 5장에서 form 로그인을 설정하는 방법을 보여 드렸습니다. 12장에서 15장까지 OAuth 2를 다루었습니다. 그러나 권한 부여 측면에서는 구성에 대해서만 논의했습니다. 끝점 수준. 앱이 웹 애플리케이션이 아니라고 가정합니다. 
 
 인증 및 권한 부여에도 Spring Security를 ​​사용할 수 없습니까? Spring Security는 앱이 HTTP 엔드포인트를 통해 사용되지 않는 시나리오에 적합합니다. 이 장에서는 메서드 수준에서 권한 부여를 구성하는 방법을 배웁니다. 이 접근 방식을 사용하여 웹 및 웹이 아닌 응용 프로그램 모두에서 권한 부여를 구성하고 전역 메서드 보안이라고 부를 것입니다(그림 16.1).
 
@@ -21,56 +21,72 @@
 메서드 수준에서 권한 부여를 활성화하는 방법과 다양한 권한 부여 규칙을 적용하기 위해 Spring Security가 제공하는 다양한 옵션을 배웁니다. 이 접근 방식은 승인을 적용할 때 더 큰 유연성을 제공합니다. 단순히 엔드포인트 수준에서 권한 부여를 구성할 수 없는 상황을 해결할 수 있는 필수 기술입니다.
 
 기본적으로 전역 메서드 보안은 비활성화되어 있으므로 이 기능을 사용하려면 먼저 활성화해야 합니다. 또한 전역 메서드 보안은 권한 부여를 적용하기 위한 여러 접근 방식을 제공합니다. 우리는 이러한 접근 방식에 대해 논의한 다음 이 장의 다음 섹션과 17장의 예제에서 구현합니다. 간단히 말해서 전역 메서드 보안으로 두 가지 주요 작업을 수행할 수 있습니다.
-- Call authorization--Decides whether someone can call a method according to some implemented privilege rules (preauthorization) or if someone can access what the method returns after the method executes (postauthorization).
-- Filtering--Decides what a method can receive through its parameters (prefiltering) and what the caller can receive back from the method after the method executes (postfiltering). We’ll discuss and implement filtering in chapter 17.
 
-### 16.1.1 UNDERSTANDING CALL AUTHORIZATION
-One of the approaches for configuring authorization rules you use with global method security is call authorization. The call authorization approach refers to applying authorization rules that decide if a method can be called, or that allow the method to be called and then decide if the caller can access the value returned by the method. Often we need to decide if someone can access a piece of logic depending on either the provided parameters or its result. So let’s discuss call authorization and then apply it to some examples.
+- 호출 권한 부여--구현된 일부 권한 규칙에 따라 누군가가 메서드를 호출할 수 있는지(사전 권한 부여) 또는 누군가 메서드가 실행된 후 메서드가 반환하는 것에 액세스할 수 있는지 여부(사후 권한 부여)를 결정합니다.
 
-How does global method security work? What’s the mechanism behind applying the authorization rules? When we enable global method security in our application, we actually enable a Spring aspect. This aspect intercepts the calls to the method for which we apply authorization rules and, based on these authorization rules, decides whether to forward the call to the intercepted method (figure 16.2).
+- 필터링 - 메서드가 매개변수를 통해 수신할 수 있는 항목(사전 필터링)과 메서드가 실행된 후 호출자가 메서드에서 다시 수신할 수 있는 항목(사후 필터링)을 결정합니다. 필터링에 대해서는 17장에서 논의하고 구현할 것입니다.
 
-Plenty of implementations in Spring framework rely on aspect-oriented programming (AOP). Global method security is just one of the many components in Spring applications relying on aspects. If you need a refresher on aspects and AOP, I recommend you read chapter 5 of Pro Spring 5: An In-Depth Guide to the Spring Framework and Its Tools by Clarence Ho et al., (Apress, 2017). Briefly, we classify the call authorization as
- 
-Figure 16.2 When we enable global method security, an aspect intercepts the call to the protected method. If the given authorization rules aren't respected, the aspect doesn't delegate the call to the protected method.
+### 16.1.1 호출 승인 이해
 
-- Preauthorization--The framework checks the authorization rules before the method call.
-- Postauthorization--The framework checks the authorization rules after the method executes.
-Let’s take both approaches, detail them, and implement them with some examples.
+전역 메서드 보안과 함께 사용하는 권한 부여 규칙을 구성하기 위한 방식 중 하나는 호출 권한 부여입니다. 호출 권한 부여 방식은 메서드를 호출할 수 있는지 여부를 결정하거나 메서드가 호출되도록 한 다음 호출자가 메서드에서 반환된 값에 액세스할 수 있는지 여부를 결정하는 권한 부여 규칙을 적용하는 것을 말합니다. 종종 우리는 제공된 매개변수 또는 그 결과에 따라 누군가가 논리 조각에 액세스할 수 있는지 여부를 결정해야 합니다. 호출 승인에 대해 논의한 다음 몇 가지 예에 적용해 보겠습니다.
 
-USING PREAUTHORIZATION TO SECURE ACCESS TO METHODS
+전역 메서드 보안은 어떻게 작동합니까? 승인 규칙을 적용하는 메커니즘은 무엇입니까? 애플리케이션에서 전역 메서드 보안을 활성화하면 실제로 Spring 측면을 활성화합니다. 이 측면은 권한 부여 규칙을 적용하는 메서드에 대한 호출을 가로채고 이러한 권한 부여 규칙을 기반으로 가로채는 메서드로 호출을 전달할지 여부를 결정합니다(그림 16.2).
 
-Say we have a method findDocumentsByUser(String username) that returns to the caller documents for a specific user. The caller provides through the method’s parameters the user’s name for which the method retrieves the documents. Assume you need to make sure that the authenticated user can only obtain their own documents. Can we apply a rule to this method such that only the method calls that receive the username of the authenticated user as a parameter are allowed? Yes! This is something we do with preauthorization.
-When we apply authorization rules that completely forbid anyone to call a method in specific situations, we call this preauthorization (figure 16.3). This approach implies that the framework verifies the authorization conditions before executing the method. If the caller doesn’t have the permissions according to the authorization rules that we define, the framework doesn’t delegate the call to the method. Instead, the framework throws an exception. This is by far the most often used approach to global method security.
- 
-Figure 16.3 With preauthorization, the authorization rules are verified before delegating the method call further. The framework won’t delegate the call if the authorization rules aren’t respected, and instead, throws an exception to the method caller.
-Usually, we don’t want a functionality to be executed at all if some conditions aren’t met. You can apply conditions based on the authenticated user, and you can also refer to the values the method received through its parameters.
-USING POSTAUTHORIZATION TO SECURE A METHOD CALL
-When we apply authorization rules that allow someone to call a method but not necessarily to obtain the result returned by the method, we’re using postauthorization (figure 16.4). With postauthorization, Spring Security checks the authorization rules after the method executes. You can use this kind of authorization to restrict access to the method return in certain conditions. Because postauthorization happens after method execution, you can apply the authorization rules on the result returned by the method.
- 
-Figure 16.4 With postauthorization, the aspect delegates the call to the protected method. After the protected method finishes execution, the aspect checks the authorization rules. If the rules aren’t respected, instead of returning the result to the caller, the aspect throws an exception.
-Usually, we use postauthorization to apply authorization rules based on what the method returns after execution. But be careful with postauthorization! If the method mutates something during its execution, the change happens whether or not authorization succeeds in the end.
-NOTE Even with the @Transactional annotation, a change isn’t rolled back if postauthorization fails. The exception thrown by the postauthorization functionality happens after the transaction manager commits the transaction.
+Spring 프레임워크의 많은 구현은 AOP(Aspect Oriented Programming)에 의존합니다. 전역 메서드 보안은 측면에 의존하는 Spring 애플리케이션의 많은 구성 요소 중 하나일 뿐입니다. aspect와 AOP에 대한 복습이 필요하다면 Clarence Ho et al.(Apress, 2017)의 Pro Spring 5: An In-Depth Guide to Spring Framework and Its Tools의 5장을 읽는 것이 좋습니다. 간단히 말해서 호출 승인을 다음과 같이 분류합니다.
 
-### 16.1.2 ENABLING GLOBAL METHOD SECURITY IN YOUR PROJECT
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH16_F02_Spilca.png)
 
-In this section, we work on a project to apply the preauthorization and postauthorization features offered by global method security. Global method security isn’t enabled by default in a Spring Security project. To use it, you need to first enable it. However, enabling this functionality is straightforward. You do this by simply using the @EnableGlobalMethodSecurity annotation on the configuration class.
+**그림 16.2** 전역 메서드 보안을 활성화하면 Aspect가 보호된 메서드에 대한 호출을 가로챕니다. 주어진 권한 부여 규칙이 존중되지 않으면 aspect는 보호된 메소드에 호출을 위임하지 않습니다.
 
-I created a new project for this example, ssia-ch16-ex1. For this project, I wrote a ProjectConfig configuration class, as presented in listing 16.1. On the configuration class, we add the @EnableGobalMethodSecurity annotation. Global method security offers us three approaches to define the authorization rules that we discuss in this chapter:
+- 사전 승인--프레임워크는 메소드 호출 전에 승인 규칙을 확인합니다.
 
-- The pre-/postauthorization annotations
-- The JSR 250 annotation, @RolesAllowed
-- The @Secured annotation
+- 사후 권한 부여--프레임워크는 메서드가 실행된 후 권한 부여 규칙을 확인합니다.
+두 가지 접근 방식을 모두 취하고 세부적으로 설명하고 몇 가지 예를 들어 구현해 보겠습니다.
 
-Because in almost all cases, pre-/postauthorization annotations are the only approach used, we discuss this approach in this chapter. To enable this approach, we use the prePostEnabled attribute of the @EnableGlobalMethodSecurity annotation. We present a short overview of the other two options previously mentioned at the end of this chapter.
+> method에 대한 액세스를 보호하기 위해 사전 승인 사용
 
-Listing 16.1 Enabling global method security
+특정 사용자에 대한 호출자 문서로 반환하는 findDocumentsByUser(String username) 메서드가 있다고 가정해 보겠습니다. 호출자는 메서드의 매개변수를 통해 메서드가 문서를 검색하는 사용자 이름을 제공합니다. 인증된 사용자가 자신의 문서만 얻을 수 있도록 해야 한다고 가정합니다. 인증된 사용자의 사용자 이름을 매개 변수로 받는 메서드 호출만 허용되도록 이 메서드에 규칙을 적용할 수 있습니까? 예! 이것은 사전 승인으로 우리가 하는 일입니다.
+
+특정 상황에서 누군가가 메서드를 호출하는 것을 완전히 금지하는 권한 부여 규칙을 적용할 때 이를 사전 권한 부여라고 합니다(그림 16.3). 이 접근 방식은 프레임워크가 메서드를 실행하기 전에 권한 부여 조건을 확인한다는 것을 의미합니다. 호출자에게 우리가 정의한 권한 부여 규칙에 따른 권한이 없으면 프레임워크는 호출을 메서드에 위임하지 않습니다. 대신 프레임워크에서 예외가 발생합니다. 이것은 지금까지 전역 메서드 보안에 가장 자주 사용되는 접근 방식입니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH16_F03_Spilca.png)
+
+그림 16.3 사전 승인을 사용하면 메소드 호출을 더 위임하기 전에 승인 규칙이 검증됩니다. 프레임워크는 권한 부여 규칙이 준수되지 않으면 호출을 위임하지 않고 대신 메서드 호출자에게 예외를 throw합니다.
+일반적으로 일부 조건이 충족되지 않으면 기능이 전혀 실행되는 것을 원하지 않습니다. 인증된 사용자를 기준으로 조건을 적용할 수 있으며, 해당 매개변수를 통해 받은 메소드의 값을 참조할 수도 있습니다.
+
+> 메서드 호출을 보호하기 위해 사후 승인 사용
+
+누군가가 메서드를 호출하도록 허용하지만 반드시 메서드에서 반환된 결과를 얻을 필요는 없는 권한 부여 규칙을 적용할 때 사후 권한 부여를 사용하고 있습니다(그림 16.4). 사후 인증을 사용하면 Spring Security는 메소드가 실행된 후 인증 규칙을 확인합니다. 이러한 종류의 권한 부여를 사용하여 특정 조건에서 메서드 반환에 대한 액세스를 제한할 수 있습니다. 사후 승인은 메소드 실행 후에 발생하기 때문에 메소드에서 반환된 결과에 승인 규칙을 적용할 수 있습니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH16_F04_Spilca.png)
+
+그림 16.4 사후 승인을 통해 aspect는 호출을 보호된 메서드에 위임합니다. 보호된 메서드가 실행을 완료한 후 aspect는 권한 부여 규칙을 확인합니다. 규칙이 준수되지 않으면 호출자에게 결과를 반환하는 대신 측면에서 예외가 발생합니다.
+
+일반적으로 사후 승인을 사용하여 실행 후 메서드가 반환하는 내용을 기반으로 권한 부여 규칙을 적용합니다. 그러나 사후 승인에 주의하십시오! 메소드가 실행 중에 무언가를 변경하면 결국 권한 부여가 성공하는지 여부에 관계없이 변경이 발생합니다.
+
+> **참고** @Transactional 주석을 사용하더라도 사후 승인에 실패하면 변경 사항이 롤백되지 않습니다. 사후 승인 기능에서 발생하는 예외는 트랜잭션 관리자가 트랜잭션을 커밋한 후에 발생합니다.
+
+### 16.1.2 프로젝트에서 글로벌 메서드 보안 활성화
+
+이 섹션에서는 글로벌 메서드 보안에서 제공하는 사전 승인 및 사후 승인 기능을 적용하는 프로젝트를 진행합니다. 전역 메서드 보안은 Spring Security 프로젝트에서 기본적으로 활성화되어 있지 않습니다. 사용하려면 먼저 활성화해야 합니다. 그러나 이 기능을 활성화하는 것은 간단합니다. 구성 클래스에서 @EnableGlobalMethodSecurity 주석을 사용하면 됩니다.
+
+이 예를 위해 ssia-ch16-ex1이라는 새 프로젝트를 만들었습니다. 이 프로젝트의 경우 목록 16.1에 표시된 대로 ProjectConfig 구성 클래스를 작성했습니다. 구성 클래스에서 @EnableGobalMethodSecurity 주석을 추가합니다. 전역 메서드 보안은 이 장에서 논의하는 권한 부여 규칙을 정의하는 세 가지 접근 방식을 제공합니다.
+
+- 사전/사후 승인 주석
+- JSR 250 주석, @RolesAllowed
+- @Secured 주석
+
+거의 모든 경우에 사전/사후 승인 주석이 사용되는 유일한 접근 방식이기 때문에 이 장에서 이 접근 방식에 대해 설명합니다. 이 접근 방식을 활성화하기 위해 @EnableGlobalMethodSecurity 주석의 prePostEnabled 속성을 사용합니다. 이 장의 끝에서 이전에 언급한 다른 두 가지 옵션에 대한 간략한 개요를 제시합니다.
+
+목록 16.1 전역 메서드 보안 활성화
 ```java
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class ProjectConfig {
 }
 ```
-You can use global method security with any authentication approach, from HTTP Basic authentication to OAuth 2. To keep it simple and allow you to focus on new details, we provide global method security with HTTP Basic authentication. For this reason, the pom.xml file for the projects in this chapter only needs the web and Spring Security dependencies, as the next code snippet presents:
+HTTP 기본 인증에서 OAuth 2에 이르기까지 모든 인증 방식에서 전역 메서드 보안을 사용할 수 있습니다. 간단하게 유지하고 새로운 세부 정보에 집중할 수 있도록 HTTP 기본 인증을 통해 전역 메서드 보안을 제공합니다. 이러한 이유로 이 장의 프로젝트에 대한 pom.xml 파일은 다음 코드 조각이 제시하는 것처럼 웹 및 Spring Security 종속성만 필요합니다.
+
 ```xml
 <dependency>
    <groupId>org.springframework.boot</groupId>
@@ -82,20 +98,24 @@ You can use global method security with any authentication approach, from HTTP B
 </dependency>
 ```
 
-## 16.2 Applying preauthorization for authorities and roles
+## 16.2 권한 및 역할에 대한 사전 승인 적용
 
-In this section, we implement an example of preauthorization. For our example, we continue with the project ssia-ch16-ex1 started in section 16.1. As we discussed in section 16.1, preauthorization implies defining authorization rules that Spring Security applies before calling a specific method. If the rules aren’t respected, the framework doesn’t call the method.
-The application we implement in this section has a simple scenario. It exposes an endpoint, /hello, which returns the string "Hello, " followed by a name. To obtain the name, the controller calls a service method (figure 16.5). This method applies a preauthorization rule to verify the user has write authority.
- 
-Figure 16.5 To call the getName() method of NameService, the authenticated user needs to have write authority. If the user doesn't have this authority, the framework won't allow the call and throws an exception.
-I added a UserDetailsService and a PasswordEncoder to make sure I have some users to authenticate. To validate our solution, we need two users: one user with write authority and another that doesn’t have write authority. We prove that the first user can successfully call the endpoint, while for the second user, the app throws an authorization exception when trying to call the method. The following listing shows the complete definition of the configuration class, which defines the UserDetailsService and the PasswordEncoder.
-Listing 16.2 The configuration class for UserDetailsService and PasswordEncoder
+사전 승인의 예를 구현합니다. 이 예에서는 섹션 16.1에서 시작된 프로젝트 ssia-ch16-ex1을 계속 진행합니다. 섹션 16.1에서 논의했듯이 사전 승인은 특정 메소드를 호출하기 전에 Spring Security가 적용하는 승인 규칙을 정의하는 것을 의미합니다. 규칙이 준수되지 않으면 프레임워크는 메서드를 호출하지 않습니다.
+
+이 섹션에서 구현하는 애플리케이션에는 간단한 시나리오가 있습니다. "Hello" 뒤에 이름이 오는 문자열을 반환하는 끝점인 /hello를 노출합니다. 이름을 얻기 위해 컨트롤러는 서비스 메서드를 호출합니다(그림 16.5). 이 방법은 사전 승인 규칙을 적용하여 사용자에게 쓰기 권한이 있는지 확인합니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH16_F05_Spilca.png)
+
+**그림 16.5** NameService의 getName() 메서드를 호출하려면 인증된 사용자에게 쓰기 권한이 있어야 합니다. 사용자에게 이 권한이 없으면 프레임워크에서 호출을 허용하지 않고 예외를 throw합니다.
+
+인증할 사용자가 있는지 확인하기 위해 UserDetailsService 및 PasswordEncoder를 추가했습니다. 우리 솔루션을 검증하려면 쓰기 권한이 있는 사용자와 쓰기 권한이 없는 사용자의 두 명의 사용자가 필요합니다. 첫 번째 사용자가 성공적으로 엔드포인트를 호출할 수 있음을 증명하고 두 번째 사용자의 경우 메서드를 호출하려고 할 때 앱에서 권한 부여 예외를 throw합니다. 다음 목록은 UserDetailsService 및 PasswordEncoder를 정의하는 구성 클래스의 전체 정의를 보여줍니다.
+
 ```java
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)      ❶
+@EnableGlobalMethodSecurity(prePostEnabled = true) ❶
 public class ProjectConfig {
 
-  @Bean                                                 ❷
+  @Bean ❷
   public UserDetailsService userDetailsService() {
     var service = new InMemoryUserDetailsManager();
 
@@ -115,18 +135,24 @@ public class ProjectConfig {
     return service;
   }
 
-  @Bean                                                ❸
+  @Bean ❸
   public PasswordEncoder passwordEncoder() {
     return NoOpPasswordEncoder.getInstance();
   }
 }
 ```
-❶ Enables global method security for pre-/postauthorization
-❷ Adds a UserDetailsService to the Spring context with two users for testing
-❸ Adds a PasswordEncoder to the Spring context
-To define the authorization rule for this method, we use the @PreAuthorize annotation. The @PreAuthorize annotation receives as a value a Spring Expression Language (SpEL) expression that describes the authorization rule. In this example, we apply a simple rule.
-You can define restrictions for users based on their authorities using the hasAuthority() method. You learned about the hasAuthority() method in chapter 7, where we discussed applying authorization at the endpoint level. The following listing defines the service class, which provides the value for the name.
-Listing 16.3 The service class defines the preauthorization rule on the method
+❶ 사전/사후 인증을 위한 글로벌 메소드 보안 가능
+
+❷ 테스트를 위해 두 명의 사용자가 있는 Spring 컨텍스트에 UserDetailsService 추가
+
+❸ Spring 컨텍스트에 PasswordEncoder 추가
+
+이 메서드에 대한 권한 부여 규칙을 정의하기 위해 @PreAuthorize 주석을 사용합니다. @PreAuthorize 주석은 권한 부여 규칙을 설명하는 SpEL(Spring Expression Language) 표현식을 값으로 받습니다. 이 예에서는 간단한 규칙을 적용합니다.
+
+hasAuthority() 메서드를 사용하여 권한을 기반으로 사용자에 대한 제한을 정의할 수 있습니다. 7장에서 hasAuthority() 메서드에 대해 배웠습니다. 여기서 끝점 수준에서 권한 부여를 적용하는 방법에 대해 논의했습니다. 다음 목록은 이름 값을 제공하는 서비스 클래스를 정의합니다.
+
+**목록 16.3** 서비스 클래스는 메소드에 대한 사전 승인 규칙을 정의합니다.
+```java
 @Service
 public class NameService {
 
@@ -135,9 +161,13 @@ public class NameService {
     return "Fantastico";
   }
 }
-❶ Defines the authorization rule. Only users having write authority can call the method.
-We define the controller class in the following listing. It uses NameService as a dependency.
-Listing 16.4 The controller class implementing the endpoint and using the service
+```
+❶ 권한 부여 규칙을 정의합니다. 쓰기 권한이 있는 사용자만 메서드를 호출할 수 있습니다.
+
+다음 목록에서 컨트롤러 클래스를 정의합니다. NameService를 종속성으로 사용합니다.
+
+목록 16.4 끝점을 구현하고 서비스를 사용하는 컨트롤러 클래스
+```java
 @RestController
 public class HelloController {
 
@@ -149,30 +179,52 @@ public class HelloController {
     return "Hello, " + nameService.getName();   ❷
   }
 }
-❶ Injects the service from the context
-❷ Calls the method for which we apply the preauthorization rules
-You can now start the application and test its behavior. We expect only user Emma to be authorized to call the endpoint because she has write authorization. The next code snippet presents the calls for the endpoint with our two users, Emma and Natalie. To call the /hello endpoint and authenticate with user Emma, use this cURL command:
+```
+❶ 컨텍스트에서 서비스 주입
+
+❷ 사전 승인 규칙을 적용하는 메서드를 호출합니다.
+
+이제 애플리케이션을 시작하고 동작을 테스트할 수 있습니다. 쓰기 권한이 있기 때문에 사용자 Emma만 엔드포인트를 호출할 권한이 있을 것으로 예상합니다. 다음 코드는 Emma와 Natalie의 두 사용자와 함께 엔드포인트에 대한 호출을 보여줍니다. /hello 끝점을 호출하고 사용자 Emma로 인증하려면 다음 cURL 명령을 사용합니다.
+
+```sh
 curl -u emma:12345 http://localhost:8080/hello
-The response body is
+```
+
+응답은
+```
 Hello, Fantastico
-To call the /hello endpoint and authenticate with user Natalie, use this cURL command:
+```
+/hello 엔드포인트를 호출하고 사용자 Natalie로 인증하려면 다음 cURL 명령을 사용하십시오.
+
+```sh
 curl -u natalie:12345 http://localhost:8080/hello
+```
 The response body is
+
+```json
 {
   "status":403,
   "error":"Forbidden",
   "message":"Forbidden",
   "path":"/hello"
 }
-Similarly, you can use any other expression we discussed in chapter 7 for endpoint authentication. Here’s a short recap of them:
-- hasAnyAuthority()--Specifies multiple authorities. The user must have at least one of these authorities to call the method.
-- hasRole()--Specifies a role a user must have to call the method.
-- hasAnyRole()--Specifies multiple roles. The user must have at least one of them to call the method.
-Let’s extend our example to prove how you can use the values of the method parameters to define the authorization rules (figure 16.6). You find this example in the project named ssia-ch16-ex2.
+```
+마찬가지로 끝점 인증을 위해 7장에서 논의한 다른 표현을 사용할 수 있습니다. 다음은 이에 대한 간략한 요약입니다.
+
+- hasAnyAuthority() -- 여러 권한을 지정합니다. 메소드를 호출하려면 사용자에게 이러한 권한 중 하나 이상이 있어야 합니다.
+
+- hasRole()--사용자가 메서드를 호출하기 위해 가져야 하는 역할을 지정합니다.
+
+- hasAnyRole() -- 여러 역할을 지정합니다. 사용자는 메소드를 호출하기 위해 그들 중 적어도 하나가 있어야 합니다.
+  
+메서드 매개변수의 값을 사용하여 권한 부여 규칙을 정의하는 방법을 증명하기 위해 예제를 확장해 보겠습니다(그림 16.6). 이 예제는 ssia-ch16-ex2라는 프로젝트에서 찾을 수 있습니다.
  
-Figure 16.6 When implementing preauthorization, we can use the values of the method parameters in the authorization rules. In our example, only the authenticated user can retrieve information about their secret names.
-For this project, I defined the same ProjectConfig class as in our first example so that we can continue working with our two users, Emma and Natalie. The endpoint now takes a value through a path variable and calls a service class to obtain the “secret names” for a given username. Of course, in this case, the secret names are just an invention of mine referring to a characteristic of the user, which is something that not everyone can see. I define the controller class as presented in the next listing.
-Listing 16.5 The controller class defining an endpoint for testing
+그림 16.6 사전 승인을 구현할 때 승인 규칙에서 메소드 매개변수의 값을 사용할 수 있습니다. 이 예에서는 인증된 사용자만 자신의 비밀 이름에 대한 정보를 검색할 수 있습니다.
+
+이 프로젝트의 경우 Emma 및 Natalie라는 두 사용자와 계속 작업할 수 있도록 첫 번째 예제와 동일한 ProjectConfig 클래스를 정의했습니다. 이제 끝점은 경로 변수를 통해 값을 취하고 서비스 클래스를 호출하여 주어진 사용자 이름에 대한 "비밀 이름"을 얻습니다. 물론, 이 경우에 비밀 이름은 사용자의 특성을 참고하여 제가 만든 것일 뿐이며, 이는 모두가 볼 수 있는 것은 아닙니다. 다음 목록에 나와 있는 대로 컨트롤러 클래스를 정의합니다.
+
+목록 16.5 테스트를 위한 끝점을 정의하는 컨트롤러 클래스
+```java
 @RestController
 public class HelloController {
 
@@ -184,11 +236,17 @@ public class HelloController {
       return nameService.getSecretNames(name);           ❸
   }
 }
-❶ From the context, injects an instance of the service class that defines the protected method
-❷ Defines an endpoint that takes a value from a path variable
-❸ Calls the protected method to obtain the secret names of the users
-Now let’s take a look at how to implement the NameService class in listing 16.6. The expression we use for authorization now is #name == authentication.principal.username. In this expression, we use #name to refer to the value of the getSecretNames() method parameter called name, and we have access directly to the authentication object that we can use to refer to the currently authenticated user. The expression we use indicates that the method can be called only if the authenticated user’s username is the same as the value sent through the method’s parameter. In other words, a user can only retrieve its own secret names.
-Listing 16.6 The NameService class defines the protected method
+```
+❶ 컨텍스트에서 보호된 메서드를 정의하는 서비스 클래스의 인스턴스를 주입합니다.
+
+❷ 경로 변수에서 값을 가져오는 끝점을 정의합니다.
+
+❸ 보호된 메서드를 호출하여 사용자의 비밀 이름을 가져옵니다.
+
+이제 목록 16.6에서 NameService 클래스를 구현하는 방법을 살펴보겠습니다. 현재 인증에 사용하는 표현식은 #name == authentication.principal.username입니다. 이 표현식에서 #name을 사용하여 name이라는 getSecretNames() 메소드 매개변수의 값을 참조하고 현재 인증된 사용자를 참조하는 데 사용할 수 있는 인증 객체에 직접 액세스할 수 있습니다. 우리가 사용하는 표현식은 인증된 사용자의 사용자 이름이 메소드의 매개변수를 통해 전송된 값과 동일한 경우에만 메소드를 호출할 수 있음을 나타냅니다. 즉, 사용자는 자신의 비밀 이름만 검색할 수 있습니다.
+
+목록 16.6 NameService 클래스는 보호된 메서드를 정의합니다.
+```java
 @Service
 public class NameService {
 
@@ -203,33 +261,64 @@ public class NameService {
     return secretNames.get(name);
   }
 }
-❶ Uses #name to represent the value of the method parameters in the authorization expression+
-We start the application and test it to prove it works as desired. The next code snippet shows you the behavior of the application when calling the endpoint, providing the value of the path variable equal to the name of the user:
+```
+❶ #name을 사용하여 인증 표현식에서 메소드 매개변수의 값을 나타냅니다.+
+
+애플리케이션을 시작하고 테스트하여 원하는 대로 작동하는지 확인합니다. 다음 코드 조각은 사용자 이름과 동일한 경로 변수 값을 제공하여 엔드포인트를 호출할 때 애플리케이션의 동작을 보여줍니다.
+```sh
 curl -u emma:12345 http://localhost:8080/secret/names/emma
-The response body is
+```
+응답 본문은
+```
 ["Fantastico"]
-When authenticating with the user Emma, we try to get Natalie’s secret names. The call doesn’t work:
+```
+사용자 Emma로 인증할 때 Natalie의 비밀 이름을 얻으려고 합니다. 호출이 작동하지 않음:
+
+```sh
 curl -u emma:12345 http://localhost:8080/secret/names/natalie
-The response body is
+```
+
+응답 본문은
+```json
 {
   "status":403,
   "error":"Forbidden",
   "message":"Forbidden",
   "path":"/secret/names/natalie"
 }
-The user Natalie can, however, obtain her own secret names. The next code snippet proves this:
+```
+
+그러나 사용자 Natalie는 자신의 비밀 이름을 얻을 수 있습니다. 다음 코드는 이를 증명합니다.
+
+```sh
 curl -u natalie:12345 http://localhost:8080/secret/names/natalie
-The response body is
+```
+응답 본문은
+```json
 ["Energico","Perfecto"]
-NOTE Remember, you can apply global method security to any layer of your application. In the examples presented in this chapter, you find the authorization rules applied for methods of the service classes. But you can apply authorization rules with global method security in any part of your application: repositories, managers, proxies, and so on.
-16.3 Applying postauthorization
-Now say you want to allow a call to a method, but in certain circumstances, you want to make sure the caller doesn’t receive the returned value. When we want to apply an authorization rule that is verified after the call of a method, we use postauthorization. It may sound a little bit awkward at the beginning: why would someone be able to execute the code but not get the result? Well, it’s not about the method itself, but imagine this method retrieves some data from a data source, say a web service or a database. You can be confident about what your method does, but you can’t bet on the third party your method calls. So you allow the method to execute, but you validate what it returns and, if it doesn’t meet the criteria, you don’t let the caller access the return value.
-To apply postauthorization rules with Spring Security, we use the @PostAuthorize annotation, which is similar to @PreAuthorize, discussed in section 16.2. The annotation receives as a value the SpEL defining an authorization rule. We continue with an example in which you learn how to use the @PostAuthorize annotation and define postauthorization rules for a method (figure 16.7).
-The scenario for our example, for which I created a project named ssia-ch16-ex3, defines an object Employee. Our Employee has a name, a list of books, and a list of authorities. We associate each Employee to a user of the application. To stay consistent with the other examples in this chapter, we define the same users, Emma and Natalie. We want to make sure that the caller of the method gets the details of the employee only if the employee has read authority. Because we don’t know the authorities associated with the employee record until we retrieve the record, we need to apply the authorization rules after the method execution. For this reason, we use the @PostAuthorize annotation.
- 
-Figure 16.7 With postauthorization, we don't protect the method from being called, but we protect the returned value from being exposed if the defined authorization rules aren't respected.
-The configuration class is the same as we used in the previous examples. But, for your convenience, I repeat it in the next listing.
-Listing 16.7 Enabling global method security and defining users
+```
+
+> **참고** 응용 프로그램의 모든 계층에 전역 메서드 보안을 적용할 수 있음을 기억하십시오. 이 장에 제시된 예에서 서비스 클래스의 메소드에 적용된 권한 부여 규칙을 찾을 수 있습니다. 그러나 리포지토리, 관리자, 프록시 등 애플리케이션의 모든 부분에서 전역 메서드 보안과 함께 권한 부여 규칙을 적용할 수 있습니다.
+
+## 16.3 사후 승인 적용
+
+이제 메서드에 대한 호출을 허용하고 싶지만 특정 상황에서는 호출자가 반환된 값을 받지 않도록 하고 싶다고 가정해 보겠습니다. 메서드 호출 후 확인된 권한 부여 규칙을 적용하려면 사후 권한 부여를 사용합니다. 처음에는 다소 어색하게 들릴 수 있습니다. 누군가가 코드를 실행할 수 있지만 결과를 얻지 못하는 이유는 무엇입니까? 
+
+메서드 자체에 관한 것은 아니지만 이 메서드가 웹 서비스나 데이터베이스와 같은 데이터 소스에서 일부 데이터를 검색한다고 상상해 보십시오. 당신은 당신의 메서드가 무엇을 하는지 확신할 수 있지만 당신의 메서드가 호출되는 제3자에게 베팅할 수는 없습니다.
+
+따라서 메서드가 실행되도록 허용하지만 반환되는 내용을 확인하고 기준을 충족하지 않으면 호출자가 반환 값에 액세스하지 못하게 합니다.
+
+Spring Security와 함께 사후 승인 규칙을 적용하기 위해 16.2에서 논의된 @PreAuthorize와 유사한 @PostAuthorize 주석을 사용합니다. 주석은 권한 부여 규칙을 정의하는 SpEL 값으로 수신합니다. @PostAuthorize 주석을 사용하고 메서드에 대한 사후 인증 규칙을 정의하는 방법을 배우는 예제를 계속 진행합니다(그림 16.7).
+
+ssia-ch16-ex3이라는 프로젝트를 만든 이 예제의 시나리오는 Employee라는 개체를 정의합니다. 직원에게는 이름, 책 목록 및 권한 목록이 있습니다. 각 직원을 응용 프로그램의 사용자와 연결합니다. 이 장의 다른 예와 일관성을 유지하기 위해 동일한 사용자인 Emma와 Natalie를 정의합니다. 직원에게 읽기 권한이 있는 경우에만 메서드 호출자가 직원의 세부 정보를 얻도록 하고 싶습니다. 레코드를 검색할 때까지 직원 레코드와 관련된 권한을 모르기 때문에 메서드 실행 후에 권한 부여 규칙을 적용해야 합니다. 이러한 이유로 @PostAuthorize 주석을 사용합니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH16_F07_Spilca.png)
+
+그림 16.7 사후 권한 부여를 사용하면 메서드가 호출되는 것을 보호하지 않지만 정의된 권한 부여 규칙을 준수하지 않으면 반환된 값이 노출되지 않도록 보호합니다.
+구성 클래스는 이전 예제에서 사용한 것과 동일합니다. 그러나 귀하의 편의를 위해 다음 목록에서 반복합니다.
+
+**목록 16.7** 전역 메서드 보안 활성화 및 사용자 정의
+```java
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class ProjectConfig {
@@ -259,8 +348,11 @@ public class ProjectConfig {
     return NoOpPasswordEncoder.getInstance();
   }
 }
-We also need to declare a class to represent the Employee object with its name, book list, and roles list. The following listing defines the Employee class.
-Listing 16.8 The definition of the Employee class
+```
+또한 이름, 책 목록 및 역할 목록과 함께 Employee 개체를 나타내는 클래스를 선언해야 합니다. 다음 목록은 Employee 클래스를 정의합니다.
+
+**목록 16.8** Employee 클래스의 정의
+```java
 public class Employee {
 
   private String name;
@@ -269,8 +361,11 @@ public class Employee {
 
   // Omitted constructor, getters, and setters
 }
-We probably get our employee details from a database. To keep our example shorter, I use a Map with a couple of records that we consider as our data source. In listing 16.9, you find the definition of the BookService class. The BookService class also contains the method for which we apply the authorization rules. Observe that the expression we use with the @PostAuthorize annotation refers to the value returned by the method returnObject. The postauthorization expression can use the value returned by the method, which is available after the method executes.
-Listing 16.9 The BookService class defining the authorized method
+```
+아마도 데이터베이스에서 직원 세부 정보를 얻을 것입니다. 예제를 더 짧게 유지하기 위해 데이터 소스로 간주되는 몇 개의 레코드가 있는 Map을 사용합니다. 목록 16.9에서 BookService 클래스의 정의를 찾을 수 있습니다. BookService 클래스에는 인증 규칙을 적용하는 메서드도 포함되어 있습니다. @PostAuthorize 주석과 함께 사용하는 표현식이 returnObject 메소드에 의해 반환된 값을 참조하는 것을 관찰하십시오. 사후 인증 식은 메서드가 실행한 후에 사용할 수 있는 메서드에서 반환된 값을 사용할 수 있습니다.
+
+**목록 16.9** 승인된 메서드를 정의하는 BookService 클래스
+```java
 @Service
 public class BookService {
 
@@ -284,15 +379,19 @@ public class BookService {
                List.of("Beautiful Paris"),
                List.of("researcher"))
         );
-  @PostAuthorize                                 ❶
+  @PostAuthorize ❶
   ➥ ("returnObject.roles.contains('reader')")
   public Employee getBookDetails(String name) {
       return records.get(name);
   }
 }
-❶ Defines the expression for postauthorization
-Let’s also write a controller and implement an endpoint to call the method for which we applied the authorization rule. The following listing presents this controller class.
-Listing 16.10 The controller class implementing the endpoint
+```
+❶ 사후 승인에 대한 표현을 정의합니다.
+
+또한 컨트롤러를 작성하고 권한 부여 규칙을 적용한 메서드를 호출하는 끝점을 구현해 보겠습니다. 다음 목록은 이 컨트롤러 클래스를 나타냅니다.
+
+**목록 16.10** 끝점을 구현하는 컨트롤러 클래스
+```java
 @RestController
 public class BookController {
 
@@ -304,53 +403,81 @@ public class BookController {
     return bookService.getBookDetails(name);
   }
 }
-You can now start the application and call the endpoint to observe the app’s behavior. In the next code snippets, you find examples of calling the endpoint. Any of the users can access the details of Emma because the returned list of roles contains the string “reader”, but no user can obtain the details for Natalie. Calling the endpoint to get the details for Emma and authenticating with user Emma, we use this command:
+```
+이제 애플리케이션을 시작하고 엔드포인트를 호출하여 앱의 동작을 관찰할 수 있습니다. 다음 코드에서 끝점 호출의 예를 찾을 수 있습니다. 반환된 역할 목록에 "reader" 문자열이 포함되어 있기 때문에 모든 사용자가 Emma의 세부 정보에 액세스할 수 있지만 사용자는 Natalie에 대한 세부 정보를 얻을 수 없습니다. 엔드포인트를 호출하여 Emma에 대한 세부 정보를 얻고 사용자 Emma로 인증하려면 다음 명령을 사용합니다.
+
+```sh
 curl -u emma:12345 http://localhost:8080/book/details/emma
+```
 The response body is
+```json
 {
   "name":"Emma Thompson",
   "books":["Karamazov Brothers"],
   "roles":["accountant","reader"]
 }
-Calling the endpoint to get the details for Emma and authenticating with user Natalie, we use this command:
+```
+엔드포인트를 호출하여 Emma에 대한 세부 정보를 얻고 사용자 Natalie로 인증할 때 다음 명령을 사용합니다.
+```sh
 curl -u natalie:12345 http://localhost:8080/book/details/emma
-The response body is
+```
+응답 본문은
+```json
 {
   "name":"Emma Thompson",
   "books":["Karamazov Brothers"],
   "roles":["accountant","reader"]
 }
-Calling the endpoint to get the details for Natalie and authenticating with user Emma, we use this command:
+```
+끝점을 호출하여 Natalie에 대한 세부 정보를 가져오고 사용자 Emma로 인증할 때 다음 명령을 사용합니다.
+
+```sh
 curl -u emma:12345 http://localhost:8080/book/details/natalie
-The response body is
+```
+응답 본문은
+```json
 {
   "status":403,
   "error":"Forbidden",
   "message":"Forbidden",
   "path":"/book/details/natalie"
 }
-Calling the endpoint to get the details for Natalie and authenticating with user Natalie, we use this command:
+```
+끝점을 호출하여 Natalie에 대한 세부 정보를 가져오고 사용자 Natalie로 인증할 때 다음 명령을 사용합니다.
+```sh
 curl -u natalie:12345 http://localhost:8080/book/details/natalie
+```
 The response body is
+```json
 {
   "status":403,
   "error":"Forbidden",
   "message":"Forbidden",
   "path":"/book/details/natalie"
 }
-NOTE You can use both @PreAuthorize and @PostAuthorize on the same method if your requirements need to have both preauthorization and postauthorization.
-16.4 Implementing permissions for methods
-Up to now, you learned how to define rules with simple expressions for preauthorization and postauthorization. Now, let’s assume the authorization logic is more complex, and you cannot write it in one line. It’s definitely not comfortable to write huge SpEL expressions. I never recommend using long SpEL expressions in any situation, regardless if it’s an authorization rule or not. It simply creates hard-to-read code, and this affects the app’s maintainability. When you need to implement complex authorization rules, instead of writing long SpEL expressions, take the logic out in a separate class. Spring Security provides the concept of permission, which makes it easy to write the authorization rules in a separate class so that your application is easier to read and understand.
-In this section, we apply authorization rules using permissions within a project. I named this project ssia-ch16-ex4. In this scenario, you have an application managing documents. Any document has an owner, which is the user who created the document. To get the details of an existing document, a user either has to be an admin or they have to be the owner of the document. We implement a permission evaluator to solve this requirement. The following listing defines the document, which is only a plain Java object.
-Listing 16.11 The Document class
+```
+
+> 참고 요구 사항에 사전 승인과 사후 승인이 모두 필요한 경우 동일한 방법으로 @PreAuthorize 및 @PostAuthorize를 모두 사용할 수 있습니다.
+
+## 16.4 메서드에 대한 권한 구현
+
+지금까지 사전 승인 및 사후 승인에 대한 간단한 표현식으로 규칙을 정의하는 방법을 배웠습니다. 이제 권한 부여 논리가 더 복잡하고 한 줄로 작성할 수 없다고 가정해 보겠습니다. 거대한 SpEL 표현식을 작성하는 것은 확실히 편하지 않습니다. 권한 부여 규칙인지 여부에 관계없이 어떤 상황에서도 긴 SpEL 표현식을 사용하는 것을 권장하지 않습니다. 단순히 읽기 어려운 코드를 생성하고 이는 앱의 유지 관리 가능성에 영향을 미칩니다. 복잡한 권한 부여 규칙을 구현해야 하는 경우 긴 SpEL 표현식을 작성하는 대신 별도의 클래스에서 논리를 가져옵니다. Spring Security는 권한 개념을 제공하므로 별도의 클래스에서 권한 부여 규칙을 쉽게 작성하여 애플리케이션을 읽고 이해하기 쉽습니다.
+
+이 섹션에서는 프로젝트 내 권한을 사용하여 권한 부여 규칙을 적용합니다. 이 프로젝트의 이름을 ssia-ch16-ex4로 지정했습니다. 이 시나리오에는 문서를 관리하는 애플리케이션이 있습니다. 모든 문서에는 문서를 만든 사용자인 소유자가 있습니다. 기존 문서의 세부 정보를 얻으려면 사용자가 관리자이거나 문서의 소유자여야 합니다. 우리는 이 요구 사항을 해결하기 위해 권한 평가기를 구현합니다. 다음 목록은 일반 Java 객체일 뿐인 문서를 정의합니다.
+
+목록 16.11 Document 클래스
+```java
 public class Document {
 
   private String owner;
 
   // Omitted constructor, getters, and setters
 }
-To mock the database and make our example shorter for your comfort, I created a repository class that manages a few document instances in a Map. You find this class in the next listing.
-Listing 16.12 The DocumentRepository class managing a few Document instances
+```
+데이터베이스를 흉내내고 편의를 위해 예제를 더 짧게 만들기 위해 Map에서 몇 가지 문서 인스턴스를 관리하는 리포지토리 클래스를 만들었습니다. 다음 목록에서 이 클래스를 찾을 수 있습니다.
+
+목록 16.12 몇 가지 Document 인스턴스를 관리하는 DocumentRepository 클래스
+```java
 @Repository
 public class DocumentRepository {
 
@@ -363,10 +490,15 @@ public class DocumentRepository {
     return documents.get(code);                  ❷
   }
 }
-❶ Identifies each document by a unique code and names the owner
-❷ Obtains a document by using its unique identification code
-A service class defines a method that uses the repository to obtain a document by its code. The method in the service class is the one for which we apply the authorization rules. The logic of the class is simple. It defines a method that returns the Document by its unique code. We annotate this method with @PostAuthorize and use a hasPermission() SpEL expression. This method allows us to refer to an external authorization expression that we implement further in this example. Meanwhile, observe that the parameters we provide to the hasPermission() method are the returnObject, which represents the value returned by the method, and the name of the role for which we allow access, which is 'ROLE_admin'. You find the definition of this class in the following listing.
-Listing 16.13 The DocumentService class implementing the protected method
+```
+❶ 각 문서를 고유 코드로 식별하고 소유자 이름 지정
+
+❷ 고유식별코드를 이용하여 문서 획득
+
+서비스 클래스는 저장소를 사용하여 해당 코드로 문서를 얻는 메소드를 정의합니다. 서비스 클래스의 메서드는 권한 부여 규칙을 적용하는 메서드입니다. 클래스의 논리는 간단합니다. 고유 코드로 Document를 반환하는 메서드를 정의합니다. 이 메소드에 @PostAuthorize 주석을 달고 hasPermission() SpEL 표현식을 사용합니다. 이 방법을 사용하면 이 예제에서 추가로 구현하는 외부 인증 표현식을 참조할 수 있습니다. 한편, 우리가 hasPermission() 메서드에 제공하는 매개변수는 메서드에서 반환된 값을 나타내는 returnObject와 액세스를 허용하는 역할의 이름인 'ROLE_admin'입니다. 다음 목록에서 이 클래스의 정의를 찾을 수 있습니다.
+
+목록 16.13 보호된 메서드를 구현하는 DocumentService 클래스
+```java
 @Service
 public class DocumentService {
 
@@ -379,12 +511,19 @@ public class DocumentService {
     return documentRepository.findDocument(code);
   }
 }
-❶ Uses the hasPermission() expression to refer to an authorization expression
-It’s our duty to implement the permission logic. And we do this by writing an object that implements the PermissionEvaluator contract. The PermissionEvaluator contract provides two ways to implement the permission logic:
-- By object and permission--Used in the current example, it assumes the permission evaluator receives two objects: one that’s subject to the authorization rule and one that offers extra details needed for implementing the permission logic.
-- By object ID, object type, and permission--Assumes the permission evaluator receives an object ID, which it can use to retrieve the needed object. It also receives a type of object, which can be used if the same permission evaluator applies to multiple object types, and it needs an object offering extra details for evaluating the permission.
-In the next listing, you find the PermissionEvaluator contract with two methods.
-Listing 16.14 The PermissionEvaluator contract definition
+```
+❶ hasPermission() 표현식을 사용하여 인증 표현식 참조
+
+권한 로직을 구현하는 것은 우리의 의무입니다. 그리고 PermissionEvaluator 계약을 구현하는 객체를 작성하여 이를 수행합니다. PermissionEvaluator 계약은 권한 논리를 구현하는 두 가지 방법을 제공합니다.
+
+- 개체 및 권한별 -- 현재 예에서 사용된 권한 평가자는 권한 부여 규칙이 적용되는 개체와 권한 논리를 구현하는 데 필요한 추가 세부 정보를 제공하는 개체의 두 가지 개체를 수신한다고 가정합니다.
+
+- 개체 ID, 개체 유형 및 권한별--권한 평가자가 필요한 개체를 검색하는 데 사용할 수 있는 개체 ID를 수신한다고 가정합니다. 또한 동일한 권한 평가자가 여러 객체 유형에 적용되는 경우 사용할 수 있는 객체 유형을 수신하며 권한 평가를 위한 추가 세부 정보를 제공하는 객체가 필요합니다.
+
+다음 목록에서 두 가지 방법이 있는 PermissionEvaluator 계약을 찾습니다.
+
+**목록 16.14** PermissionEvaluator 계약 정의
+```java
 public interface PermissionEvaluator {
 
     boolean hasPermission(
@@ -398,12 +537,16 @@ public interface PermissionEvaluator {
               String type, 
               Object permission);
 }
-For the current example, it’s enough to use the first method. We already have the subject, which in our case, is the value returned by the method. We also send the role name 'ROLE_admin', which, as defined by the example’s scenario, can access any document. Of course, in our example, we could have directly used the name of the role in the permission evaluator class and avoided sending it as a value of the hasPermission() object. Here, we only do the former for the sake of the example. In a real-world scenario, which might be more complex, you have multiple methods, and details needed in the authorization process might differ between each of them. For this reason, you have a parameter that you can send the needed details for use in the authorization logic from the method level.
-For your awareness and to avoid confusion, I’d also like to mention that you don’t have to pass the Authentication object. Spring Security automatically provides this parameter value when calling the hasPermission() method. The framework knows the value of the authentication instance because it is already in the SecurityContext. In listing 16.15, you find the DocumentsPermissionEvaluator class, which in our example implements the PermissionEvaluator contract to define the custom authorization rule.
-Listing 16.15 Implementing the authorization rule
+```
+현재 예제에서는 첫 번째 방법을 사용하는 것으로 충분합니다. 우리는 이미 주제를 가지고 있으며, 우리의 경우 메소드에서 반환된 값입니다. 또한 예제 시나리오에 정의된 대로 모든 문서에 액세스할 수 있는 역할 이름 'ROLE_admin'을 보냅니다. 물론 이 예에서는 권한 평가자 클래스에서 역할 이름을 직접 사용하고 hasPermission() 객체의 값으로 보내는 것을 피할 수 있습니다. 여기서는 예제를 위해 전자만 수행합니다. 더 복잡할 수 있는 실제 시나리오에는 여러 가지 방법이 있으며 권한 부여 프로세스에 필요한 세부 정보는 각각 다를 수 있습니다. 이러한 이유로 메서드 수준에서 권한 부여 논리에 사용하기 위해 필요한 세부 정보를 보낼 수 있는 매개 변수가 있습니다.
+
+당신의 인식과 혼란을 피하기 위해, 나는 또한 당신이 인증 객체를 전달할 필요가 없다는 것을 언급하고 싶습니다. Spring Security는 hasPermission() 메소드를 호출할 때 이 매개변수 값을 자동으로 제공합니다. 프레임워크는 이미 SecurityContext에 있기 때문에 인증 인스턴스의 값을 알고 있습니다. 목록 16.15에서 DocumentsPermissionEvaluator 클래스를 찾았습니다. 이 클래스는 이 예제에서 사용자 지정 권한 부여 규칙을 정의하기 위해 PermissionEvaluator 계약을 구현합니다.
+
+목록 16.15 권한 부여 규칙 구현하기
+```java
 @Component
 public class DocumentsPermissionEvaluator
-  implements PermissionEvaluator {                   ❶
+  implements PermissionEvaluator { ❶
 
   @Override
   public boolean hasPermission(
@@ -411,8 +554,8 @@ public class DocumentsPermissionEvaluator
     Object target,
     Object permission) {
     
-    Document document = (Document) target;           ❷
-    String p = (String) permission;                  ❸
+    Document document = (Document) target; ❷
+    String p = (String) permission; ❸
 
     boolean admin =                                  ❹
       authentication.getAuthorities()
@@ -430,17 +573,26 @@ public class DocumentsPermissionEvaluator
                                Serializable targetId,
                                String targetType,
                                Object permission) {
-    return false;                                    ❻
+    return false; ❻
   }
 }
-❶ Implements the PermissionEvaluator contract
-❷ Casts the target object to Document
-❸ The permission object in our case is the role name, so we cast it to a String.
-❹ Checks if the authentication user has the role we got as a parameter
-❺ If admin or the authenticated user is the owner of the document, grants the permission
-❻ We don’t need to implement the second method because we don’t use it.
-To make Spring Security aware of our new PermissionEvaluator implementation, we have to define a MethodSecurityExpressionHandler in the configuration class. The following listing presents how to define a MethodSecurityExpressionHandler to make the custom PermissionEvaluator known.
-Listing 16.16 Configuring the PermissionEvaluator in the configuration class
+```
+❶ PermissionEvaluator 계약 구현
+
+❷ 대상 객체를 Document로 캐스트
+
+❸ 우리의 경우 권한 객체는 역할 이름이므로 문자열로 변환합니다.
+
+❹ 인증 사용자에게 매개변수로 받은 역할이 있는지 확인
+
+❺ admin 또는 인증된 사용자가 문서의 소유자인 경우 권한을 부여합니다.
+
+❻ 두 번째 방법은 사용하지 않기 때문에 구현할 필요가 없습니다.
+
+Spring Security가 새로운 PermissionEvaluator 구현을 인식하도록 하려면 구성 클래스에서 MethodSecurityExpressionHandler를 정의해야 합니다. 다음 목록은 사용자 지정 PermissionEvaluator를 알리기 위해 MethodSecurityExpressionHandler를 정의하는 방법을 보여줍니다.
+
+Listing 16.16 구성 클래스에서 PermissionEvaluator 구성하기
+```java
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class ProjectConfig 
@@ -462,13 +614,21 @@ public class ProjectConfig
 
   // Omitted definition of the UserDetailsService and PasswordEncoder beans
 }
+```
 ❶ Overrides the createExpressionHandler() method
+
 ❷ Defines a default security expression handler to set up the custom permission evaluator
+
 ❸ Sets up the custom permission evaluator
+
 ❹ Returns the custom expression handler
-NOTE We use here an implementation for MethodSecurityExpressionHandler named DefaultMethodSecurityExpressionHandler that Spring Security provides. You could as well implement a custom MethodSecurityExpressionHandler to define custom SpEL expressions you use to apply the authorization rules. You rarely need to do this in a real-world scenario, and for this reason, we won’t implement such a custom object in our examples. I just wanted to make you aware that this is possible.
-I separate the definition of the UserDetailsService and PasswordEncoder to let you focus only on the new code. In listing 16.17, you find the rest of the configuration class. The only important thing to notice about the users is their roles. User Natalie is an admin and can access any document. User Emma is a manager and can only access her own documents.
-Listing 16.7 The full definition of the configuration class
+
+> **참고** 여기에서는 Spring Security가 제공하는 DefaultMethodSecurityExpressionHandler라는 MethodSecurityExpressionHandler에 대한 구현을 사용합니다. 사용자 정의 MethodSecurityExpressionHandler를 구현하여 권한 부여 규칙을 적용하는 데 사용하는 사용자 정의 SpEL 표현식을 정의할 수도 있습니다. 실제 시나리오에서는 이 작업을 거의 수행할 필요가 없으며 이러한 이유로 예제에서는 이러한 사용자 지정 개체를 구현하지 않습니다.
+
+새 코드에만 집중할 수 있도록 UserDetailsService와 PasswordEncoder의 정의를 분리했습니다. 목록 16.17에서 나머지 구성 클래스를 찾을 수 있습니다. 사용자에 대해 주의해야 할 유일한 중요한 사항은 역할입니다. 사용자 Natalie는 관리자이며 모든 문서에 액세스할 수 있습니다. 사용자 Emma는 관리자이며 자신의 문서에만 액세스할 수 있습니다.
+
+목록 16.7 구성 클래스의 전체 정의
+```java
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class ProjectConfig 
@@ -512,8 +672,11 @@ public class ProjectConfig
     return NoOpPasswordEncoder.getInstance();
   }
 }
-To test the application, we define an endpoint. The following listing presents this definition.
-Listing 16.18 Defining the controller class and implementing an endpoint
+```
+애플리케이션을 테스트하기 위해 엔드포인트를 정의합니다. 다음 목록은 이 정의를 나타냅니다.
+
+목록 16.18 컨트롤러 클래스 정의 및 끝점 구현
+```java
 @RestController
 public class DocumentController {
 
@@ -525,35 +688,55 @@ public class DocumentController {
     return documentService.getDocument(code);
   }
 }
-Let’s run the application and call the endpoint to observe its behavior. User Natalie can access the documents regardless of their owner. User Emma can only access the documents she owns. Calling the endpoint for a document that belongs to Natalie and authenticating with the user "natalie", we use this command:
+```
+애플리케이션을 실행하고 엔드포인트를 호출하여 동작을 관찰해 보겠습니다. 사용자 Natalie는 소유자에 관계없이 문서에 액세스할 수 있습니다. 사용자 Emma는 자신이 소유한 문서에만 액세스할 수 있습니다. Natalie에 속한 문서의 끝점을 호출하고 사용자 "natalie"로 인증하기 위해 다음 명령을 사용합니다.
+```sh
 curl -u natalie:12345 http://localhost:8080/documents/abc123
+```
 The response body is
+```json
 {
   "owner":"natalie"
 }
-Calling the endpoint for a document that belongs to Emma and authenticating with the user "natalie", we use this command:
+```
+Emma에 속한 문서의 끝점을 호출하고 사용자 "natalie"로 인증하기 위해 다음 명령을 사용합니다.
+```sh
 curl -u natalie:12345 http://localhost:8080/documents/asd555
+```
 The response body is
+```json
 {
   "owner":"emma"
 }
-Calling the endpoint for a document that belongs to Emma and authenticating with the user "emma", we use this command:
+```
+Emma에 속한 문서의 끝점을 호출하고 사용자 "emma"로 인증하기 위해 다음 명령을 사용합니다.
+```sh
 curl -u emma:12345 http://localhost:8080/documents/asd555
+```
 The response body is
+```json
 {
   "owner":"emma"
 }
-Calling the endpoint for a document that belongs to Natalie and authenticating with the user "emma", we use this command:
+```
+Natalie에 속한 문서에 대한 끝점을 호출하고 사용자 "emma"로 인증하기 위해 다음 명령을 사용합니다.
+
+```sh
 curl -u emma:12345 http://localhost:8080/documents/abc123
+```
 The response body is
+```json
 {
   "status":403,
   "error":"Forbidden",
   "message":"Forbidden",
   "path":"/documents/abc123"
 }
-In a similar manner, you can use the second PermissionEvaluator method to write your authorization expression. The second method refers to using an identifier and subject type instead of the object itself. For example, say that we want to change the current example to apply the authorization rules before the method is executed, using @PreAuthorize. In this case, we don’t have the returned object yet. But instead of having the object itself, we have the document’s code, which is its unique identifier. Listing 16.19 shows you how to change the permission evaluator class to implement this scenario. I separated the examples in a project named ssia-ch16-ex5, which you can run individually.
+```
+비슷한 방식으로 두 번째 PermissionEvaluator 메서드를 사용하여 권한 부여 식을 작성할 수 있습니다. 두 번째 방법은 객체 자체가 아닌 식별자와 주체 유형을 사용하는 것입니다. 예를 들어 @PreAuthorize를 사용하여 메서드가 실행되기 전에 권한 부여 규칙을 적용하도록 현재 예제를 변경하고 싶다고 가정합니다. 이 경우 반환된 객체가 아직 없습니다. 그러나 개체 자체를 갖는 대신 고유 식별자인 문서의 코드가 있습니다. Listing 16.19는 이 시나리오를 구현하기 위해 권한 평가자 클래스를 변경하는 방법을 보여줍니다. 개별적으로 실행할 수 있는 ssia-ch16-ex5라는 프로젝트에서 예제를 분리했습니다.
+
 Listing 16.19 Changes in the DocumentsPermissionEvaluator class
+```java
 @Component
 public class DocumentsPermissionEvaluator
   implements PermissionEvaluator {
@@ -589,12 +772,19 @@ public class DocumentsPermissionEvaluator
          authentication.getName());
   }
 }
-❶ No longer defines the authorization rules through the first method.
-❷ Instead of having the object, we have its ID, and we get the object using the ID.
-❸ Checks if the user is an admin
-❹ If the user is an admin or the owner of the document, the user can access the document.
-Of course, we also need to use the proper call to the permission evaluator with the @PreAuthorize annotation. In the following listing, you find the change I made in the DocumentService class to apply the authorization rules with the new method.
-Listing 16.20 The DocumentService class
+```
+❶ 더 이상 첫 번째 방법을 통해 권한 부여 규칙을 정의하지 않습니다.
+
+❷ 객체를 갖는 대신에 그 ID를 갖고, 그 ID를 사용하여 객체를 얻는다.
+
+❸ 사용자가 관리자인지 확인
+
+❹ 사용자가 문서의 관리자 또는 소유자인 경우 해당 사용자는 문서에 접근할 수 있습니다.
+
+물론 @PreAuthorize 주석과 함께 권한 평가자에 대한 적절한 호출도 사용해야 합니다. 다음 목록에서 새 메서드에 권한 부여 규칙을 적용하기 위해 DocumentService 클래스에서 변경한 사항을 확인할 수 있습니다.
+
+목록 16.20 DocumentService 클래스
+```java
 @Service
 public class DocumentService {
 
@@ -607,44 +797,74 @@ public class DocumentService {
     return documentRepository.findDocument(code);
   }
 }
-❶ Applies the preauthorization rules by using the second method of the permission evaluator
-You can rerun the application and check the behavior of the endpoint. You should see the same result as in the case where we used the first method of the permission evaluator to implement the authorization rules. The user Natalie is an admin and can access details of any document, while the user Emma can only access the documents she owns. Calling the endpoint for a document that belongs to Natalie and authenticating with the user "natalie", we issue this command:
+```
+❶ 권한 평가자의 두 번째 방법을 사용하여 사전 승인 규칙을 적용합니다.
+
+응용 프로그램을 다시 실행하고 끝점의 동작을 확인할 수 있습니다. 권한 평가자의 첫 번째 방법을 사용하여 권한 부여 규칙을 구현한 경우와 동일한 결과를 볼 수 있습니다. 사용자 Natalie는 관리자이며 모든 문서의 세부 정보에 액세스할 수 있지만 사용자 Emma는 자신이 소유한 문서에만 액세스할 수 있습니다. Natalie에 속한 문서의 끝점을 호출하고 사용자 "natalie"로 인증하면 다음 명령이 실행됩니다.
+
+```sh
 curl -u natalie:12345 http://localhost:8080/documents/abc123
+```
 The response body is
+```json
 {
   "owner":"natalie"
 }
-Calling the endpoint for a document that belongs to Emma and authenticating with the user "natalie", we issue this command:
+```
+Emma에 속한 문서의 끝점을 호출하고 사용자 "natalie"로 인증하면 다음 명령이 실행됩니다.
+```sh
 curl -u natalie:12345 http://localhost:8080/documents/asd555
+```
 The response body is
+```json
 {
   "owner":"emma"
 }
-Calling the endpoint for a document that belongs to Emma and authenticating with the user "emma", we issue this command:
+```
+Emma에 속한 문서의 끝점을 호출하고 사용자 "emma"로 인증하면 다음 명령을 실행합니다.
+```sh
 curl -u emma:12345 http://localhost:8080/documents/asd555
-The response body is
+```
+응답은
+```json
 {
   "owner":"emma"
 }
-Calling the endpoint for a document that belongs to Natalie and authenticating with the user "emma", we issue this command:
+```
+123 / 5000
+번역 결과
+Natalie에 속한 문서의 끝점을 호출하고 사용자 "emma"로 인증하면 다음 명령이 실행됩니다. 
+```sh
 curl -u emma:12345 http://localhost:8080/documents/abc123
-The response body is
+```
+응답은
+```json
 {
   "status":403,
   "error":"Forbidden",
   "message":"Forbidden",
   "path":"/documents/abc123"
 }
-Using the @Secured and @RolesAllowed annotations
-Throughout this chapter, we discussed applying authorization rules with global method security. We started by learning that this functionality is disabled by default and that you can enable it using the @EnableGlobalMethodSecurity annotation over the configuration class. Moreover, you must specify a certain way to apply the authorization rules using an attribute of the @EnableGlobalMethodSecurity annotation. We used the annotation like this:
+```
+@Secured 및 @RolesAllowed 주석 사용
+
+이 장 전체에서 우리는 전역 메서드 보안과 함께 권한 부여 규칙을 적용하는 것에 대해 논의했습니다. 이 기능은 기본적으로 비활성화되어 있으며 구성 클래스에 대해 @EnableGlobalMethodSecurity 주석을 사용하여 활성화할 수 있다는 것을 학습하는 것으로 시작했습니다. 또한 @EnableGlobalMethodSecurity 주석의 속성을 사용하여 권한 부여 규칙을 적용하는 특정 방법을 지정해야 합니다. 다음과 같이 주석을 사용했습니다.
+```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-The prePostEnabled attribute enables the @PreAuthorize and @PostAuthorize annotations to specify the authorization rules. The @EnableGlobalMethodSecurity annotation offers two other similar attributes that you can use to enable different annotations. You use the jsr250Enabled attribute to enable the @RolesAllowed annotation and the securedEnabled attribute to enable the @Secured annotation. Using these two annotations, @Secured and @RolesAllowed, is less powerful than using @PreAuthorize and @PostAuthorize, and the chances that you’ll find them in real-world scenarios are small. Even so, I’d like to make you aware of both, but without spending too much time on the details.
-You enable the use of these annotations the same way we did for preauthorization and postauthorization by setting to true the attributes of the @EnableGlobalMethodSecurity. You enable the attributes that represent the use of one kind of annotation, either @Secure or @RolesAllowed. You can find an example of how to do this in the next code snippet:
+```
+prePostEnabled 속성을 사용하면 @PreAuthorize 및 @PostAuthorize 주석이 권한 부여 규칙을 지정할 수 있습니다. @EnableGlobalMethodSecurity 주석은 다른 주석을 활성화하는 데 사용할 수 있는 두 가지 다른 유사한 속성을 제공합니다. jsr250Enabled 속성을 사용하여 @RolesAllowed 주석을 활성화하고 secureEnabled 속성을 사용하여 @Secured 주석을 활성화합니다. @Secured 및 @RolesAllowed의 두 주석을 사용하는 것은 @PreAuthorize 및 @PostAuthorize를 사용하는 것보다 덜 강력하며 실제 시나리오에서 찾을 가능성이 적습니다. 그럼에도 불구하고 나는 당신에게 두 가지 모두를 알리고 싶지만 세부 사항에 너무 많은 시간을 할애하지 마십시오.
+
+@EnableGlobalMethodSecurity의 속성을 true로 설정하여 사전 승인 및 사후 승인과 동일한 방식으로 이러한 주석을 사용할 수 있습니다. @Secure 또는 @RolesAllowed와 같은 한 종류의 주석 사용을 나타내는 속성을 활성화합니다. 다음 코드 스니펫에서 이를 수행하는 방법의 예를 찾을 수 있습니다.
+
+```java
 @EnableGlobalMethodSecurity(
         jsr250Enabled = true,
         securedEnabled = true
 )
-Once you’ve enabled these attributes, you can use the @RolesAllowed or @Secured annotations to specify which roles or authorities the logged-in user needs to have to call a certain method. The next code snippet shows you how to use the @RolesAllowed annotation to specify that only users having the role ADMIN can call the getName() method:
+```
+이러한 속성을 활성화하면 @RolesAllowed 또는 @Secured 주석을 사용하여 로그인한 사용자가 특정 메서드를 호출해야 하는 역할이나 권한을 지정할 수 있습니다. 다음 코드 조각은 @RolesAllowed 주석을 사용하여 ADMIN 역할을 가진 사용자만 getName() 메서드를 호출할 수 있도록 지정하는 방법을 보여줍니다.
+
+```java
 @Service
 public class NameService {
 
@@ -653,7 +873,10 @@ public class NameService {
       return "Fantastico";
   }
 }
-Similarily, you can use the @Secured annotation instead of the @RolesAllowed annotation, as the next code snippet presents:
+```
+유사하게, 다음 코드 조각이 제시하는 것처럼 @RolesAllowed 주석 대신 @Secured 주석을 사용할 수 있습니다.
+
+```java
 @Service
 public class NameService {
   @Secured("ROLE_ADMIN")
@@ -661,29 +884,47 @@ public class NameService {
       return "Fantastico";
   }
 }
-You can now test your example. The next code snippet shows how to do this:
+```
+이제 예제를 테스트할 수 있습니다. 다음 코드 스니펫은 이 작업을 수행하는 방법을 보여줍니다.
+
+```sh
 curl -u emma:12345 http://localhost:8080/hello
-The response body is
+```
+응답은
+
+```
 Hello, Fantastico
-To call the endpoint and authenticating with the user Natalie, use this command:
+```
+엔드포인트를 호출하고 사용자 Natalie로 인증하려면 다음 명령을 사용하십시오.
+
+```sh
 curl -u natalie:12345 http://localhost:8080/hello
-The response body is
+```
+응답은
+```json
 {
   "status":403,
   "error":"Forbidden",
   "message":"Forbidden",
   "path":"/hello"
 }
-You find a full example using the @RolesAllowed and @Secured annotations in the project ssia-ch16-ex6.
-Summary
-- Spring Security allows you to apply authorization rules for any layer of the application, not only at the endpoint level. To do this, you enable the global method security functionality.
-- The global method security functionality is disabled by default. To enable it, you use the @EnableGlobalMethodSecurity annotation over the configuration class of your application.
-- You can apply authorization rules that the application checks before the call to a method. If these authorization rules aren’t followed, the framework doesn’t allow the method to execute. When we test the authorization rules before the method call, we’re using preauthorization.
-- To implement preauthorization, you use the @PreAuthorize annotation with the value of a SpEL expression that defines the authorization rule.
-- If we want to only decide after the method call if the caller can use the returned value and if the execution flow can proceed, we use postauthorization.
-- To implement postauthorization, we use the @PostAuthorize annotation with the value of a SpEL expression that represents the authorization rule.
-- When implementing complex authorization logic, you should separate this logic into another class to make your code easier to read. In Spring Security, a common way to do this is by implementing a PermissionEvaluator.
-- Spring Security offers compatibility with older specifications like the @RolesAllowed and @Secured annotations. You can use these, but they are less powerful than @PreAuthorize and @PostAuthorize, and the chances that you’ll find these annotations used with Spring in a real-world scenario are very low.
-- Copy
-- Add Highlight
-- Add Note
+```
+ssia-ch16-ex6 프로젝트에서 @RolesAllowed 및 @Secured 주석을 사용하여 전체 예제를 찾을 수 있습니다.
+
+## 요약
+
+- Spring Security를 ​​사용하면 엔드포인트 수준뿐만 아니라 애플리케이션의 모든 계층에 권한 부여 규칙을 적용할 수 있습니다. 이렇게 하려면 전역 메서드 보안 기능을 활성화합니다.
+
+- 전역 메서드 보안 기능은 기본적으로 비활성화되어 있습니다. 이를 활성화하려면 애플리케이션의 구성 클래스에 @EnableGlobalMethodSecurity 주석을 사용합니다.
+
+- 메소드를 호출하기 전에 애플리케이션이 확인하는 권한 부여 규칙을 적용할 수 있습니다. 이러한 권한 부여 규칙을 따르지 않으면 프레임워크에서 메서드 실행을 허용하지 않습니다. 메서드 호출 전에 권한 부여 규칙을 테스트할 때 사전 권한 부여를 사용합니다.
+
+- 사전 승인을 구현하려면 승인 규칙을 정의하는 SpEL 표현식의 값과 함께 @PreAuthorize 주석을 사용합니다.
+
+- 호출자가 반환된 값을 사용할 수 있는지 여부와 실행 흐름을 진행할 수 있는지 여부를 메서드 호출 후에만 결정하려는 경우 사후 승인을 사용합니다.
+
+- 사후 인증을 구현하기 위해 인증 규칙을 나타내는 SpEL 표현식 값과 함께 @PostAuthorize 주석을 사용합니다.
+
+- 복잡한 권한 부여 로직을 구현할 때 코드를 읽기 쉽게 하기 위해 이 로직을 다른 클래스로 분리해야 합니다. Spring Security에서 이를 수행하는 일반적인 방법은 PermissionEvaluator를 구현하는 것입니다.
+
+- Spring Security는 @RolesAllowed 및 @Secured 주석과 같은 이전 사양과의 호환성을 제공합니다. 이것을 사용할 수 있지만 @PreAuthorize 및 @PostAuthorize보다 덜 강력하고 실제 시나리오에서 Spring과 함께 사용되는 이러한 주석을 찾을 가능성은 매우 낮습니다.

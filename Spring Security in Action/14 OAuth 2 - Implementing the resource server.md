@@ -1,42 +1,51 @@
+# 14 OAuth 2: 리소스 서버 구현하기
 
- 
-14 OAuth 2: Implementing the resource server
-This chapter covers
-- Implementing an OAuth 2 resource server
-- Implementing token validation
-- Customizing token management
-In this chapter, we’ll discuss implementing a resource server with Spring Security. The resource server is the component that manages user resources. The name resource server might not be suggestive to begin with, but in terms of OAuth 2, it represents the backend you secure just like any other app we secured in the previous chapters. Remember, for example, the business logic server we implemented in chapter 11? To allow a client to access the resources, resource server requires a valid access token. A client obtains an access token from the authorization server and uses it to call for resources on the resource server by adding the token to the HTTP request headers. Figure 14.1 provides a refresher from chapter 12, showing the place of the resource server in the OAuth 2 authentication architecture.
+이 장에서는 다음을 다룹니다.
+
+- 리소스 서버 구현
+- 토큰 검증 구현
+- 토큰 관리 커스터마이징
+
+이 장에서는 리소스 서버를 구현하는 방법에 대해 설명합니다. 리소스 서버는 사용자 리소스를 관리하는 구성 요소입니다. 이름 리소스 서버는 처음에는 암시적이지 않을 수 있지만 OAuth 2의 경우 이전 장에서 보호한 다른 앱과 마찬가지로 보안을 유지하는 백엔드를 나타냅니다. 예를 들어, 11장에서 구현한 비즈니스 로직 서버를 클라이언트가 액세스할 수 있도록 하려면 리소스 서버에 유효한 액세스 토큰이 필요합니다. 클라이언트는 인증 서버에서 액세스 토큰을 얻고 이를 사용하여 HTTP 요청 헤더에 토큰을 추가하여 리소스 서버의 리소스를 호출합니다. 그림 14.1은 OAuth 2 인증 아키텍처에서 리소스 서버의 위치를 ​​보여주는 12장의 환기를 제공합니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F01_Spilca.png)
+
+**그림 14.1** 리소스 서버는 사용자 데이터를 관리합니다. 리소스 서버에서 끝점을 호출하려면 클라이언트가 유효한 액세스 토큰으로 사용자가 데이터 작업을 승인했음을 증명해야 합니다.
+
+리소스 서버 구현에서 중요한 것은 리소스 서버가 토큰의 유효성을 검사하는 방법을 선택하는 것입니다. 
+
+리소스 서버 수준에서 토큰 유효성 검사를 구현하기 위한 여러 옵션이 있습니다. 첫 번째 옵션은 리소스 서버가 인증 서버를 직접 호출하여 발급된 토큰을 확인할 수 있습니다. 그림 14.2는 이 옵션을 보여줍니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F02_Spilca.png)
+
+**그림 14.2** 토큰을 확인하기 위해 리소스 서버는 인증 서버를 직접 호출합니다. 인증 서버는 특정 토큰을 발급했는지 여부를 알고 있습니다.
+
+두 번째 옵션은 인증 서버가 토큰을 저장하는 공통 데이터베이스를 사용하고 리소스 서버가 토큰에 액세스하고 유효성을 검사할 수 있습니다(그림 14.3). 이 접근 방식을 `블랙보드`라고도 합니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F03_Spilca.png)
+
+**그림 14.3** 블랙보드. 인증 서버와 리소스 서버 모두 공유 데이터베이스에 액세스합니다. 인증 서버는 토큰을 발행한 후 이 데이터베이스에 토큰을 저장합니다. 그런 다음 리소스 서버는 리소스 서버에 액세스하여 수신한 토큰의 유효성을 검사할 수 있습니다.
+
+세 번째 옵션은 `암호화 서명`을 사용합니다(그림 14.4). 인증 서버는 토큰을 발급할 때 토큰에 서명하고 리소스 서버는 서명의 유효성을 검사합니다. 여기에서 JSON 웹 토큰(JWT)을 사용합니다. 이 접근 방식은 15장에서 논의합니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F04_Spilca.png)
+
+**그림 14.4** 액세스 토큰을 발행할 때 인증 서버는 개인 키를 사용하여 서명합니다. 토큰을 확인하기 위해 리소스 서버는 서명이 유효한지 확인하기만 하면 됩니다.
+
+## 14.1 리소스 서버 구현
+
+토큰을 발행하는 인증 서버가 있는 이유는 클라이언트가 사용자의 리소스에 액세스할 수 있도록 하기 위해서입니다. 리소스 서버는 사용자의 리소스를 관리하고 보호하므로 리소스 서버를 구현하는 방법을 알아야 합니다. 토큰이 유효한지 알아보기 위해 리소스 서버가 직접 인증 서버를 호출할 수 있도록 하는 Spring Boot에서 제공하는 기본 구현을 사용합니다(그림 14.5).
+
+> **NOTE** Authorization 서버의 경우와 마찬가지로 Spring 커뮤니티에서 리소스 서버의 구현이 변경되었습니다. 이러한 변경 사항은 이제 실제로 개발자가 리소스 서버를 구현하는 다양한 방법을 찾을 수 있기 때문에 우리에게 영향을 줍니다. 리소스 서버를 두 가지 방법으로 구성할 수 있는 예제를 제공하여 실제 시나리오에서 두 가지를 모두 이해하고 사용할 수 있습니다.
  
-Figure 14.1 The resource server is one of the components acting in the OAuth 2 architecture. The resource server manages user data. To call an endpoint on the resource server, a client needs to prove with a valid access token that the user approves it to work with their data.
-In chapters 12 and 13, we discussed implementing a client and an authorization server. In this chapter, you’ll learn how to implement the resource server. But what’s more important when discussing the resource server implementation is to choose how the resource server validates tokens. We have multiple options for implementing token validation at the resource server level. I’ll briefly describe the three options and then detail them one by one. The first option allows the resource server to directly call the authorization server to verify an issued token. Figure 14.2 shows this option.
- 
-Figure 14.2 To validate the token, the resource server calls the authorization server directly. The authorization server knows whether it issued a specific token or not.
-The second option uses a common database where the authorization server stores tokens, and then the resource server can access and validate the tokens (figure 14.3). This approach is also called blackboarding.
- 
-Figure 14.3 Blackboarding. Both the authorization server and the resource server access a shared database. The authorization server stores the tokens in this database after it issues them. The resource server can then access them to validate the tokens it receives.
-Finally, the third option uses cryptographic signatures (figure 14.4). The authorization server signs the token when issuing it, and the resource server validates the signature. Here’s where we generally use JSON Web Tokens (JWTs). We discuss this approach in chapter 15.
- 
-Figure 14.4 When issuing an access token, the authorization server uses a private key to sign it. To verify a token, the resource server only needs to check if the signature is valid.
-14.1 Implementing a resource server
-We start with the implementation of our first resource server application, the last piece of the OAuth 2 puzzle. The reason why we have an authorization server that issues tokens is to allow clients to access a user’s resources. The resource server manages and protects the user’s resources. For this reason, you need to know how to implement a resource server. We use the default implementation provided by Spring Boot, which allows the resource server to directly call the authorization server to find out if a token is valid (figure 14.5).
-NOTE As in the case of the authorization server, the implementation of the resource server suffered changes in the Spring community. These changes affect us because now, in practice, you find different ways in which developers implement the resource server. I provide examples in which you can configure the resource server in two ways, such that when you encounter these in real-world scenarios, you will understand and be able to use both.
- 
- 
-Figure 14.5 When the resource server needs to validate a token, it directly calls the authorization server. If the authorization server confirms it issued the token, then the resource server considers the token valid.
-To implement a resource server, we create a new project and add the dependencies as in the next code snippet. I named this project ssia-ch14-ex1-rs.
-<dependency>
-   <groupId>org.springframework.boot</groupId>
-   <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-</dependency>
-<dependency>
-   <groupId>org.springframework.boot</groupId>
-   <artifactId>spring-boot-starter-web</artifactId>
-</dependency>
-<dependency>
-   <groupId>org.springframework.cloud</groupId>
-   <artifactId>spring-cloud-starter-oauth2</artifactId>
-</dependency>
-Besides the dependencies, you also add the dependencyManagement tag for the spring-cloud-dependencies artifact. The next code snippet shows how to do this:
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F05_Spilca.png)
+
+**그림 14.5** 리소스 서버가 토큰의 유효성을 검사해야 할 때 인증 서버를 직접 호출합니다. 권한 부여 서버가 토큰을 발행했음을 확인하면 리소스 서버는 토큰이 유효한 것으로 간주합니다.
+
+리소스 서버를 구현하기 위해 새 프로젝트를 만들고 다음 코드 조각에서와 같이 종속성을 추가합니다. 이 프로젝트의 이름을 ssia-ch14-ex1-rs로 지정했습니다.
+
+종속성 외에도 spring-cloud-dependencies 아티팩트에 대한 `dependencyManagement` 태그도 추가합니다. 다음은 이 작업을 수행하는 방법을 보여줍니다.
+```xml
 <dependencyManagement>
    <dependencies>
       <dependency>
@@ -48,8 +57,11 @@ Besides the dependencies, you also add the dependencyManagement tag for the spri
       </dependency>
   </dependencies>
 </dependencyManagement>
-The purpose of the resource server is to manage and protect a user’s resources. So to prove how it works, we need a resource that we want to access. We create a /hello endpoint for our tests by defining the usual controller as presented in the following listing.
-Listing 14.1 The controller class defining the test endpoint
+```
+리소스 서버의 목적은 사용자의 리소스를 관리하고 보호하는 것이므로 작동 방식을 증명하려면 액세스하려는 리소스가 필요합니다. 다음 목록에 표시된 대로 일반 컨트롤러를 정의하여 테스트에 대한 /hello 끝점을 만듭니다.
+
+**Listing 14.1** The controller class defining the test endpoint
+```java
 @RestController
 public class HelloController {
 
@@ -58,28 +70,55 @@ public class HelloController {
     return "Hello!";
   }
 }
-The other thing we need is a configuration class in which we use the @Enable-ResourceServer annotation to allow Spring Boot to configure what’s needed for our app to become a resource server. The following listing presents the configuration class.
-Listing 14.2 The configuration class
+```
+추가로 필요한 것은 `@EnableResourceServer` 주석을 사용하여 Spring Boot가 앱이 리소스 서버가 되는 데 필요한 것을 구성할 수 있도록 하는 구성 클래스입니다. 다음 목록은 구성 클래스를 나타냅니다.
+
+**Listing 14.2** The configuration class
+```java
 @Configuration
 @EnableResourceServer
 public class ResourceServerConfig {
 }
-We have a resource server now. But it’s not useful if you can’t access the endpoint, as is our case because we didn’t configure any way in which the resource server can check tokens. You know that requests made for resources need to also provide a valid access token. Even if it does provide a valid access token, a request still won’t work. Our resource server cannot verify that these are valid tokens, that the authorization server indeed issued them. This is because we didn’t implement any of the options the resource server has to validate access tokens. Let’s take this approach and discuss our options in the next two sections; chapter 15 presents an additional option.
-NOTE As I mentioned in an earlier note, the resource server implementation changed as well. The @EnableResourceServer annotation, which is part of the Spring Security OAuth project, was recently marked as deprecated. In the Spring Security migration guide (https://github.com/spring-projects/spring-security/wiki/OAuth-2.0-Migration-Guide), the Spring Security team invites us to use configuration methods directly from Spring Security. Currently, I still encounter the use of Spring Security OAuth projects in most of the apps I see. For this reason, I consider it important that you understand both approaches that we present as examples in this chapter.
-14.2 Checking the token remotely
-In this section, we implement token validation by allowing the resource server to call the authorization server directly. This approach is the simplest you can implement to enable access to the resource server with a valid access token. You choose this approach if the tokens in your system are plain (for example, simple UUIDs as in the default implementation of the authorization server with Spring Security). We start by discussing this approach and then we implement it with an example. This mechanism for validating tokens is simple (figure 14.6):
-1.	The authorization server exposes an endpoint. For a valid token, it returns the granted authorities of the user to whom it was issued earlier. Let’s call this endpoint the check_token endpoint.
-2.	The resource server calls the check_token endpoint for each request. This way, it validates the token received from the client and also obtains the client-granted authorities.
- 
-Figure 14.6 To validate a token and obtain details about it, the resource server calls the endpoint /oauth/check_token of the authorization server. The resource server uses the details retrieved about the token to authorize the call.
-The advantage of this approach is its simplicity. You can apply it to any kind of token implementation. The disadvantage of this approach is that for each request on the resource server having a new, as yet unknown token, the resource server calls the authorization server to validate the token. These calls can put an unnecessary load on the authorization server. Also, remember the rule of thumb: the network is not 100% reliable. You need to keep this in mind every time you design a new remote call in your architecture. You might also need to apply some alternative solutions for what happens if the call fails because of some network instability (figure 14.7).
- 
-Figure 14.7 The network is not 100% reliable. If the connection between the resource server and the authorization server is down, tokens cannot be validated. This implies that the resource server refuses the client access to the user’s resources even if it has a valid token.
-Let’s continue our resource server implementation in project ssia-ch14-ex1-rs. What we want is to allow a client to access the /hello endpoint if it provides an access token issued by an authorization server. We already developed authorization servers in chapter 13. We could use, for example, the project ssia-ch13-ex1 as our authorization server. But to avoid changing the project we discussed in the previous section, I created a separate project for this discussion, ssia-ch14-ex1-as. Mind that it now has the same structure as the project ssia-ch13-ex1, and what I present to you in this section is only the changes I made with regard to our current discussion. You can choose to continue our discussion using the authorization server we implemented in either ssia-ch13-ex2, ssia-ch13-ex3, or ssia-ch13-ex4 if you’d like.
-NOTE You can use the configuration we discuss here with any other grant type that I described in chapter 12. Grant types are the flows implemented by the OAuth 2 framework in which the client gets a token issued by the authorization server. So you can choose to continue our discussion using the authorization server we implemented in ssia-ch13-ex2, ssia-ch13-ex3, or ssia-ch13-ex4 projects if you’d like.
-By default, the authorization server implements the endpoint /oauth/check_token that the resource server can use to validate a token. However, at present the authorization server implicitly denies all requests to that endpoint. Before using the /oauth/check_token endpoint, you need to make sure the resource server can call it.
-To allow authenticated requests to call the /oauth/check_token endpoint, we override the configure(AuthorizationServerSecurityConfigurer c) method in the AuthServerConfig class of the authorization server. Overriding the configure() method allows us to set the condition in which we can call the /oauth/check_token endpoint. The following listing shows you how to do this.
-Listing 14.3 Enabling authenticated access to the check_token endpoint
+```
+이제 리소스 서버가 있으나 토큰을 확인할 수 있는 방법을 구성하지 않았기 때문에 엔드포인트에 액세스할 수 없습니다. 리소스에 대한 요청은 유효한 액세스 토큰도 제공해야 한다는 것을 알고 있습니다. 
+
+유효한 액세스 토큰을 제공하더라도 요청은 여전히 ​​작동하지 않습니다. 리소스 서버는 이것이 유효한 토큰인지, 인증 서버가 실제로 토큰을 발행했는지 확인할 수 없습니다. 리소스 서버가 액세스 토큰의 유효성을 검사하는 데 필요한 옵션을 구현하지 않았기 때문입니다. 이 접근 방식을 취하고 다음 두 섹션에서 옵션에 대해 논의하겠습니다. 15장에서는 추가 옵션을 제공합니다.
+
+> **참고** 이전 참고에서 언급했듯이 리소스 서버 구현도 변경되었습니다. Spring Security OAuth 프로젝트의 일부인 @EnableResourceServer 주석은 최근에 더 이상 사용되지 않는 것으로 표시되었습니다. Spring Security 마이그레이션 가이드(https://github.com/spring-projects/spring-security/wiki/OAuth-2.0-Migration-Guide)에서 Spring Security 팀은 Spring Security에서 직접 구성 방법을 사용하도록 초대합니다. 현재 내가 보는 대부분의 앱에서 여전히 Spring Security OAuth 프로젝트를 사용하고 있습니다. 이러한 이유로 이 장에서 예제로 제시하는 두 가지 접근 방식을 모두 이해하는 것이 중요하다고 생각합니다.
+
+## 14.2 원격으로 토큰 확인하기
+
+리소스 서버가 인증 서버를 직접 호출하도록 허용하여 토큰 유효성 검사를 구현합니다. 이 접근 방식은 유효한 액세스 토큰을 사용하여 리소스 서버에 액세스할 수 있도록 구현할 수 있는 가장 간단한 방법입니다. 시스템의 토큰이 일반인 경우 이 접근 방식을 선택합니다(예: Spring Security가 있는 인증 서버의 기본 구현에서와 같이 단순한 UUID). 먼저 이 접근 방식을 논의한 다음 예제를 통해 구현합니다. 토큰을 검증하는 이 메커니즘은 간단합니다(그림 14.6).
+
+1. 권한 부여 서버가 끝점을 노출합니다. 유효한 토큰의 경우 이전에 발행된 사용자에게 부여된 권한을 반환합니다. 이 끝점을 `check_token` 끝점이라고 합시다.
+
+2. 리소스 서버는 각 요청에 대해 `check_token` 끝점을 호출합니다.
+이런 식으로 클라이언트로부터 받은 토큰의 유효성을 검사하고 클라이언트가 부여한 권한도 얻습니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F06_Spilca.png)
+
+**그림 14.6** 토큰의 유효성을 검사하고 토큰에 대한 세부 정보를 얻기 위해 리소스 서버는 인증 서버의 엔드포인트 `/oauth/check_token`을 호출합니다. 리소스 서버는 토큰에 대해 검색된 세부 정보를 사용하여 호출을 승인합니다.
+
+이 접근 방식의 장점은 단순성입니다. 모든 종류의 토큰 구현에 적용할 수 있습니다. 이 접근 방식의 단점은 아직 알려지지 않은 새로운 토큰이 있는 리소스 서버에 대한 각 요청에 대해 리소스 서버가 권한 부여 서버를 호출하여 토큰의 유효성을 검사한다는 것입니다. 이러한 호출은 권한 부여 서버에 불필요한 부하를 줄 수 있습니다. 
+
+또한 네트워크는 100% 신뢰할 수 없습니다. 아키텍처에서 새로운 원격 호출을 설계할 때마다 이 점을 염두에 두어야 합니다. 또한 일부 네트워크 불안정으로 인해 호출이 실패할 경우 발생하는 상황에 대해 몇 가지 대체 솔루션을 적용해야 할 수도 있습니다(그림 14.7).
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F07_Spilca.png)
+
+**그림 14.7** 네트워크는 100% 신뢰할 수 없습니다. 리소스 서버와 권한 부여 서버 간의 연결이 끊어지면 토큰의 유효성을 검사할 수 없습니다. 이것은 리소스 서버가 유효한 토큰을 가지고 있더라도 사용자의 리소스에 대한 클라이언트 액세스를 거부한다는 것을 의미합니다.
+
+ssia-ch14-ex1-rs 프로젝트에서 리소스 서버 구현을 계속합시다. 목표는 인증 서버에서 발급한 액세스 토큰을 제공하는 경우 클라이언트가 /hello 엔드포인트에 액세스할 수 있도록 하는 것입니다. 이미 13장에서 인증 서버를 개발했습니다. 예를 들어 프로젝트 ssia-ch13-ex1을 인증 서버로 사용할 수 있습니다. 그러나 이전 섹션에서 논의한 프로젝트 변경을 피하기 위해 이 토론을 위한 별도의 프로젝트인 ssia-ch14-ex1-as를 만들었습니다. 
+
+이제 ssia-ch13-ex1 프로젝트와 동일한 구조를 가지며 이 섹션에서 여러분에게 제시하는 것은 현재 논의와 관련하여 제가 변경한 사항일 뿐입니다. 원하는 경우 ssia-ch13-ex2, ssia-ch13-ex3 또는 ssia-ch13-ex4에서 구현한 인증 서버를 사용하여 토론을 계속할 수 있습니다.
+
+> **참고** 여기에서 설명하는 구성을 12장에서 설명한 다른 승인 유형과 함께 사용할 수 있습니다. 승인 유형은 OAuth 2 프레임워크에 의해 구현된 흐름으로 클라이언트가 인증 서버에서 발행한 토큰을 가져옵니다. 따라서 원하는 경우 ssia-ch13-ex2, ssia-ch13-ex3 또는 ssia-ch13-ex4 프로젝트에서 구현한 인증 서버를 사용하여 토론을 계속할 수 있습니다.
+
+기본적으로 권한 부여 서버는 리소스 서버가 토큰의 유효성을 검사하는 데 사용할 수 있는 엔드포인트 `/oauth/check_token`을 구현합니다. 그러나 현재 권한 부여 서버는 해당 끝점에 대한 모든 요청을 암시적으로 거부합니다. /oauth/check_token 엔드포인트를 사용하기 전에 리소스 서버가 이를 호출할 수 있는지 확인해야 합니다.
+
+인증된 요청이 `/oauth/check_token` 끝점을 호출할 수 있도록 하려면 권한 부여 서버의 AuthServerConfig 클래스에서 `configure(AuthorizationServerSecurityConfigurer c)` 메서드를 재정의합니다. configure() 메서드를 재정의하면 `/oauth/check_token` 끝점을 호출할 수 있는 조건을 설정할 수 있습니다. 다음 목록은 이 작업을 수행하는 방법을 보여줍니다.
+
+**Listing 14.3** Enabling authenticated access to the check_token endpoint
+```java
 @Configuration
 @EnableAuthorizationServer
 public class AuthServerConfig
@@ -112,10 +151,15 @@ public class AuthServerConfig
                 ("isAuthenticated()");        ❶
   }
 }
-❶ Specifies the condition for which we can call the check_token endpoint
-NOTE You can even make this endpoint accessible without authentication by using permitAll() instead of isAuthenticated(). But it’s not recommended to leave endpoints unprotected. Preferably, in a real-world scenario, you would use authentication for this endpoint.
-Besides making this endpoint accessible, if we decide to allow only authenticated access, then we need a client registration for the resource server itself. For the authorization server, the resource server is also a client and requires its own credentials. We add these as for any other client. For the resource server, you don’t need any grant type or scope, but only a set of credentials that the resource server uses to call the check_token endpoint. The next listing presents the change in configuration to add the credentials for the resource server in our example.
-Listing 14.4 Adding credentials for the resource server
+```
+❶ check_token 끝점을 호출할 수 있는 조건을 지정합니다.
+
+> **참고** isAuthenticated() 대신에 permitAll()을 사용하여 인증 없이 이 끝점에 액세스할 수 있도록 만들 수도 있습니다. 그러나 엔드포인트를 보호되지 않은 상태로 두는 것은 권장되지 않습니다. 실제 시나리오에서는 이 끝점에 대한 인증을 사용하는 것이 좋습니다.
+
+이 끝점을 액세스 가능하게 만드는 것 외에도 인증된 액세스만 허용하기로 결정했다면 리소스 서버 자체에 대한 클라이언트 등록이 필요합니다. 권한 부여 서버의 경우 리소스 서버도 클라이언트이며 자체 자격 증명이 필요합니다. 우리는 다른 클라이언트와 마찬가지로 이것을 추가합니다. 리소스 서버의 경우 권한 부여 유형이나 범위가 필요하지 않으며 리소스 서버가 check_token 끝점을 호출하는 데 사용하는 자격 증명 집합만 있으면 됩니다. 다음 목록은 이 예에서 리소스 서버에 대한 자격 증명을 추가하기 위한 구성 변경 사항을 보여줍니다.
+
+**Listing 14.4** 리소스 서버에 자격증명 추가
+```java
 @Configuration
 @EnableAuthorizationServer
 public class AuthServerConfig
@@ -138,19 +182,32 @@ public class AuthServerConfig
              .secret("resourceserversecret");   ❶
     }
   }
+```
 ❶ Adds a set of credentials for the resource server to use when calling the /oauth/check_token endpoint
+
 You can now start the authorization server and obtain a token like you learned in chapter 13. Here’s the cURL call:
+```
 curl -v -XPOST -u client:secret "http://localhost:8080/oauth/token?grant_type=password&username=john&password=12345&scope=read"
+```
+
 The response body is
+
+```json
 {
   "access_token":"4f2b7a6d-ced2-43dc-86d7-cbe844d3e16b",
   "token_type":"bearer",
   "refresh_token":"a4bd4660-9bb3-450e-aa28-2e031877cb36",
   "expires_in":43199,"scope":"read"
 }
+```
 Next, we call the check_token endpoint to find the details about the access token we obtained in the previous code snippet. Here’s that call:
+```
 curl -XPOST -u resourceserver:resourceserversecret "http://localhost:8080/oauth/check_token?token=4f2b7a6d-ced2-43dc-86d7-cbe844d3e16b"
+```
+
 The response body is
+
+```json
 {
   "active":true,
   "exp":1581307166,
@@ -159,27 +216,40 @@ The response body is
   "client_id":"client",
   "scope":["read"]
 }
-Observe the response we get back from the check_token endpoint. It tells us all the details needed about the access token:
-- Whether the token is still active and when it expires
-- The user the token was issued for
-- The authorities that represent the privileges
-- The client the token was issued for
-Now, if we call the endpoint using cURL, the resource server should be able to use it to validate tokens. We need to configure the endpoint of the authorization server and the credentials the resource server uses to access endpoint. We can do all this in the application.properties file. The next code snippet presents the details:
+```
+check_token 끝점에서 반환되는 응답을 관찰합니다. 액세스 토큰에 대해 필요한 모든 세부 정보를 알려줍니다.
+- 토큰이 아직 활성 상태인지 여부와 만료 시기
+- 토큰이 발행된 사용자
+- 특권을 대표하는 권한
+- 토큰이 발행된 클라이언트
+이제 cURL을 사용하여 엔드포인트를 호출하면 리소스 서버가 이를 사용하여 토큰을 확인할 수 있어야 합니다. 인증 서버의 끝점과 리소스 서버가 끝점에 액세스하는 데 사용하는 자격 증명을 구성해야 합니다. application.properties 파일에서 이 모든 작업을 수행할 수 있습니다. 다음 코드 조각은 세부 정보를 제공합니다.
+```
 server.port=9090
-
 security.oauth2.resource.token-info-uri=http:/./localhost:8080/oauth/check_token
-
 security.oauth2.client.client-id=resourceserver
 security.oauth2.client.client-secret=resourceserversecret
-NOTE When we use authentication for the /oauth/check_token (token introspection) endpoint, the resource server acts as a client for the authorization server. For this reason, it needs to have some credentials registered, which it uses to authenticate using HTTP Basic authentication when calling the introspection endpoint.
-By the way, if you plan to run both applications on the same system as I do, don’t forget to set a different port using the server.port property. I use port 8080 (the default one) for running the authorization server and port 9090 for the resource server.
-You can run both applications and test the whole setup by calling the /hello endpoint. You need to set the access token in the Authorization header of the request, and you need to prefix its value with the word bearer. For this word, the case is insensitive. That means that you can also write “Bearer” or “BEARER.”
+```
+
+그런데 저와 같은 시스템에서 두 응용 프로그램을 모두 실행할 계획이라면 server.port 속성을 사용하여 다른 포트를 설정하는 것을 잊지 마십시오. 인증 서버를 실행하기 위해 포트 8080(기본값)을 사용하고 리소스 서버를 위해 포트 9090을 사용합니다.
+
+/hello 엔드포인트를 호출하여 두 애플리케이션을 모두 실행하고 전체 설정을 테스트할 수 있습니다. 요청의 Authorization 헤더에 액세스 토큰을 설정해야 하고 해당 값에 단어 bearer를 접두사로 붙여야 합니다. 이 단어의 경우 대소문자를 구분하지 않습니다. 즉, "Bearer" 또는 "BEARER"도 쓸 수 있습니다.
+
+```
 curl -H "Authorization: bearer 4f2b7a6d-ced2-43dc-86d7-cbe844d3e16b" "http:/./localhost:9090/hello"
+```
 The response body is
-Hello!
+
+`Hello!`
+
 If you had called the endpoint without a token or with the wrong one, the result would have been a 401 Unauthorized status on the HTTP response. The next code snippet presents the response:
+
+```bsh
 curl -v "http:/./localhost:9090/hello"
+```
+
 The (truncated) response is
+
+```
 ...
 < HTTP/1.1 401
 ...
@@ -188,9 +258,14 @@ The (truncated) response is
   "error_description":"Full authentication is 
     required to access this resource"
 }
-Using token introspection without Spring Security OAuth
-A common concern nowadays is how to implement a resource server as in the previous example without Spring Security OAuth. Although it’s said that Spring Security OAuth is deprecated, in my opinion you should still understand it because there’s a good chance you’ll find these classes in existing projects. To clarify this aspect, I add a comparison where relevant with a way to implement the same thing without Spring Security OAuth. In this sidebar, we discuss the implementation of a resource server using token introspection without using Spring Security OAuth but directly with Spring Security configurations. Fortunately, it’s easier than you might imagine.
-If you remember, we discussed httpBasic(), formLogin(), and other authentication methods in the previous chapters. You learned that when calling such a method, you simply add a new filter to the filter chain, which enables a different authentication mechanism in your app. Guess what? In its latest versions, Spring Security also offers an oauth2ResourceServer() method that enables a resource server authentication method. You can use it like any other method you’ve used until now to set up authentication method, and you no longer need the Spring Security OAuth project in your dependencies. However, mind that this functionality isn’t mature yet, and to use it, you need to add other dependencies that are not automatically figured out by Spring Boot. The following code snippet presents the required dependencies for implementing a resource server using token introspection:
+```
+### Spring Security OAuth 없이 토큰 자체 검사 사용
+
+요즘 공통적인 관심사는 Spring Security OAuth 없이 이전 예제와 같이 리소스 서버를 구현하는 방법입니다. Spring Security OAuth가 더 이상 사용되지 않는다고 말하지만 기존 프로젝트에서 이러한 클래스를 찾을 수 있는 좋은 기회가 있기 때문에 여전히 이해해야 한다고 생각합니다. 이 측면을 명확히 하기 위해 Spring Security OAuth 없이 동일한 것을 구현하는 방법과 관련된 비교를 추가합니다. 이 사이드바에서는 Spring Security OAuth를 사용하지 않고 Spring Security 구성으로 직접 토큰 검사를 사용하여 리소스 서버를 구현하는 방법에 대해 설명합니다. 다행히 생각보다 쉽습니다.
+
+기억한다면 이전 장에서 httpBasic(), formLogin() 및 기타 인증 방법에 대해 논의했습니다. 이러한 메서드를 호출할 때 필터 체인에 새 필터를 추가하기만 하면 앱에서 다른 인증 메커니즘을 사용할 수 있다는 것을 배웠습니다. 뭔지 맞춰봐? 최신 버전에서 Spring Security는 리소스 서버 인증 방법을 활성화하는 oauth2ResourceServer() 메서드도 제공합니다. 인증 방법을 설정하기 위해 지금까지 사용했던 다른 방법처럼 사용할 수 있으며 더 이상 종속성에 Spring Security OAuth 프로젝트가 필요하지 않습니다. 그러나 이 기능은 아직 완성되지 않았으며 이를 사용하려면 Spring Boot에서 자동으로 파악하지 못하는 다른 종속성을 추가해야 합니다. 다음 코드 조각은 토큰 자체 검사를 사용하여 리소스 서버를 구현하는 데 필요한 종속성을 나타냅니다.
+
+```xml
 <dependency>
    <groupId>org.springframework.security</groupId>
    <artifactId>spring-security-oauth2-resource-server</artifactId>
@@ -203,7 +278,10 @@ If you remember, we discussed httpBasic(), formLogin(), and other authentication
    <version>8.4</version>
    <scope>runtime</scope>
 </dependency>
+```
 Once you add the needed dependencies to your pom.xml file, you can configure the authentication method as shown in the next code snippet:
+
+```java
 @Configuration
 public class ResourceServerConfig
   extends WebSecurityConfigurerAdapter {
@@ -222,28 +300,50 @@ public class ResourceServerConfig
            );
   }
 }
-To make the code snippet easier to be read, I omitted the parameter value of the introspectionUri() method, which is the check_token URI, also known as the introspection token URI. As a parameter to the oauth2ResourceServer() method, I added a Customizer instance. Using the Customizer instance, you specify the parameters needed for the resource server depending on the approach you choose. For direct token introspection, you need to specify the URI the resource server calls to validate the token, and the credentials the resource server needs to authenticate when calling this URI. You’ll find this example implemented in the project ssia-ch14-ex1-rs-migration folder.
-14.3 Implementing blackboarding with a JdbcTokenStore
-In this section, we implement an application where the authorization server and the resource server use a shared database. We call this architectural style blackboarding. Why blackboarding? You can think of this as the authorization server and the resource server using a blackboard to manage tokens. This approach for issuing and validating tokens has the advantage of eliminating direct communication between the resource server and the authorization server. However, it implies adding a shared database, which might become a bottleneck. Like any architectural style, you can find it applicable to various situations. For example, if you already have your services sharing a database, it might make sense to use this approach for your access tokens as well. For this reason, I consider it important for you to know how to implement this approach.
-Like the previous implementations, we work on an application to demonstrate how you use such an architecture. You’ll find this application in the projects as ssia-ch14-ex2-as for the authorization server and ssia-ch14-ex2-rs for the resource server. This architecture implies that when the authorization server issues a token, it also stores the token in the database shared with the resource server (figure 14.8).
- 
-Figure 14.8 When the authorization server issues a token, it also stores the token in a shared database. This way, the resource server can get the token and validate it later.
-It also implies that the resource server accesses the database when it needs to validate the token (figure 14.9).
- 
-Figure 14.9 The resource server searches for the token in the shared database. If the token exists, the resource server finds the details related to it in the database, including the username and its authorities. With these details, the resource server can then authorize the request.
-The contract representing the object that manages tokens in Spring Security, both on the authorization server as well as for the resource server, is the TokenStore. For the authorization server, you can visualize its place in the authentication architecture where we previously used SecurityContext. Once authentication finishes, the authorization server uses the TokenStore to generate a token (figure 14.10).
- 
-Figure 14.10 The authorization server uses a token store to generate tokens at the end of the authentication process. The client uses these tokens to access resources managed by the resource server.
-For the resource server, the authentication filter uses TokenStore to validate the token and find the user details that it later uses for authorization. The resource server then stores the user’s details in the security context (figure 14.11).
- 
-Figure 14.11 The resource server uses the token store to validate the token and retrieve details needed for authorization. These details are then stored in the security context.
-NOTE The authorization server and the resource server implement two different responsibilities, but these don’t necessarily have to be carried out by two separate applications. In most real-world implementations, you develop them in different applications, and this is why we do the same in our examples in this book. But, you can choose to implement both in the same application. In this case, you don’t need to establish any call or have a shared database. If, however, you implement the two responsibilities in the same app, then both the authorization server and resource server can access the same beans. As such, these can use the same token store without needing to do network calls or to access a database.
-Spring Security offers various implementations for the TokenStore contract, and in most cases, you won’t need to write your own implementation. For example, for all the previous authorization server implementations, we did not specify a TokenStore implementation. Spring Security provided a default token store of type InMemoryTokenStore. As you can imagine, in all these cases, the tokens were stored in the application’s memory. They did not persist! If you restart the authorization server, the tokens issued before the restart won’t be valid anymore.
-To implement token management with blackboarding, Spring Security offers the JdbcTokenStore implementation. As the name suggests, this token store works with a database directly via JDBC. It works similarly to the JdbcUserDetailsManager we discussed in chapter 3, but instead of managing users, the JdbcTokenStore manages tokens.
-NOTE In this example, we use the JdbcTokenStore to implement blackboarding. But you could choose to use TokenStore just to persist tokens and continue using the /oauth/check_token endpoint. You would choose to do so if you don’t want to use a shared database, but you need to persist tokens such that if the authorization server restarts, you can still use the previously issued tokens.
-JdbcTokenStore expects you to have two tables in the database. It uses one table to store access tokens (the name for this table should be oauth_access _token) and one table to store refresh tokens (the name for this table should be oauth_refresh_token). The table used to store tokens persists the refresh tokens.
-NOTE As in the case of the JdbcUserDetailsManager component, which we discussed in chapter 3, you can customize JdbcTokenStore to use other names for tables or columns. JdbcTokenStore methods must override any of the SQL queries it uses to retrieve or store details of the tokens. To keep it short, in our example we use the default names.
-We need to change our pom.xml file to declare the necessary dependencies to connect to our database. The next code snippet presents the dependencies I use in my pom.xml file:
+```
+코드를 더 쉽게 읽을 수 있도록 introspectionUri() 메서드의 매개 변수 값을 생략했습니다. 이 매개 변수 값은 introspection 토큰 URI라고도 하는 check_token URI입니다. oauth2ResourceServer() 메서드의 매개변수로 Customizer 인스턴스를 추가했습니다. Customizer 인스턴스를 사용하여 선택한 접근 방식에 따라 리소스 서버에 필요한 매개변수를 지정합니다. 직접 토큰 검사의 경우 리소스 서버가 토큰의 유효성을 검사하기 위해 호출하는 URI와 이 URI를 호출할 때 리소스 서버가 인증해야 하는 자격 증명을 지정해야 합니다. 이 예제는 프로젝트 ssia-ch14-ex1-rs-migration 폴더에 구현되어 있습니다.
+
+## 14.3 JdbcTokenStore로 블랙보드 구현하기
+
+인증 서버와 리소스 서버가 공유 데이터베이스를 사용하는 애플리케이션을 구현합니다. 우리는 이것을 건축 스타일의 칠판이라고 부릅니다. 왜 칠판을 쓰나요? 이를 인증 서버와 칠판을 사용하여 토큰을 관리하는 리소스 서버로 생각할 수 있습니다. 토큰을 발급하고 검증하기 위한 이러한 접근 방식은 리소스 서버와 권한 부여 서버 간의 직접 통신을 제거하는 이점이 있습니다. 그러나 이는 병목 현상이 발생할 수 있는 공유 데이터베이스를 추가함을 의미합니다. 모든 건축 스타일과 마찬가지로 다양한 상황에 적용할 수 있습니다. 예를 들어 데이터베이스를 공유하는 서비스가 이미 있는 경우 액세스 토큰에도 이 접근 방식을 사용하는 것이 합리적일 수 있습니다. 이러한 이유로 이 접근 방식을 구현하는 방법을 아는 것이 중요하다고 생각합니다.
+
+이전 구현과 마찬가지로 우리는 애플리케이션에서 이러한 아키텍처를 사용하는 방법을 보여줍니다. 프로젝트에서 이 애플리케이션을 인증 서버의 경우 ssia-ch14-ex2-as, 리소스 서버의 경우 ssia-ch14-ex2-rs로 찾을 수 있습니다. 이 아키텍처는 인증 서버가 토큰을 발행할 때 리소스 서버와 공유되는 데이터베이스에도 토큰을 저장함을 의미합니다(그림 14.8).
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F08_Spilca.png)
+
+그림 14.8 권한 부여 서버는 토큰을 발행할 때 공유 데이터베이스에도 토큰을 저장합니다. 이렇게 하면 리소스 서버가 토큰을 가져와 나중에 확인할 수 있습니다.
+또한 리소스 서버가 토큰의 유효성을 검사해야 할 때 데이터베이스에 액세스함을 의미합니다(그림 14.9).
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F09_Spilca.png)
+
+그림 14.9 리소스 서버는 공유 데이터베이스에서 토큰을 검색합니다. 토큰이 존재하는 경우 리소스 서버는 사용자 이름 및 권한을 포함하여 데이터베이스에서 토큰과 관련된 세부 정보를 찾습니다. 이러한 세부 정보를 사용하여 리소스 서버는 요청을 승인할 수 있습니다.
+인증 서버와 리소스 서버 모두에서 Spring Security에서 토큰을 관리하는 객체를 나타내는 계약은 TokenStore입니다. 권한 부여 서버의 경우 이전에 SecurityContext를 사용한 인증 아키텍처에서의 위치를 ​​시각화할 수 있습니다. 인증이 완료되면 인증 서버는 TokenStore를 사용하여 토큰을 생성합니다(그림 14.10).
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F11_Spilca.png)
+
+그림 14.10 인증 서버는 토큰 저장소를 사용하여 인증 프로세스가 끝날 때 토큰을 생성합니다. 클라이언트는 이러한 토큰을 사용하여 리소스 서버에서 관리하는 리소스에 액세스합니다.
+
+리소스 서버의 경우 인증 필터는 TokenStore를 사용하여 토큰의 유효성을 검사하고 나중에 인증에 사용하는 사용자 세부 정보를 찾습니다. 그런 다음 리소스 서버는 보안 컨텍스트에 사용자의 세부 정보를 저장합니다(그림 14.11).
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F11_Spilca.png)
+
+그림 14.11 리소스 서버는 토큰 저장소를 사용하여 토큰을 확인하고 권한 부여에 필요한 세부 정보를 검색합니다. 이러한 세부 정보는 보안 컨텍스트에 저장됩니다.
+
+> **참고** 권한 부여 서버와 리소스 서버는 두 가지 다른 책임을 구현하지만 반드시 두 개의 별도 응용 프로그램에서 수행할 필요는 없습니다. 대부분의 실제 구현에서는 다른 응용 프로그램에서 이를 개발하므로 이 책의 예제에서도 동일한 작업을 수행합니다. 그러나 동일한 응용 프로그램에서 둘 다 구현하도록 선택할 수 있습니다. 이 경우 호출을 설정하거나 공유 데이터베이스를 가질 필요가 없습니다. 그러나 동일한 앱에서 두 가지 책임을 구현하면 권한 부여 서버와 리소스 서버 모두 동일한 빈에 액세스할 수 있습니다. 따라서 이들은 동일한 것을 사용할 수 있습니다.token store without needing to do network calls or to access a database.
+
+Spring Security는 TokenStore 계약에 대한 다양한 구현을 제공하며 대부분의 경우 자체 구현을 작성할 필요가 없습니다. 예를 들어, 이전의 모든 인증 서버 구현에 대해 TokenStore 구현을 지정하지 않았습니다. Spring Security는 InMemoryTokenStore 유형의 기본 토큰 저장소를 제공했습니다. 상상할 수 있듯이 이 모든 경우에 토큰은 애플리케이션의 메모리에 저장되었습니다. 그들은 지속하지 않았다! 권한 부여 서버를 다시 시작하면 다시 시작하기 전에 발급된 토큰은 더 이상 유효하지 않습니다.
+
+블랙보드로 토큰 관리를 구현하기 위해 Spring Security는 JdbcTokenStore 구현을 제공합니다. 이름에서 알 수 있듯이 이 토큰 저장소는 JDBC를 통해 직접 데이터베이스와 함께 작동합니다. 3장에서 논의한 JdbcUserDetailsManager와 유사하게 작동하지만 사용자를 관리하는 대신 JdbcTokenStore가 토큰을 관리합니다.
+
+> 참고 이 예제에서는 JdbcTokenStore를 사용하여 블랙보드를 구현합니다. 그러나 토큰을 유지하고 /oauth/check_token 끝점을 계속 사용하기 위해 TokenStore를 사용하도록 선택할 수 있습니다. 공유 데이터베이스를 사용하고 싶지 않지만 인증 서버가 다시 시작되더라도 이전에 발행된 토큰을 계속 사용할 수 있도록 토큰을 유지해야 하는 경우 그렇게 하도록 선택합니다.
+
+JdbcTokenStore는 데이터베이스에 두 개의 테이블이 있을 것으로 예상합니다. 하나의 테이블을 사용하여 액세스 토큰(이 테이블의 이름은 oauth_access _token이어야 함)을 저장하고 하나의 테이블을 사용하여 새로 고침 토큰을 저장합니다(이 테이블의 이름은 oauth_refresh_token이어야 함). 토큰을 저장하는 데 사용되는 테이블은 새로 고침 토큰을 유지합니다.
+
+> **참고** 3장에서 논의한 JdbcUserDetailsManager 구성 요소의 경우와 같이 테이블이나 열에 다른 이름을 사용하도록 JdbcTokenStore를 사용자 정의할 수 있습니다. JdbcTokenStore 메소드는 토큰의 세부 정보를 검색하거나 저장하는 데 사용하는 SQL 쿼리를 재정의해야 합니다. 짧게 유지하기 위해 이 예에서는 기본 이름을 사용합니다.
+
+pom.xml 파일을 변경하여 데이터베이스에 연결하는 데 필요한 종속성을 선언해야 합니다. 다음 코드 조각은 pom.xml 파일에서 사용하는 종속성을 나타냅니다.
+
+```xml
 <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-security</artifactId>
@@ -264,7 +364,11 @@ We need to change our pom.xml file to declare the necessary dependencies to conn
   <groupId>mysql</groupId>
   <artifactId>mysql-connector-java</artifactId>
 </dependency>
-In the authorization server project ssia-ch14-ex2-as, I define the schema.sql file with the queries needed to create the structure for these tables. Don’t forget that this file needs to be in the resources folder to be picked up by Spring Boot when the application starts. The next code snippet presents the definition of the two tables as presented in the schema.sql file:
+```
+
+권한 부여 서버 프로젝트 `ssia-ch14-ex2-as`에서 이러한 테이블의 구조를 생성하는 데 필요한 쿼리로 `schema.sql` 파일을 정의합니다. 이 파일은 애플리케이션이 시작될 때 Spring Boot에 의해 선택될 리소스 폴더에 있어야 한다는 것을 잊지 마십시오. 다음 코드 조각은 `schema.sql` 파일에 표시된 두 테이블의 정의를 나타냅니다.
+
+```sql
 CREATE TABLE IF NOT EXISTS `oauth_access_token` (
     `token_id` varchar(255) NOT NULL,
     `token` blob,
@@ -280,14 +384,19 @@ CREATE TABLE IF NOT EXISTS `oauth_refresh_token` (
     `token` blob,
     `authentication` blob,
     PRIMARY KEY (`token_id`));
+```
 In the application.properties file, you need to add the definition of the data source. The next code snippet provides the definition:
-spring.datasource.url=jdbc:mysql://localhost/
-➥ spring?useLegacyDatetimeCode=false&serverTimezone=UTC
+
+```yml
+spring.datasource.url=jdbc:mysql://localhost/spring?useLegacyDatetimeCode=false&serverTimezone=UTC
 spring.datasource.username=root
 spring.datasource.password=
 spring.datasource.initialization-mode=always
+```
 The following listing presents the AuthServerConfig class the way we used it in the first example.
+
 Listing 14.5 The AuthServerConfig class
+```java
 @Configuration
 @EnableAuthorizationServer
 public class AuthServerConfig
@@ -314,8 +423,11 @@ public class AuthServerConfig
        endpoints.authenticationManager(authenticationManager);
    }
 }
+```
 We change this class to inject the data source and then define and configure the token store. The next listing shows this change.
+
 Listing 14.6 Defining and configuring JdbcTokenStore
+```java
 @Configuration
 @EnableAuthorizationServer
 public class AuthServerConfig
@@ -325,11 +437,10 @@ public class AuthServerConfig
   private AuthenticationManager authenticationManager;
 
   @Autowired
-  private DataSource dataSource;                       ❶
+  private DataSource dataSource; ❶
 
   @Override
-  public void configure(
-    ClientDetailsServiceConfigurer clients) 
+  public void configure(ClientDetailsServiceConfigurer clients) 
     throws Exception {
 
       clients.inMemory()
@@ -352,12 +463,22 @@ public class AuthServerConfig
       return new JdbcTokenStore(dataSource);          ❸
   }                                                   ❸
 }
-❶ Injects the data source we configured in the application.properties file
-❷ Configures the token store
-❸ Creates an instance of JdbcTokenStore, providing access to the database through the data source configured in the application.properties file
-We can now start our authorization server and issue tokens. We issue tokens in the same way we did in chapter 13 and earlier in this chapter. From this perspective, nothing’s changed. But now, we can see our tokens stored in the database as well. The next code snippet shows the cURL command you use to issue a token:
+```
+❶ application.properties 파일에서 구성한 데이터 소스를 삽입합니다.
+
+❷ 토큰 저장소 구성
+
+❸ application.properties 파일에 구성된 데이터 소스를 통해 데이터베이스에 대한 액세스를 제공하는 JdbcTokenStore의 인스턴스를 생성합니다.
+
+이제 인증 서버를 시작하고 토큰을 발행할 수 있습니다. 우리는 13장과 이 장의 앞부분에서 했던 것과 같은 방식으로 토큰을 발행합니다. 이 관점에서 보면 아무것도 바뀌지 않았습니다. 그러나 이제 데이터베이스에 저장된 토큰도 볼 수 있습니다. 다음은 토큰을 발행하는 데 사용하는 cURL 명령을 보여줍니다.
+
+```
 curl -v -XPOST -u client:secret "http://localhost:8080/oauth/token?grant_type=password&username=john&password=12345&scope=read"
+```
+
 The response body is
+
+```json
 {
   "access_token":"009549ee-fd3e-40b0-a56c-6d28836c4384",
   "token_type":"bearer",
@@ -365,8 +486,12 @@ The response body is
   "expires_in":43199,
   "scope":"read"
 }
-The access token returned in the response can also be found as a record in the oauth_access_token table. Because I configure the refresh token grant type, I receive a refresh token. For this reason, I also find a record for the refresh token in the oauth_refresh_token table. Because the database persists tokens, the resource server can validate the issued tokens even if the authorization server is down or after its restart.
-It’s time now to configure the resource server so that it also uses the same database. For this purpose, I work in the project ssia-ch14-ex2-rs. I start with the implementation we worked on in section 14.1. As for the authorization server, we need to add the necessary dependencies in the pom.xml file. Because the resource server needs to connect to the database, we also need to add the spring-boot-starter-jdbc dependency and the JDBC driver. The next code snippet shows the dependencies in the pom.xml file:
+```
+응답에서 반환된 액세스 토큰은 `oauth_access_token` 테이블의 레코드로도 찾을 수 있습니다. 새로 고침 토큰 부여 유형을 구성하기 때문에 새로 고침 토큰을 받습니다. 이러한 이유로 `oauth_refresh_token` 테이블에서 새로 고침 토큰에 대한 레코드도 찾습니다. 데이터베이스가 토큰을 유지하기 때문에 리소스 서버는 권한 부여 서버가 다운되거나 다시 시작된 후에도 발행된 토큰의 유효성을 검사할 수 있습니다.
+
+이제 동일한 데이터베이스를 사용하도록 리소스 서버를 구성할 시간입니다. 이를 위해 `ssia-ch14-ex2-rs` 프로젝트에서 일합니다. 섹션 14.1에서 작업한 구현으로 시작합니다. 인증 서버의 경우 pom.xml 파일에 필요한 종속성을 추가해야 합니다. 리소스 서버는 데이터베이스에 연결해야 하므로 spring-boot-starter-jdbc 종속성과 JDBC 드라이버도 추가해야 합니다. 다음 코드 조각은 pom.xml 파일의 종속성을 보여줍니다.
+
+```xml
 <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
@@ -387,14 +512,20 @@ It’s time now to configure the resource server so that it also uses the same d
   <groupId>mysql</groupId>
   <artifactId>mysql-connector-java</artifactId>
 </dependency>
-In the application.properties file, I configure the data source so the resource server can connect to the same database as the authorization server. The next code snippet shows the content of the application.properties file for the resource server:
+```
+`application.properties` 파일에서 리소스 서버가 권한 부여 서버와 동일한 데이터베이스에 연결할 수 있도록 데이터 소스를 구성합니다. 다음 코드 조각은 리소스 서버에 대한 application.properties 파일의 내용을 보여줍니다.
+
+```yml
 server.port=9090
 
 spring.datasource.url=jdbc:mysql://localhost/spring
 spring.datasource.username=root
 spring.datasource.password=
-In the configuration class of the resource server, we inject the data source and configure JdbcTokenStore. The following listing shows the changes to the resource server’s configuration class.
+```
+리소스 서버의 구성 클래스에서 데이터 소스를 주입하고 JdbcTokenStore를 구성합니다. 다음 목록은 리소스 서버의 구성 클래스에 대한 변경 사항을 보여줍니다.
+
 Listing 14.7 The configuration class for the resource server
+```java
 @Configuration
 @EnableResourceServer
 public class ResourceServerConfig 
@@ -415,39 +546,65 @@ public class ResourceServerConfig
     return new JdbcTokenStore(dataSource);      ❸
   }
 }
-❶ Injects the data source we configured in the application.properties file
-❷ Configures the token store
-❸ Creates a JdbcTokenStore based on the injected data source
-You can now start your resource server as well and call the /hello endpoint with the access token you previously issued. The next code snippet shows you how to call the endpoint using cURL:
+```
+❶ `application.properties` 파일에서 구성한 데이터 소스를 삽입합니다.
+
+❷ 토큰 저장소 구성
+
+❸ 주입된 데이터 소스를 기반으로 JdbcTokenStore 생성
+
+이제 리소스 서버도 시작하고 이전에 발급한 액세스 토큰으로 /hello 엔드포인트를 호출할 수 있습니다. 다음 코드 조각은 cURL을 사용하여 끝점을 호출하는 방법을 보여줍니다.
+
+```bsh
 curl -H "Authorization:Bearer 009549ee-fd3e-40b0-a56c-6d28836c4384" "http://localhost:9090/hello"
+```
 The response body is
+```
 Hello!
-Fantastic! In this section, we implemented a blackboarding approach for communication between the resource server and the authorization server. We used an implementation of TokenStore called JdbcTokenStore. Now we can persist tokens in a data-base, and we can avoid direct calls between the resource server and the authorization server for validating tokens. But having both the authorization server and the resource server depend on the same database presents a disadvantage. In the case of a large number of requests, this dependency might become a bottleneck and slow down the system. To avoid using a shared database, do we have another implementation option? Yes; in chapter 15, we’ll discuss the alternative to the approaches presented in this chapter--using signed tokens with JWT.
-NOTE Writing the configuration of the resource server without Spring Security OAuth makes it impossible to use the blackboarding approach.
-14.4 A short comparison of approaches
-In this chapter, you learned to implement two approaches for allowing the resource server to validate tokens it receives from the client:
-- Directly calling the authorization server. When the resource server needs to validate a token, it directly calls the authorization server that issues that token.
-- Using a shared database (blackboarding). Both the authorization server and the resource server work with the same database. The authorization server stores the issued tokens in the database, and the resource server reads those for validation.
-Let’s briefly sum this up. In table 14.1, you find the advantages and disadvantages of the two approaches discussed in this chapter.
-Table 14.1 Advantages and disadvantages of implementing the presented approaches for the resource server to validate tokens
-Approach	Advantages	Disadvantages
-Directly calling the authorization server	Easy to implement.
-It can be applied to any token implementation.	It implies direct dependency between the authorization server and the resource server.
-It might cause unnecessary stress on the authorization server.
-Using a shared database (blackboarding)	Eliminates the need for direct communication between the authorization server and the resource server.
-It can be applied to any token implementation.
-Persisting tokens allows authorization to work after an authorization server restart or if the authorization server is down.	It’s more difficult to implement than directly calling the authorization server.
-Requires one more component in the system, the shared database.
-The shared database can become a bottleneck and affect system performance.
-Summary
-- The resource server is a Spring component that manages user resources.
-- The resource server needs a way to validate tokens issued to the client by the authorization server.
-- One option for verifying tokens for the resource server is to call the authorization server directly. This approach can cause too much stress on the authorization server. I generally avoid using this approach.
-- So that the resource server can validate tokens, we can choose to implement a blackboarding architecture. In this implementation, the authorization server and the resource server access the same database where they manage tokens.
-- Blackboarding has the advantage of eliminating direct dependencies between the resource server and the authorization server. But it implies adding a database to persist tokens, which could become a bottleneck and affect system performance in the case of a large number of requests.
-- To implement token management, we need to use an object of type TokenStore. We can write our own implementation of TokenStore, but in most cases, we use an implementation provided by Spring Security.
-- JdbcTokenStore is a TokenStore implementation that you can use to persist the access and refresh tokens in a database.
-- Copy
-- Add Highlight
-- Add Note
+```
+환상적이야! 이 섹션에서는 리소스 서버와 권한 부여 서버 간의 통신을 위한 블랙보드 접근 방식을 구현했습니다. JdbcTokenStore라는 TokenStore 구현을 사용했습니다. 이제 데이터베이스에서 토큰을 유지할 수 있으며 토큰 유효성 검사를 위해 리소스 서버와 권한 부여 서버 간의 직접 호출을 피할 수 있습니다. 그러나 인증 서버와 리소스 서버가 모두 동일한 데이터베이스에 의존하는 것은 단점이 있습니다. 요청이 많은 경우 이 종속성이 병목 현상이 되어 시스템 속도를 저하시킬 수 있습니다. 공유 데이터베이스 사용을 피하기 위해 다른 구현 옵션이 있습니까? 예; 15장에서 JWT와 함께 서명된 토큰을 사용하는 이 장에서 제시한 접근 방식에 대한 대안을 논의할 것입니다.
+
+> 참고 Spring Security OAuth 없이 리소스 서버의 설정을 작성하면 블랙보드 접근 방식을 사용할 수 없습니다.
+
+## 14.4 접근 방식의 짧은 비교
+
+이 장에서는 리소스 서버가 클라이언트로부터 받는 토큰의 유효성을 검사할 수 있도록 하는 두 가지 접근 방식을 구현하는 방법을 배웠습니다.
+
+- 인증 서버를 직접 호출합니다. 리소스 서버가 토큰의 유효성을 검사해야 하는 경우 해당 토큰을 발급하는 권한 부여 서버를 직접 호출합니다.
+
+- 공유 데이터베이스 사용(블랙보드). 권한 부여 서버와 리소스 서버는 모두 동일한 데이터베이스에서 작동합니다. 인증 서버는 발급된 토큰을 데이터베이스에 저장하고 리소스 서버는 유효성 검사를 위해 토큰을 읽습니다.
+
+간단히 요약해 보겠습니다. 표 14.1에서 이 장에서 논의된 두 가지 접근 방식의 장점과 단점을 찾을 수 있습니다.
+
+표 14.1 리소스 서버가 토큰을 검증하기 위해 제시된 접근 방식을 구현할 때의 장단점
+접근 장점 단점
+
+인증 서버 직접 호출 구현하기 쉽습니다.
+모든 토큰 구현에 적용할 수 있습니다. 이는 권한 부여 서버와 리소스 서버 간의 직접적인 종속성을 의미합니다.
+
+권한 부여 서버에 불필요한 스트레스를 유발할 수 있습니다.
+공유 데이터베이스 사용(블랙보드) 권한 부여 서버와 리소스 서버 간의 직접 통신이 필요하지 않습니다.
+
+모든 토큰 구현에 적용할 수 있습니다.
+토큰을 유지하면 권한 부여 서버가 다시 시작된 후 또는 권한 부여 서버가 다운된 경우 권한 부여가 작동할 수 있습니다. 인증 서버를 직접 호출하는 것보다 구현하기가 더 어렵습니다.
+
+시스템에 하나 이상의 구성요소인 공유 데이터베이스가 필요합니다.
+공유 데이터베이스는 병목 현상이 되어 시스템 성능에 영향을 줄 수 있습니다.
+
+## 요약
+
+- 리소스 서버는 사용자 리소스를 관리하는 Spring 컴포넌트입니다.
+
+- 리소스 서버는 인증 서버가 클라이언트에게 발급한 토큰을 검증하는 방법이 필요합니다.
+
+- 리소스 서버에 대한 토큰을 확인하는 한 가지 옵션은 인증 서버를 직접 호출하는 것입니다. 이 접근 방식은 권한 부여 서버에 너무 많은 스트레스를 유발할 수 있습니다. 나는 일반적으로 이 접근 방식을 사용하지 않습니다.
+
+- 리소스 서버가 토큰의 유효성을 검사할 수 있도록 블랙보드 아키텍처를 구현하도록 선택할 수 있습니다. 이 구현에서 권한 부여 서버와 리소스 서버는 토큰을 관리하는 동일한 데이터베이스에 액세스합니다.
+
+- 블랙보드는 리소스 서버와 권한 서버 간의 직접적인 종속성을 제거할 수 있는 장점이 있습니다. 그러나 이는 토큰을 유지하기 위해 데이터베이스를 추가하는 것을 의미하며, 이는 많은 요청의 경우 병목 현상이 되고 시스템 성능에 영향을 미칠 수 있습니다.
+
+- 토큰 관리를 구현하려면 TokenStore 유형의 개체를 사용해야 합니다. TokenStore의 자체 구현을 작성할 수 있지만 대부분의 경우 Spring Security에서 제공하는 구현을 사용합니다.
+
+- JdbcTokenStore는 데이터베이스에서 액세스 및 새로 고침 토큰을 유지하는 데 사용할 수 있는 TokenStore 구현입니다.
+
  

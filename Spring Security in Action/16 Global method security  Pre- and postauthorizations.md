@@ -1,27 +1,44 @@
-16 Global method security: Pre- and postauthorizations
-This chapter covers
-- Global method security in Spring applications
-- Preauthorization of methods based on authorities, roles, and permissions
-- Postauthorization of methods based on authorities, roles, and permissions
-Up to now, we discussed various ways of configuring authentication. We started with the most straightforward approach, HTTP Basic, in chapter 2, and then I showed you how to set form login in chapter 5. We covered OAuth 2 in chapters 12 through 15. But in terms of authorization, we only discussed configuration at the endpoint level. Suppose your app is not a web application--can’t you use Spring Security for authentication and authorization as well? Spring Security is a good fit for scenarios in which your app isn’t used via HTTP endpoints. In this chapter, you’ll learn how to configure authorization at the method level. We’ll use this approach to configure authorization in both web and non-web applications, and we’ll call it global method security (figure 16.1).
- 
-Figure 16.1 Global method security enables you to apply authorization rules at any layer of your application. This approach allows you to be more granular and to apply authorization rules at a specifically chosen level.
-For non-web applications, global method security offers the opportunity to implement authorization rules even if we don’t have endpoints. In web applications, this approach gives us the flexibility to apply authorization rules on different layers of our app, not only at the endpoint level. Let’s dive into the chapter and learn how to apply authorization at the method level with global method security.
-16.1 Enabling global method security
-In this section, you learn how to enable authorization at the method level and the different options that Spring Security offers to apply various authorization rules. This approach provides you with greater flexibility in applying authorization. It’s an essential skill that allows you to solve situations in which authorization simply cannot be configured just at the endpoint level.
-By default, global method security is disabled, so if you want to use this functionality, you first need to enable it. Also, global method security offers multiple approaches for applying authorization. We discuss these approaches and then implement them in examples in the following sections of this chapter and in chapter 17. Briefly, you can do two main things with global method security:
+# 16 글로벌 메소드 보안: 사전 및 사후 승인
+
+이 장에서는 다음을 다룹니다.
+
+- Spring 애플리케이션의 전역 메소드 보안
+- 권한, 역할, 권한에 따른 메소드 사전 승인
+- 권한, 역할, 권한에 따른 메소드 사후 승인
+-
+지금까지 인증을 구성하는 다양한 방법에 대해 논의했습니다. 2장에서 가장 간단한 접근 방식인 HTTP Basic으로 시작하여 5장에서 양식 로그인을 설정하는 방법을 보여 드렸습니다. 12장에서 15장까지 OAuth 2를 다루었습니다. 그러나 권한 부여 측면에서는 구성에 대해서만 논의했습니다. 끝점 수준. 앱이 웹 애플리케이션이 아니라고 가정합니다. 
+
+인증 및 권한 부여에도 Spring Security를 ​​사용할 수 없습니까? Spring Security는 앱이 HTTP 엔드포인트를 통해 사용되지 않는 시나리오에 적합합니다. 이 장에서는 메서드 수준에서 권한 부여를 구성하는 방법을 배웁니다. 이 접근 방식을 사용하여 웹 및 웹이 아닌 응용 프로그램 모두에서 권한 부여를 구성하고 전역 메서드 보안이라고 부를 것입니다(그림 16.1).
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH16_F01_Spilca.png)
+
+그림 16.1 전역 메서드 보안을 사용하면 애플리케이션의 모든 계층에서 권한 부여 규칙을 적용할 수 있습니다. 이 접근 방식을 사용하면 더 세분화되고 특별히 선택한 수준에서 권한 부여 규칙을 적용할 수 있습니다.
+
+웹이 아닌 애플리케이션의 경우 전역 메서드 보안은 엔드포인트가 없는 경우에도 권한 부여 규칙을 구현할 수 있는 기회를 제공합니다. 웹 애플리케이션에서 이 접근 방식은 엔드포인트 수준뿐만 아니라 앱의 여러 계층에 권한 부여 규칙을 적용할 수 있는 유연성을 제공합니다. 이 장을 자세히 살펴보고 전역 메서드 보안을 사용하여 메서드 수준에서 권한 부여를 적용하는 방법을 알아보겠습니다.
+
+## 16.1 전역 메서드 보안 활성화
+
+메서드 수준에서 권한 부여를 활성화하는 방법과 다양한 권한 부여 규칙을 적용하기 위해 Spring Security가 제공하는 다양한 옵션을 배웁니다. 이 접근 방식은 승인을 적용할 때 더 큰 유연성을 제공합니다. 단순히 엔드포인트 수준에서 권한 부여를 구성할 수 없는 상황을 해결할 수 있는 필수 기술입니다.
+
+기본적으로 전역 메서드 보안은 비활성화되어 있으므로 이 기능을 사용하려면 먼저 활성화해야 합니다. 또한 전역 메서드 보안은 권한 부여를 적용하기 위한 여러 접근 방식을 제공합니다. 우리는 이러한 접근 방식에 대해 논의한 다음 이 장의 다음 섹션과 17장의 예제에서 구현합니다. 간단히 말해서 전역 메서드 보안으로 두 가지 주요 작업을 수행할 수 있습니다.
 - Call authorization--Decides whether someone can call a method according to some implemented privilege rules (preauthorization) or if someone can access what the method returns after the method executes (postauthorization).
 - Filtering--Decides what a method can receive through its parameters (prefiltering) and what the caller can receive back from the method after the method executes (postfiltering). We’ll discuss and implement filtering in chapter 17.
-16.1.1 UNDERSTANDING CALL AUTHORIZATION
+
+### 16.1.1 UNDERSTANDING CALL AUTHORIZATION
 One of the approaches for configuring authorization rules you use with global method security is call authorization. The call authorization approach refers to applying authorization rules that decide if a method can be called, or that allow the method to be called and then decide if the caller can access the value returned by the method. Often we need to decide if someone can access a piece of logic depending on either the provided parameters or its result. So let’s discuss call authorization and then apply it to some examples.
+
 How does global method security work? What’s the mechanism behind applying the authorization rules? When we enable global method security in our application, we actually enable a Spring aspect. This aspect intercepts the calls to the method for which we apply authorization rules and, based on these authorization rules, decides whether to forward the call to the intercepted method (figure 16.2).
+
 Plenty of implementations in Spring framework rely on aspect-oriented programming (AOP). Global method security is just one of the many components in Spring applications relying on aspects. If you need a refresher on aspects and AOP, I recommend you read chapter 5 of Pro Spring 5: An In-Depth Guide to the Spring Framework and Its Tools by Clarence Ho et al., (Apress, 2017). Briefly, we classify the call authorization as
  
 Figure 16.2 When we enable global method security, an aspect intercepts the call to the protected method. If the given authorization rules aren't respected, the aspect doesn't delegate the call to the protected method.
+
 - Preauthorization--The framework checks the authorization rules before the method call.
 - Postauthorization--The framework checks the authorization rules after the method executes.
 Let’s take both approaches, detail them, and implement them with some examples.
+
 USING PREAUTHORIZATION TO SECURE ACCESS TO METHODS
+
 Say we have a method findDocumentsByUser(String username) that returns to the caller documents for a specific user. The caller provides through the method’s parameters the user’s name for which the method retrieves the documents. Assume you need to make sure that the authenticated user can only obtain their own documents. Can we apply a rule to this method such that only the method calls that receive the username of the authenticated user as a parameter are allowed? Yes! This is something we do with preauthorization.
 When we apply authorization rules that completely forbid anyone to call a method in specific situations, we call this preauthorization (figure 16.3). This approach implies that the framework verifies the authorization conditions before executing the method. If the caller doesn’t have the permissions according to the authorization rules that we define, the framework doesn’t delegate the call to the method. Instead, the framework throws an exception. This is by far the most often used approach to global method security.
  
@@ -33,19 +50,28 @@ When we apply authorization rules that allow someone to call a method but not ne
 Figure 16.4 With postauthorization, the aspect delegates the call to the protected method. After the protected method finishes execution, the aspect checks the authorization rules. If the rules aren’t respected, instead of returning the result to the caller, the aspect throws an exception.
 Usually, we use postauthorization to apply authorization rules based on what the method returns after execution. But be careful with postauthorization! If the method mutates something during its execution, the change happens whether or not authorization succeeds in the end.
 NOTE Even with the @Transactional annotation, a change isn’t rolled back if postauthorization fails. The exception thrown by the postauthorization functionality happens after the transaction manager commits the transaction.
-16.1.2 ENABLING GLOBAL METHOD SECURITY IN YOUR PROJECT
+
+### 16.1.2 ENABLING GLOBAL METHOD SECURITY IN YOUR PROJECT
+
 In this section, we work on a project to apply the preauthorization and postauthorization features offered by global method security. Global method security isn’t enabled by default in a Spring Security project. To use it, you need to first enable it. However, enabling this functionality is straightforward. You do this by simply using the @EnableGlobalMethodSecurity annotation on the configuration class.
+
 I created a new project for this example, ssia-ch16-ex1. For this project, I wrote a ProjectConfig configuration class, as presented in listing 16.1. On the configuration class, we add the @EnableGobalMethodSecurity annotation. Global method security offers us three approaches to define the authorization rules that we discuss in this chapter:
+
 - The pre-/postauthorization annotations
 - The JSR 250 annotation, @RolesAllowed
 - The @Secured annotation
+
 Because in almost all cases, pre-/postauthorization annotations are the only approach used, we discuss this approach in this chapter. To enable this approach, we use the prePostEnabled attribute of the @EnableGlobalMethodSecurity annotation. We present a short overview of the other two options previously mentioned at the end of this chapter.
+
 Listing 16.1 Enabling global method security
+```java
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class ProjectConfig {
 }
+```
 You can use global method security with any authentication approach, from HTTP Basic authentication to OAuth 2. To keep it simple and allow you to focus on new details, we provide global method security with HTTP Basic authentication. For this reason, the pom.xml file for the projects in this chapter only needs the web and Spring Security dependencies, as the next code snippet presents:
+```xml
 <dependency>
    <groupId>org.springframework.boot</groupId>
    <artifactId>spring-boot-starter-security</artifactId>
@@ -54,13 +80,17 @@ You can use global method security with any authentication approach, from HTTP B
    <groupId>org.springframework.boot</groupId>
    <artifactId>spring-boot-starter-web</artifactId>
 </dependency>
-16.2 Applying preauthorization for authorities and roles
+```
+
+## 16.2 Applying preauthorization for authorities and roles
+
 In this section, we implement an example of preauthorization. For our example, we continue with the project ssia-ch16-ex1 started in section 16.1. As we discussed in section 16.1, preauthorization implies defining authorization rules that Spring Security applies before calling a specific method. If the rules aren’t respected, the framework doesn’t call the method.
 The application we implement in this section has a simple scenario. It exposes an endpoint, /hello, which returns the string "Hello, " followed by a name. To obtain the name, the controller calls a service method (figure 16.5). This method applies a preauthorization rule to verify the user has write authority.
  
 Figure 16.5 To call the getName() method of NameService, the authenticated user needs to have write authority. If the user doesn't have this authority, the framework won't allow the call and throws an exception.
 I added a UserDetailsService and a PasswordEncoder to make sure I have some users to authenticate. To validate our solution, we need two users: one user with write authority and another that doesn’t have write authority. We prove that the first user can successfully call the endpoint, while for the second user, the app throws an authorization exception when trying to call the method. The following listing shows the complete definition of the configuration class, which defines the UserDetailsService and the PasswordEncoder.
 Listing 16.2 The configuration class for UserDetailsService and PasswordEncoder
+```java
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)      ❶
 public class ProjectConfig {
@@ -90,6 +120,7 @@ public class ProjectConfig {
     return NoOpPasswordEncoder.getInstance();
   }
 }
+```
 ❶ Enables global method security for pre-/postauthorization
 ❷ Adds a UserDetailsService to the Spring context with two users for testing
 ❸ Adds a PasswordEncoder to the Spring context

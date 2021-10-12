@@ -1,37 +1,67 @@
+# 15 OAuth 2: JWT 및 암호화 서명 사용
 
-15 OAuth 2: Using JWT and cryptographic signatures
-This chapter covers
-- Validating tokens using cryptographic signatures
-- Using JSON Web Tokens in the OAuth 2 architecture
-- Signing tokens with symmetric and asymmetric keys
-- Adding custom details to a JWT
-In this chapter, we’ll discuss using JSON Web Tokens (JWTs) for token implementation. You learned in chapter 14 that the resource server needs to validate tokens issued by the authorization server. And I told you three ways to do this:
-- Using direct calls between the resource server and the authorization server, which we implemented in section 14.2
-- Using a shared database for storing the tokens, which we implemented in section 14.3
-- Using cryptographic signatures, which we’ll discuss in this chapter
-Using cryptographic signatures to validate tokens has the advantage of allowing the resource server to validate them without needing to call the authorization server directly and without needing a shared database. This approach to implementing token validation is commonly used in systems implementing authentication and authorization with OAuth 2. For this reason, you need to know this way of implementing token validation. We’ll write an example for this method as we did for the other two methods in chapter 14.
-15.1 Using tokens signed with symmetric keys with JWT
-The most straightforward approach to signing tokens is using symmetric keys. With this approach, using the same key, you can both sign a token and validate its signature. Using symmetric keys for signing tokens has the advantage of being simpler than other approaches we’ll discuss later in this chapter and is also faster. As you’ll see, however, it has disadvantages too. You can’t always share the key used to sign tokens with all the applications involved in the authentication process. We’ll discuss these advantages and disadvantages when comparing symmetric keys with asymmetric key pairs in section 15.2.
-For now, let’s start a new project to implement a system that uses JWTs signed with symmetric keys. For this implementation, I named the projects ssia-ch15-ex1-as for the authorization server and ssia-ch15-ex1-rs for the resource server. We start with a brief recap of JWTs that we detailed in chapter 11. Then, we implement these in an example.
-15.1.1 USING JWTS
-In this section, we briefly recap JWTs. We discussed JWTs in chapter 11 in detail, but I think it’s best if we start with a refresher on how JWTs work. We then continue with implementing the authorization server and the resource server. Everything we discuss in this chapter relies on JWTs, so this is why I find it essential to start with this refresher before going further with our first example.
-A JWT is a token implementation. A token consists of three parts: the header, the body, and the signature. The details in the header and the body are represented with JSON, and they are Base64 encoded. The third part is the signature, generated using a cryptographic algorithm that uses as input the header and the body (figure 15.1). The cryptographic algorithm also implies the need for a key. The key is like a password. Someone having a proper key can sign a token or validate that a signature is authentic. If the signature on a token is authentic, that guarantees that nobody altered the token after it was signed.
+이 장에서는 다음을 다룹니다.
+
+- 암호화 서명을 사용한 토큰 검증
+- OAuth 2 아키텍처에서 JSON 웹 토큰 사용
+- 대칭 및 비대칭 키로 토큰 서명
+- JWT에 사용자 정의 세부 정보 추가
+  
+이 장에서는 토큰 구현을 위해 JSON 웹 토큰(JWT)을 사용하는 방법에 대해 설명합니다. 14장에서 리소스 서버가 권한 부여 서버에서 발행한 토큰의 유효성을 검사해야 한다는 것을 배웠습니다. 그리고 이렇게 하는 세 가지 방법을 알려 드렸습니다.
+
+- 14.2에서 구현한 리소스 서버와 권한 부여 서버 간의 직접 호출 사용
+
+- 14.3에서 구현한 토큰 저장을 위한 공유 데이터베이스 사용
+
+- 이 장에서 논의할 암호화 서명 사용
+
+토큰의 유효성을 검사하기 위해 암호화 서명을 사용하면 권한 서버를 직접 호출하거나 공유 데이터베이스가 필요하지 않고 리소스 서버가 토큰의 유효성을 검사할 수 있다는 이점이 있습니다. 토큰 유효성 검사를 구현하는 이 접근 방식은 OAuth 2로 인증 및 권한 부여를 구현하는 시스템에서 일반적으로 사용됩니다. 이러한 이유로 토큰 유효성 검사를 구현하는 이 방법을 알아야 합니다. 14장에서 다른 두 가지 방법에 대해 했던 것처럼 이 방법에 대한 예를 작성할 것입니다.
+
+## 15.1 JWT를 사용하여 대칭 키로 서명된 토큰 사용
+
+토큰 서명에 대한 가장 간단한 접근 방식은 대칭 키를 사용하는 것입니다. 이 접근 방식을 사용하면 동일한 키를 사용하여 토큰에 서명하고 서명의 유효성을 검사할 수 있습니다. 토큰 서명에 대칭 키를 사용하는 것은 이 장의 뒷부분에서 논의할 다른 접근 방식보다 간단하고 빠릅니다. 그러나 보시다시피 단점도 있습니다. 토큰 서명에 사용되는 키를 인증 프로세스와 관련된 모든 애플리케이션과 항상 공유할 수는 없습니다. 15.2에서 대칭 키와 비대칭 키 쌍을 비교할 때 이러한 장단점에 대해 논의할 것입니다.
+
+지금은 대칭 키로 서명된 JWT를 사용하는 시스템을 구현하는 새 프로젝트를 시작하겠습니다. 이 구현을 위해 프로젝트 이름을 인증 서버로 ssia-ch15-ex1-as로, 리소스 서버로 ssia-ch15-ex1-rs로 이름을 지정했습니다. 11장에서 자세히 설명한 JWT에 대한 간략한 요약으로 시작합니다. 그런 다음 예제에서 이를 구현합니다.
+
+## 15.1.1 JWTS 사용
+
+이 섹션에서는 JWT를 간략하게 요약합니다. 11장에서 JWT에 대해 자세히 논의했지만 JWT의 작동 방식에 대한 복습으로 시작하는 것이 가장 좋습니다. 그런 다음 인증 서버와 리소스 서버를 계속 구현합니다. 이 장에서 논의하는 모든 것은 JWT에 의존하므로 첫 번째 예를 더 진행하기 전에 이 복습부터 시작하는 것이 중요하다고 생각합니다.
+
+JWT는 토큰 구현입니다. 토큰은 헤더, 본문 및 서명의 세 부분으로 구성됩니다. 헤더 및 본문의 세부 정보는 JSON으로 표시되며 Base64로 인코딩됩니다. 세 번째 부분은 헤더와 본문을 입력으로 사용하는 암호화 알고리즘을 사용하여 생성된 서명입니다(그림 15.1). 암호화 알고리즘은 또한 키가 필요함을 의미합니다. 키는 암호와 같습니다. 적절한 키를 가진 사람은 토큰에 서명하거나 서명이 인증되었는지 확인할 수 있습니다. 토큰의 서명이 인증된 경우 서명된 후 아무도 토큰을 변경하지 않았음을 보장합니다.
  
-Figure 15.1 A JWT is composed of three parts: the header, the body, and the signature. The header and the body contain details represented with JSON. These parts are Base64 encoded and then signed. The token is a string formed of these three parts separated by dots.
-When a JWT is signed, we also call it a JWS (JSON Web Token Signed). Usually, applying a cryptographic algorithm for signing a token is enough, but sometimes you can choose to encrypt it. If a token is signed, you can see its contents without having any key or password. But even if a hacker sees the contents in the token, they can’t change a token’s contents because if they do so, the signature becomes invalid (figure 15.2). To be valid, a signature has to
-- Be generated with the correct key
-- Match the content that was signed
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH15_F01_Spilca.png)
+
+그림 15.1 JWT는 헤더, 본문 및 서명의 세 부분으로 구성됩니다. 헤더와 본문에는 JSON으로 표시되는 세부 정보가 포함됩니다. 이러한 부분은 Base64로 인코딩된 다음 서명됩니다. 토큰은 점으로 구분된 이 세 부분으로 구성된 문자열입니다.
+
+JWT가 서명되면 JWS(JSON Web Token Signed)라고도 합니다. 일반적으로 토큰 서명에 암호화 알고리즘을 적용하면 충분하지만 때로는 암호화하도록 선택할 수도 있습니다. 토큰이 서명되면 키나 암호 없이도 내용을 볼 수 있습니다. 그러나 해커는 토큰의 내용을 보았더라도 토큰의 내용을 변경할 수 없습니다. 그렇게 하면 서명이 무효화되기 때문입니다(그림 15.2). 서명이 유효하려면
+
+- 올바른 키로 생성
+- 서명된 내용과 일치
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH15_F02_Spilca.png)
+
+그림 15.2 해커가 토큰을 가로채 내용을 변경합니다. 토큰의 서명이 더 이상 콘텐츠와 일치하지 않기 때문에 리소스 서버가 호출을 거부합니다.
+
+토큰이 암호화되면 JWE(JSON Web Token Encrypted)라고도 합니다. 유효한 키가 없으면 암호화된 토큰의 내용을 볼 수 없습니다.
+
+## 15.1.2 JWTS 발행을 위한 인증 서버 구현
+
+인증을 위해 JWT를 클라이언트에 발행하는 인증 서버를 구현합니다. 14장에서 토큰을 관리하는 구성 요소가 TokenStore라는 것을 배웠습니다. 여기서는 Spring Security에서 제공하는 TokenStore의 다른 구현을 사용하는 것입니다. 우리가 사용하는 구현의 이름은 JwtTokenStore이며 JWT를 관리합니다. 
+
+또한 인증 서버도 테스트합니다. 나중에 15.1.3에서 리소스 서버를 구현하고 JWT를 사용하는 완전한 시스템을 갖게 됩니다. 다음 두 가지 방법으로 JWT를 사용하여 토큰 유효성 검사를 구현할 수 있습니다.
+
+- 토큰 서명과 서명 확인에 동일한 키를 사용하면 키가 대칭이라고 합니다.
+
+- 하나의 키를 사용하여 토큰에 서명하고 다른 키를 사용하여 서명을 확인하는 경우 비대칭 키 쌍을 사용한다고 합니다.
+
+이 예에서는 대칭 키로 서명을 구현합니다. 이 접근 방식은 권한 부여 서버와 리소스 서버가 모두 동일한 키를 알고 사용함을 의미합니다. 인증 서버는 키로 토큰에 서명하고 리소스 서버는 동일한 키를 사용하여 서명을 확인합니다(그림 15.3).
  
-Figure 15.2 A hacker intercepts a token and changes its content. The resource server rejects the call because the signature of the token no longer matches the content.
-If a token is encrypted, we also call it a JWE (JSON Web Token Encrypted). You can’t see the contents of an encrypted token without a valid key.
-15.1.2 IMPLEMENTING AN AUTHORIZATION SERVER TO ISSUE JWTS
-In this section, we implement an authorization server that issues JWTs to a client for authorization. You learned in chapter 14 that the component managing the tokens is the TokenStore. What we do in this section is use a different implementation of the TokenStore provided by Spring Security. The name of the implementation we use is JwtTokenStore, and it manages JWTs. We also test the authorization server in this section. Later, in section 15.1.3, we’ll implement a resource server and have a complete system that uses JWTs. You can implement token validation with JWT in two ways:
-- If we use the same key for signing the token as well as for verifying the signature, we say that the key is symmetric.
-- If we use one key to sign the token but a different one to verify the signature, we say that we use an asymmetric key pair.
-In this example, we implement signing with a symmetric key. This approach implies that both the authorization server and the resource server know and use the same key. The authorization server signs the token with the key, and the resource server validates the signature using the same key (figure 15.3).
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH15_F03_Spilca.png)
  
-Figure 15.3 Using symmetric keys. Both the authorization server and the resource server share the same key. The authorization server uses the key to sign the tokens, and the resource server uses the key to validate the signature.
-Let’s create the project and add the needed dependencies. In our case, the name of the project is ssia-ch15-ex1-as. The next code snippet presents the dependencies we need to add. These are the same ones that we used for the authorization server in chapters 13 and 14.
+그림 15.3 대칭 키 사용. 인증 서버와 리소스 서버는 모두 동일한 키를 공유합니다. 인증 서버는 키를 사용하여 토큰에 서명하고 리소스 서버는 키를 사용하여 서명을 확인합니다.
+
+프로젝트를 만들고 필요한 종속성을 추가해 보겠습니다. 이 경우 프로젝트 이름은 ssia-ch15-ex1-as입니다. 다음 코드 조각은 추가해야 하는 종속성을 나타냅니다. 이것은 13장과 14장에서 인증 서버에 사용한 것과 동일합니다.
+```xml
 <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-security</artifactId>
@@ -44,15 +74,18 @@ Let’s create the project and add the needed dependencies. In our case, the nam
   <groupId>org.springframework.cloud</groupId>
   <artifactId>spring-cloud-starter-oauth2</artifactId>
 </dependency>
-We configure a JwtTokenStore in the same way we did in chapter 14 for the Jdbc-TokenStore. Additionally, we need to define an object of type JwtAccessTokenConverter. With the JwtAccessTokenConverter, we configure how the authorization server validates tokens; in our case, using a symmetric key. The following listing shows you how to configure the JwtTokenStore in the configuration class.
-Listing 15.1 Configuring the JwtTokenStore
+```
+Jdbc-TokenStore에 대해 14장에서 했던 것과 같은 방식으로 JwtTokenStore를 구성합니다. 또한 JwtAccessTokenConverter 유형의 개체를 정의해야 합니다. JwtAccessTokenConverter를 사용하여 인증 서버가 토큰의 유효성을 검사하는 방법을 구성합니다. 여기서는 대칭 키를 사용합니다. 다음 목록은 구성 클래스에서 JwtTokenStore를 구성하는 방법을 보여줍니다.
+
+**Listing 15.1** Configuring the JwtTokenStore
+```java
 @Configuration
 @EnableAuthorizationServer
 public class AuthServerConfig
   extends AuthorizationServerConfigurerAdapter {
 
   @Value("${jwt.key}")
-  private String jwtKey;                                ❶
+  private String jwtKey; ❶
 
   @Autowired
   private AuthenticationManager authenticationManager;
@@ -73,32 +106,41 @@ public class AuthServerConfig
     AuthorizationServerEndpointsConfigurer endpoints) {
       endpoints
         .authenticationManager(authenticationManager)
-        .tokenStore(tokenStore())                       ❷
-        .accessTokenConverter(                          ❷
-           jwtAccessTokenConverter());                  ❷
+        .tokenStore(tokenStore()) ❷
+        .accessTokenConverter( ❷
+           jwtAccessTokenConverter()); ❷
   }
 
   @Bean
   public TokenStore tokenStore() {
-    return new JwtTokenStore(                           ❸
-      jwtAccessTokenConverter());                       ❸
+    return new JwtTokenStore( ❸
+      jwtAccessTokenConverter()); ❸
   }
 
   @Bean
   public JwtAccessTokenConverter jwtAccessTokenConverter() {
     var converter = new JwtAccessTokenConverter();
-    converter.setSigningKey(jwtKey);                    ❹
+    converter.setSigningKey(jwtKey); ❹
     return converter;
   }
 }
-❶ Gets the value of the symmetric key from the application.properties file
-❷ Configures the token store and the access token converter objects
-❸ Creates a token store with an access token converter associated to it
-❹ Sets the value of the symmetric key for the access token converter object
-I stored the value of the symmetric key for this example in the application.properties file, as the next code snippet shows. However, don’t forget that the signing key is sensitive data, and you should store it in a secrets vault in a real-world scenario.
+```
+❶ application.properties 파일에서 대칭 키 값을 가져옵니다.
+
+❷ 토큰 저장소 및 액세스 토큰 변환기 개체 구성
+
+❸ 연결된 액세스 토큰 변환기를 사용하여 토큰 저장소를 만듭니다.
+
+❹ 액세스 토큰 변환기 개체의 대칭 키 값을 설정합니다.
+
+다음 코드 조각에서 볼 수 있듯이 이 예제의 대칭 키 값을 application.properties 파일에 저장했습니다. 그러나 서명 키는 민감한 데이터라는 사실을 잊지 마십시오. 실제 시나리오에서는 이를 비밀 금고에 저장해야 합니다.
+```yaml
 jwt.key=MjWP5L7CiD
-Remember from our previous examples with the authorization server in chapters 13 and 14 that for every authorization server, we also define a UserDetailsServer and PasswordEncoder. Listing 15.2 reminds you how to configure these components for the authorization server. To keep the explanations short, I won’t repeat the same listing for all the following examples in this chapter.
-Listing 15.2 Configuring user management for the authorization server
+```
+13장과 14장의 인증 서버에 대한 이전 예제에서 모든 인증 서버에 대해 UserDetailsServer 및 PasswordEncoder도 정의한다는 것을 기억하십시오. 목록 15.2는 권한 부여 서버에 대해 이러한 구성요소를 구성하는 방법을 알려줍니다. 설명을 짧게 유지하기 위해 이 장의 다음 모든 예에 대해 동일한 목록을 반복하지 않겠습니다.
+
+**Listing 15.2** Configuring user management for the authorization server
+```java
 @Configuration
 public class WebSecurityConfig 
   extends WebSecurityConfigurerAdapter {
@@ -128,9 +170,13 @@ public class WebSecurityConfig
       return super.authenticationManagerBean();
   }
 }
-We can now start the authorization server and call the /oauth/token endpoint to obtain an access token. The next code snippet shows you the cURL command to call the /oauth/token endpoint:
-curl -v -XPOST -u client:secret http://localhost:8080/oauth/token?grant_type=password&username=john&password=12345&scope=read
-The response body is
+```
+이제 권한 부여 서버를 시작하고 /oauth/token 엔드포인트를 호출하여 액세스 토큰을 얻을 수 있습니다. 다음 코드 스니펫은 /oauth/token 엔드포인트를 호출하는 cURL 명령을 보여줍니다.
+```bsh
+curl -v -XPOST -u 클라이언트:비밀 http://localhost:8080/oauth/token?grant_type=password&username=john&password=12345&scope=read
+```
+응답 본문은
+```json
 {
   "access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXV...",
   "token_type":"bearer",
@@ -139,7 +185,10 @@ The response body is
   "scope":"read",
   "jti":"7774532f-b74b-4e6b-ab16-208c46a19560"
 }
-You can observe in the response that both the access and the refresh tokens are now JWTs. In the code snippet, I have shortened the tokens to make the code snippet more readable. You’ll see in the response in your console that the tokens are much longer. In the next code snippet, you find the decoded (JSON) form of the token’s body:
+```
+응답에서 액세스 토큰과 리프레시 토큰이 모두 이제 JWT임을 확인할 수 있습니다. 코드 에서 더 읽기 쉽게 만들기 위해 토큰을 줄였습니다. 콘솔의 응답에서 토큰이 훨씬 더 긴 것을 볼 수 있습니다. 다음 코드 스니펫에서 토큰 본문의 디코딩된(JSON) 형식을 찾습니다.
+
+```json
 {
   "user_name": "john",
   "scope": [
@@ -155,9 +204,13 @@ You can observe in the response that both the access and the refresh tokens are 
   "jti": "38d03577-b6c8-47f5-8c06-d2e3a713d986",
   "client_id": "client"
 }
-Having set up the authorization server, we can now implement the resource server.
-15.1.3 IMPLEMENTING A RESOURCE SERVER THAT USES JWT
-In this section, we implement the resource server, which uses the symmetric key to validate tokens issued by the authorization server we set up in section 15.1.2. At the end of this section, you will know how to write a complete OAuth 2 system that uses JWTs signed using symmetric keys. We create a new project and add the needed dependencies to pom.xml, as the next code snippet presents. I named this project ssia-ch15-ex1-rs.
+```
+인증 서버를 설정했으면 이제 리소스 서버를 구현할 수 있습니다.
+
+### 15.1.3 JWT를 사용하는 리소스 서버 구현
+
+이 섹션에서는 대칭 키를 사용하여 섹션 15.1.2에서 설정한 권한 부여 서버에서 발행한 토큰의 유효성을 검사하는 리소스 서버를 구현합니다. 이 섹션의 끝에서 대칭 키를 사용하여 서명된 JWT를 사용하는 완전한 OAuth 2 시스템을 작성하는 방법을 알게 될 것입니다. 다음 코드 조각이 제시하는 것처럼 새 프로젝트를 만들고 필요한 종속성을 pom.xml에 추가합니다. 이 프로젝트의 이름을 ssia-ch15-ex1-rs로 지정했습니다.
+```xml
 <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
@@ -170,8 +223,11 @@ In this section, we implement the resource server, which uses the symmetric key 
   <groupId>org.springframework.cloud</groupId>
   <artifactId>spring-cloud-starter-oauth2</artifactId>
 </dependency>
-I didn’t add any new dependencies to what we already used in chapters 13 and 14. Because we need one endpoint to secure, I define a controller and a method to expose a simple endpoint that we use to test the resource server. The following listing defines the controller.
+```
+13장과 14장에서 이미 사용한 것에 새로운 종속성을 추가하지 않았습니다. 보안을 위해 하나의 끝점이 필요하기 때문에 컨트롤러와 메서드를 정의하여 리소스 서버를 테스트하는 데 사용하는 간단한 끝점을 노출합니다. 다음 목록은 컨트롤러를 정의합니다.
+
 Listing 15.3 The HelloController class
+```java
 @RestController
 public class HelloController {
 
@@ -180,9 +236,12 @@ public class HelloController {
     return "Hello!";
   }
 }
-Now that we have an endpoint to secure, we can declare the configuration class where we configure the TokenStore. We’ll configure the TokenStore for the resource server as we do for the authorization server. The most important aspect is to be sure we use the same value for the key. The resource server needs the key to validate a token’s signature. The next listing defines the resource server configuration class.
-Listing 15.4 The configuration class for the resource server
+```
+이제 보호할 엔드포인트가 있으므로 TokenStore를 구성하는 구성 클래스를 선언할 수 있습니다. 인증 서버에 대해 수행하는 것처럼 리소스 서버에 대해 TokenStore를 구성합니다. 가장 중요한 측면은 키에 대해 동일한 값을 사용하는지 확인하는 것입니다. 리소스 서버는 토큰의 서명을 확인하기 위해 키가 필요합니다. 다음 목록은 리소스 서버 구성 클래스를 정의합니다.
+
+**Listing 15.4** The configuration class for the resource server
 @Configuration
+```java
 @EnableResourceServer
 public class ResourceServerConfig 
   extends ResourceServerConfigurerAdapter {
@@ -208,25 +267,47 @@ public class ResourceServerConfig
     return converter;                                        ❹
   }
 }
-❶ Injects the key value from the application.properties file
-❷ Configures the TokenStore
-❸ Declares the TokenStore and adds it to the Spring context
-❹ Creates an access token converter and sets the symmetric key used to validate token signatures
-NOTE Don’t forget to set the value for the key in the application .properties file.
-A key used for symmetric encryption or signing is just a random string of bytes. You generate it using an algorithm for randomness. In our example, you can use any string value, say “abcde.” In a real-world scenario, it’s a good idea to use a randomly generated value with a length, preferably, longer than 258 bytes. For more information, I recommend Real-World Cryptography by David Wong (Manning, 2020). In chapter 8 of David Wong’s book, you’ll find a detailed discussion on randomness and secrets:
+```
+❶ application.properties 파일에서 키 값 삽입
+
+❷ TokenStore 설정
+
+❸ TokenStore 선언 및 Spring 컨텍스트에 추가
+
+❹ 액세스 토큰 변환기를 만들고 토큰 서명을 확인하는 데 사용되는 대칭 키를 설정합니다.
+
+> 참고 application.properties 파일에서 키 값을 설정하는 것을 잊지 마십시오.
+
+대칭 암호화 또는 서명에 사용되는 키는 임의의 바이트 문자열입니다. 무작위성을 위한 알고리즘을 사용하여 생성합니다. 이 예에서는 "abcde"와 같이 모든 문자열 값을 사용할 수 있습니다. 실제 시나리오에서는 길이가 바람직하게는 258바이트보다 긴 무작위로 생성된 값을 사용하는 것이 좋습니다. 자세한 내용은 David Wong의 Real-World Cryptography(Manning, 2020)를 권장합니다. David Wong의 책 8장에서 무작위성과 비밀에 대한 자세한 논의를 볼 수 있습니다.
 https://livebook.manning.com/book/real-world-cryptography/chapter-8/
-Because I run both the authorization server and the resource server locally on the same machine, I need to configure a different port for this application. The next code snippet presents the content of the application.properties file:
+
+인증 서버와 리소스 서버를 모두 동일한 시스템에서 로컬로 실행하기 때문에 이 애플리케이션에 대해 다른 포트를 구성해야 합니다. 다음 코드 조각은 application.properties 파일의 내용을 나타냅니다.
+
+```yaml
 server.port=9090
 jwt.key=MjWP5L7CiD
-We can now start our resource server and call the /hello endpoint using a valid JWT that you obtained earlier from the authorization server. You have to add the token to the Authorization HTTP header on the request prefixed with the word “Bearer” in our example. The next code snippet shows you how to call the endpoint using cURL:
-curl -H "Authorization:Bearer eyJhbGciOiJIUzI1NiIs..." http://localhost:9090/
-➥ hello
-The response body is
+```
+
+이제 리소스 서버를 시작하고 이전에 인증 서버에서 얻은 유효한 JWT를 사용하여 /hello 끝점을 호출할 수 있습니다. 이 예에서 "Bearer"라는 접두사가 붙은 요청의 Authorization HTTP 헤더에 토큰을 추가해야 합니다. 다음 코드 조각은 cURL을 사용하여 끝점을 호출하는 방법을 보여줍니다.
+
+```bsh
+curl -H "Authorization:Bearer eyJhbGciOiJIUzI1NiIs..." http://localhost:9090/hello
+```
+
+응답 본문은
+```
 Hello!
-NOTE Remember that I truncate the JWTs in the examples of this book to save space and make the call easier to read.
-You’ve just finished implementing a system that uses OAuth 2 with JWT as a token implementation. As you found out, Spring Security makes this implementation easy. In this section, you learned how to use a symmetric key to sign and validate tokens. But you might find requirements in real-world scenarios where having the same key on both authorization server and resource server is not doable. In section 15.2, you learn how to implement a similar system that uses asymmetric keys for token validation for these scenarios.
-Using symmetric keys without the Spring Security OAuth project
-As we discussed in chapter 14, you can also configure your resource server to use JWTs with oauth2ResourceServer(). As we mentioned, this approach is more advisable for future projects, but you might find it in existing apps. You, therefore, need to know this approach for future implementations and, of course, if you want to migrate an existing project to it. The next code snippet shows you how to configure JWT authentication using symmetric keys without the classes of the Spring Security OAuth project:
+```
+
+토큰 구현으로 JWT와 함께 OAuth 2를 사용하는 시스템 구현을 마쳤습니다. 알다시피 Spring Security는 이 구현을 쉽게 만듭니다. 이 섹션에서는 대칭 키를 사용하여 토큰에 서명하고 유효성을 검사하는 방법을 배웠습니다. 
+
+그러나 인증 서버와 리소스 서버 모두에서 동일한 키를 갖는 것이 불가능한 실제 시나리오에서 요구 사항을 찾을 수 있습니다. 15.2에서는 이러한 시나리오의 토큰 유효성 검사를 위해 비대칭 키를 사용하는 유사한 시스템을 구현하는 방법을 배웁니다.
+
+Spring Security OAuth 프로젝트 없이 대칭 키 사용
+
+14장에서 논의한 것처럼 oauth2ResourceServer()와 함께 JWT를 사용하도록 리소스 서버를 구성할 수도 있습니다. 언급했듯이 이 접근 방식은 향후 프로젝트에 더 적합하지만 기존 앱에서 찾을 수 있습니다. 따라서 향후 구현 및 물론 기존 프로젝트를 마이그레이션하려는 경우 이 접근 방식을 알아야 합니다. 다음 코드는 Spring Security OAuth 프로젝트의 클래스 없이 대칭 키를 사용하여 JWT 인증을 구성하는 방법을 보여줍니다.
+
+```java
 @Configuration
 public class ResourceServerConfig 
   extends WebSecurityConfigurerAdapter {
@@ -248,7 +329,11 @@ public class ResourceServerConfig
   // Omitted code
 }
 (continued)
-As you can see, this time I use the jwt() method of the Customizer object sent as a parameter to oauth2ResourceServer(). Using the jwt() method, we configure the details needed by our app to validate tokens. In this case, because we are discussing validation using symmetric keys, I create a JwtDecoder in the same class to provide the value of the symmetric key. The next code snippet shows how I set this decoder using the decoder() method:
+```
+
+보시다시피 이번에는 oauth2ResourceServer()에 매개변수로 전송된 Customizer 객체의 jwt() 메서드를 사용합니다. jwt() 메서드를 사용하여 앱에서 토큰을 확인하는 데 필요한 세부 정보를 구성합니다. 이 경우 대칭 키를 사용한 유효성 검사에 대해 논의하기 때문에 동일한 클래스에 JwtDecoder를 만들어 대칭 키 값을 제공합니다. 다음 코드 조각은 디코더() 메서드를 사용하여 이 디코더를 설정하는 방법을 보여줍니다. 
+
+```java
 @Bean
 public JwtDecoder jwtDecoder() {
   byte [] key = jwtKey.getBytes();
@@ -260,30 +345,55 @@ public JwtDecoder jwtDecoder() {
 
     return jwtDecoder;
 }
-The elements we configured are the same! It’s only the syntax that differs, if you choose to use this approach to set up your resource server. You find this example implemented in project ssia-ch15-ex1-rs-migration.
-15.2 Using tokens signed with asymmetric keys with JWT
-In this section, we implement an example of OAuth 2 authentication where the authorization server and the resource server use an asymmetric key pair to sign and validate tokens. Sometimes having only a key shared by the authorization server and the resource server, as we implemented in section 15.1, is not doable. Often, this scenario happens if the authorization server and the resource server aren’t developed by the same organization. In this case, we say that the authorization server doesn’t “trust” the resource server, so you don’t want the authorization server to share a key with the resource server. And, with symmetric keys, the resource server has too much power: the possibility of not just validating tokens, but signing them as well (figure 15.4).
- 
-Figure 15.4 If a hacker manages somehow to get a symmetric key, they can change tokens and sign them. That way, they get access to the user’s resources.
-NOTE While working as a consultant on different projects, I see cases in which symmetric keys were exchanged by mail or other unsecured channels. Never do this! A symmetric key is a private key. One having such a key can use it to access the system. My rule of thumb is if you need to share the key outside your system, it shouldn’t be symmetric.
-When we can’t assume a trustful relationship between the authorization server and the resource server, we use asymmetric key pairs. For this reason, you need to know how to implement such a system. In this section, we work on an example that shows you all the required aspects of how to achieve this goal.
-What is an asymmetric key pair and how does it work? The concept is quite simple. An asymmetric key pair has two keys: one called the private key and another called the public key. The authorization server uses the private key to sign tokens, and someone can sign tokens only by using the private key (figure 15.5).
- 
-Figure 15.5 To sign the token, someone needs to use the private key. The public key of the key pair can then be used by anyone to verify the identity of the signer.
-The public key is linked to the private key, and this is why we call it a pair. But the public key can only be used to validate the signature. No one can sign a token using the public key (figure 15.6).
- 
-Figure 15.6 If a hacker manages to obtain a public key, they won’t be able to use it tosign tokens. A public key can only be used to validate the signature.
-15.2.1 GENERATING THE KEY PAIR
-In this section, I teach you how to generate an asymmetric key pair. We need a key pair to configure the authorization server and the resource server that we implemented in sections 15.2.2 and 15.2.3. This is an asymmetric key pair (which means it has a private part used by the authorization server to sign a token and a public part used by the resource server to validate the signature). To generate the key pair, I use keytool and OpenSSL, which are two simple-to-use command-line tools. Your JDK installs keytool, so you probably already have it on your computer. For OpenSSL, you need to download it from https://www.openssl.org/. If you use Git Bash, which comes with OpenSSL, you don’t need to install it separately. I always prefer using Git Bash for these operations because it doesn’t require me to install these tools separately. Once you have the tools, you need to run two commands to
-- Generate a private key
-- Obtain the public key for the previously generated private key
-GENERATING A PRIVATE KEY
-To generate a private key, run the keytool command in the next code snippet. It generates a private key in a file named ssia.jks. I also use the password “ssia123” to protect the private key and the alias “ssia” to give the key a name. In the following command, you can see the algorithm used to generate the key, RSA:
+```
+우리가 구성한 요소는 동일합니다! 이 접근 방식을 사용하여 리소스 서버를 설정하기로 선택한 경우 구문만 다릅니다. 이 예제는 ssia-ch15-ex1-rs-migration 프로젝트에서 구현되었습니다.
+
+## 15.2 JWT에서 비대칭 키로 서명된 토큰 사용하기
+
+인증 서버와 리소스 서버가 비대칭 키 쌍을 사용하여 토큰에 서명하고 유효성을 검사하는 OAuth 2 인증의 예를 구현합니다. 때때로 15.1절에서 구현한 것처럼 인증 서버와 리소스 서버가 공유하는 키만 갖는 것은 불가능합니다. 종종 이 시나리오는 권한 부여 서버와 리소스 서버가 동일한 조직에서 개발되지 않은 경우에 발생합니다. 이 경우 권한 부여 서버가 리소스 서버를 "신뢰"하지 않으므로 권한 부여 서버가 리소스 서버와 키를 공유하는 것을 원하지 않는다고 말합니다. 그리고 대칭 키를 사용하면 리소스 서버가 너무 많은 권한을 갖게 됩니다. 즉, 토큰의 유효성을 검사할 뿐만 아니라 서명할 수도 있습니다(그림 15.4).
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH15_F04_Spilca.png)
+
+그림 15.4 해커가 어떻게든 대칭 키를 얻을 수 있다면 토큰을 변경하고 서명할 수 있습니다. 그렇게 하면 사용자의 리소스에 액세스할 수 있습니다.
+참고 다른 프로젝트에서 컨설턴트로 일하면서 메일 또는 기타 보안되지 않은 채널을 통해 대칭 키를 교환하는 경우를 봅니다. 절대 이러지 마! 대칭 키는 개인 키입니다. 그러한 키가 있는 사람은 이를 사용하여 시스템에 액세스할 수 있습니다. 제 경험 법칙은 시스템 외부에서 키를 공유해야 하는 경우 대칭이 아니어야 한다는 것입니다.
+
+인증 서버와 리소스 서버 간의 신뢰할 수 있는 관계를 가정할 수 없을 때 비대칭 키 쌍을 사용합니다. 이러한 이유로 이러한 시스템을 구현하는 방법을 알아야 합니다. 이 섹션에서는 이 목표를 달성하는 방법에 필요한 모든 측면을 보여주는 예제를 작업합니다.
+비대칭 키 쌍이란 무엇이며 어떻게 작동합니까? 개념은 아주 간단합니다. 비대칭 키 쌍에는 두 개의 키가 있습니다. 하나는 개인 키라고 하고 다른 하나는 공개 키라고 합니다. 인증 서버는 개인 키를 사용하여 토큰에 서명하고 누군가는 개인 키를 사용해야만 토큰에 서명할 수 있습니다(그림 15.5).
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH15_F05_Spilca.png)
+
+그림 15.5 토큰에 서명하려면 누군가 개인 키를 사용해야 합니다. 그런 다음 키 쌍의 공개 키는 서명자의 신원을 확인하기 위해 누구나 사용할 수 있습니다.
+
+공개 키는 개인 키와 연결되어 있으므로 쌍이라고 합니다. 그러나 공개 키는 서명을 확인하는 데만 사용할 수 있습니다. 아무도 공개 키를 사용하여 토큰에 서명할 수 없습니다(그림 15.6).
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH15_F06_Spilca.png)
+
+**그림 15.6** 해커가 공개 키를 획득하면 토큰 서명에 사용할 수 없습니다. 공개 키는 서명을 확인하는 데만 사용할 수 있습니다.
+
+### 15.2.1 키 쌍 생성
+
+비대칭 키 쌍을 생성하는 방법을 알려드립니다. 15.2.2 및 15.2.3에서 구현한 인증 서버와 리소스 서버를 구성하려면 키 쌍이 필요합니다. 이것은 비대칭 키 쌍입니다(즉, 권한 부여 서버가 토큰에 서명하는 데 사용하는 개인 부분과 서명을 확인하기 위해 리소스 서버가 사용하는 공개 부분이 있음을 의미합니다). 키 쌍을 생성하기 위해 사용하기 쉬운 두 가지 명령줄 도구인 keytool과 OpenSSL을 사용합니다. JDK는 keytool을 설치하므로 컴퓨터에 이미 있을 수 있습니다. OpenSSL의 경우 https://www.openssl.org/에서 다운로드해야 합니다. OpenSSL과 함께 제공되는 Git Bash를 사용하면 별도로 설치할 필요가 없습니다. 이러한 도구를 별도로 설치할 필요가 없기 때문에 항상 이러한 작업에 Git Bash를 사용하는 것을 선호합니다. 도구가 있으면 두 가지 명령을 실행하여
+
+- 개인 키 생성
+
+- 이전에 생성된 개인 키에 대한 공개 키를 얻습니다.
+  
+#### 개인 키 생성
+
+개인 키를 생성하려면 다음 코드 스니펫에서 keytool 명령을 실행하십시오. ssia.jks라는 파일에 개인 키를 생성합니다. 또한 개인 키를 보호하기 위해 암호 "ssia123"을 사용하고 키 이름을 지정하기 위해 별칭 "ssia"를 사용합니다. 다음 명령에서 키 RSA를 생성하는 데 사용된 알고리즘을 볼 수 있습니다.
+```bsh
 keytool -genkeypair -alias ssia -keyalg RSA -keypass ssia123 -keystore ssia.jks -storepass ssia123
-OBTAINING THE PUBLIC KEY
+```
+
+#### 공개키 생성
+
 To get the public key for the previously generated private key, you can run the keytool command:
+
+```bsh
 keytool -list -rfc --keystore ssia.jks | openssl x509 -inform pem -pubkey
-You are prompted to enter the password used when generating the public key; in my case, ssia123. Then you should find the public key and a certificate in the output. (Only the value of the key is essential for us for this example.) This key should look similar to the next code snippet:
+```
+공개 키를 생성할 때 사용한 암호를 입력하라는 메시지가 표시됩니다. 제 경우에는 ssia123입니다. 그런 다음 출력에서 공개 키와 인증서를 찾아야 합니다. (이 예에서는 키 값만 필요합니다.) 이 키는 다음 코드 조각과 유사해야 합니다.
+```
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAijLqDcBHwtnsBw+WFSzG
 VkjtCbO6NwKlYjS2PxE114XWf9H2j0dWmBu7NK+lV/JqpiOi0GzaLYYf4XtCJxTQ
@@ -293,15 +403,26 @@ pJGmVWzcV/OBXQZkd1LHOK5LEG0YCQ0jAU3ON7OZAnFn/DMJyDCky994UtaAYyAJ
 Ycsp48qtUv1TWp+TH3kooTM6eKcnpSweaYDvHd/ucNg8UDNpIqynM1eS7KpffKQm
 DwIDAQAB
 -----END PUBLIC KEY-----
-That’s it! We have a private key we can use to sign JWTs and a public key we can use to validate the signature. Now we just have to configure these in our authorization and resource servers.
-15.2.2 IMPLEMENTING AN AUTHORIZATION SERVER THAT USES PRIVATE KEYS
-In this section, we configure the authorization server to use a private key for signing JWTs. In section 15.2.1, you learned how to generate a private and public key. For this section, I create a separate project called ssia-ch15-ex2-as, but I use the same dependencies in the pom.xml file as for the authorization server we implemented in section 15.1.
-I copy the private key file, ssia.jks, in the resources folder of my application. I add the key in the resources folder because it’s easier for me to read it directly from the classpath. However, it’s not mandatory to be in the classpath. In the application.properties file, I store the filename, the alias of the key, and the password I used to protect the private key when I generated the password. We need these details to configure JwtTokenStore. The next code snippet shows you the contents of my application.properties file:
+```
+
+그게 다야! JWT에 서명하는 데 사용할 수 있는 개인 키와 서명을 확인하는 데 사용할 수 있는 공개 키가 있습니다. 이제 권한 부여 및 리소스 서버에서 구성하기만 하면 됩니다.
+
+### 15.2.2 개인 키를 사용하는 인증 서버 구현
+
+JWT 서명에 개인 키를 사용하도록 권한 부여 서버를 구성합니다. 15.2.1에서 개인 키와 공개 키를 생성하는 방법을 배웠습니다. 여기서는 ssia-ch15-ex2-as라는 별도의 프로젝트를 생성하지만 15.1에서 구현한 인증 서버와 동일한 종속성을 pom.xml 파일에서 사용합니다.
+
+resource 폴더에 개인 키 파일인 ssia.jks를 복사합니다. 클래스 경로에서 직접 읽기 쉽기 때문에 resource 폴더에 키를 추가합니다. 그러나 클래스 경로에 반드시 있어야 하는 것은 아닙니다. application.properties 파일에는 파일 이름, 키 별칭, 암호를 생성할 때 개인 키를 보호하는 데 사용한 암호를 저장합니다. JwtTokenStore를 구성하려면 이러한 세부 정보가 필요합니다. 다음은 application.properties 파일의 내용을 보여줍니다.
+
+```yaml
 password=ssia123
 privateKey=ssia.jks
 alias=ssia
-Compared with the configurations we did for the authorization server to use a symmetric key, the only thing that changes is the definition of the JwtAccessTokenConverter object. We still use JwtTokenStore. If you remember, we used JwtAccessTokenConverter to configure the symmetric key in section 15.1. We use the same JwtAccessTokenConverter object to set up the private key. The following listing shows the configuration class of the authorization server.
-Listing 15.5 The configuration class for the authorization server and private keys
+```
+인증 서버가 대칭 키를 사용하기 위해 수행한 구성과 비교할 때 변경되는 유일한 것은 JwtAccessTokenConverter 객체의 정의입니다. 여전히 JwtTokenStore를 사용합니다. 15.1절에서 대칭 키를 구성하기 위해 JwtAccessTokenConverter를 사용했습니다. 동일한 JwtAccessTokenConverter 객체를 사용하여 개인 키를 설정합니다. 다음 목록은 권한 부여 서버의 구성 클래스를 보여줍니다.
+
+목록 15.5 인증 서버 및 개인 키에 대한 구성 클래스
+
+```java
 @Configuration
 @EnableAuthorizationServer
 public class AuthServerConfig
@@ -337,12 +458,21 @@ public class AuthServerConfig
     return converter;
   }
 }
-❶ Injects the name of the private key file, the alias, and the password from the application.properties file
-❷ Creates a KeyStoreKeyFactory object to read the private key file from the classpath
-❸ Uses the KeyStoreKeyFactory object to retrieve the key pair and sets the key pair to the JwtAccessTokenConverter object
-You can now start the authorization server and call the /oauth/token endpoint to generate a new access token. Of course, you only see a normal JWT created, but the difference is now that to validate its signature, you need to use the public key in the pair. By the way, don’t forget the token is only signed, not encrypted. The next code snippet shows you how to call the /oauth/token endpoint:
+```
+❶ application.properties 파일에서 private key 파일명, alias, 패스워드 삽입
+
+❷ 클래스 경로에서 개인 키 파일을 읽을 KeyStoreKeyFactory 객체 생성
+
+❸ KeyStoreKeyFactory 객체를 사용하여 키 쌍을 검색하고 키 쌍을 JwtAccessTokenConverter 객체로 설정합니다.
+
+이제 권한 부여 서버를 시작하고 /oauth/token 엔드포인트를 호출하여 새 액세스 토큰을 생성할 수 있습니다. 물론 생성된 일반 JWT만 볼 수 있지만 서명을 확인하려면 쌍에서 공개 키를 사용해야 한다는 차이점이 있습니다. 그건 그렇고, 토큰은 암호화되지 않고 서명만 된다는 것을 잊지 마십시오. 다음 코드는 /oauth/token 엔드포인트를 호출하는 방법을 보여줍니다.
+
+```bsh
 curl -v -XPOST -u client:secret "http://localhost:8080/oauth/token?grant_type=password&username=john&passwopa=12345&scope=read"
+```
 The response body is
+
+```json
 {
   "access_token":"eyJhbGciOiJSUzI1NiIsInR5...",
   "token_type":"bearer",
@@ -351,19 +481,28 @@ The response body is
   "scope":"read",
   "jti":"8e74dd92-07e3-438a-881a-da06d6cbbe06"
 }
-15.2.3 IMPLEMENTING A RESOURCE SERVER THAT USES PUBLIC KEYS
-In this section, we implement a resource server that uses the public key to verify the token’s signature. When we finish this section, you’ll have a full system that implements authentication over OAuth 2 and uses a public-private key pair to secure the tokens. The authorization server uses the private key to sign the tokens, and the resource server uses the public one to validate the signature. Mind, we use the keys only to sign the tokens and not to encrypt them. I named the project we work on to implement this resource server ssia-ch15-ex2-rs. We use the same dependencies in pom.xml as for the examples in the previous sections of this chapter.
-The resource server needs to have the public key of the pair to validate the token’s signature, so let’s add this key to the application.properties file. In section 15.2.1, you learned how to generate the public key. The next code snippet shows the content of my application.properites file:
+```
+
+### 15.2.3 공개 키를 사용하는 리소스 서버 구현
+
+공개 키를 사용하여 토큰의 서명을 확인하는 리소스 서버를 구현합니다. 이 섹션을 마치면 OAuth 2를 통한 인증을 구현하고 공개-개인 키 쌍을 사용하여 토큰을 보호하는 전체 시스템을 갖게 됩니다. 인증 서버는 개인 키를 사용하여 토큰에 서명하고 리소스 서버는 공개 키를 사용하여 서명을 확인합니다. 우리는 토큰에 서명할 때만 키를 사용하고 암호화하지 않습니다. 이 리소스 서버를 구현하기 위해 작업하는 프로젝트의 이름을 ssia-ch15-ex2-rs로 지정했습니다. 이 장의 이전 섹션에 있는 예제와 동일한 종속성을 pom.xml에서 사용합니다.
+
+리소스 서버는 토큰 서명의 유효성을 검사하기 위해 쌍의 공개 키가 있어야 하므로 이 키를 application.properties 파일에 추가해 보겠습니다. 섹션 15.2.1에서 공개 키를 생성하는 방법을 배웠습니다. 다음 코드 조각은 내 application.properites 파일의 내용을 보여줍니다.
+
+```yaml
 server.port=9090
 publicKey=-----BEGIN PUBLIC KEY-----MIIBIjANBghk...-----END PUBLIC KEY-----
-I abbreviated the public key for better readability. The following listing shows you how to configure this key in the configuration class of the resource server.
-Listing 15.6 The configuration class for the resource server and public keys
+```
+더 나은 가독성을 위해 공개 키를 축약했습니다. 다음 목록은 리소스 서버의 구성 클래스에서 이 키를 구성하는 방법을 보여줍니다.
+
+**목록 15.6** 리소스 서버 및 공개 키에 대한 구성 클래스
+```java
 @Configuration
 @EnableResourceServer
 public class ResourceServerConfig 
   extends ResourceServerConfigurerAdapter {
 
-  @Value("${publicKey}")                           ❶
+  @Value("${publicKey}") ❶
   private String publicKey;
 
   @Override
@@ -373,21 +512,24 @@ public class ResourceServerConfig
 
   @Bean
   public TokenStore tokenStore() {
-    return new JwtTokenStore(                      ❷
-       jwtAccessTokenConverter());                 ❷
+    return new JwtTokenStore( ❷
+       jwtAccessTokenConverter()); ❷
   }
 
   @Bean
   public JwtAccessTokenConverter jwtAccessTokenConverter() {
     var converter = new JwtAccessTokenConverter();
-    converter.setVerifierKey(publicKey);           ❸
+    converter.setVerifierKey(publicKey); ❸
     return converter;
   }
 }
-❶ Injects the key from the application.properties file
-❷ Creates and adds a JwtTokenStore in the Spring context
-❸ Sets the public key that the token store uses to validate tokens
-Of course, to have an endpoint, we also need to add the controller. The next code snippet defines the controller:
+```
+❶ application.properties 파일에서 키 삽입
+❷ Spring 컨텍스트에서 JwtTokenStore 생성 및 추가
+❸ 토큰 저장소가 토큰의 유효성을 검사하는 데 사용하는 공개 키를 설정합니다.
+물론 엔드포인트가 있으려면 컨트롤러도 추가해야 합니다. 다음 코드 스니펫은 컨트롤러를 정의합니다.
+
+```java
 @RestController
 public class HelloController {
 
@@ -396,15 +538,22 @@ public class HelloController {
     return "Hello!";
   }
 }
+```
 Let’s run and call the endpoint to test the resource server. Here’s the command:
+```bsh
 curl -H "Authorization:Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6I..." http://localhost:9090/hello
+```
 The response body is
+```
 Hello!
-Using asymmetric keys without the Spring Security OAuth project
-In this sidebar, we discuss the changes you need to make to migrate your resource server using the Spring Security OAuth project to a simple Spring Security one if the app uses asymmetric keys for token validation. Actually, using asymmetric keys doesn’t differ too much from using a project with symmetric keys. The only change is the JwtDecoder you need to use. In this case, instead of configuring the symmetric key for token validation, you need to configure the public part of the key pair. The following code snippet shows how to do this:
+```
+> Spring Security OAuth 프로젝트 없이 비대칭 키 사용
+>
+> 이 사이드바에서는 앱이 토큰 유효성 검사에 비대칭 키를 사용하는 경우 Spring Security OAuth 프로젝트를 사용하여 리소스 서버를 간단한 Spring Security 프로젝트로 마이그레이션하기 위해 수행해야 하는 변경 사항에 대해 설명합니다. 실제로 비대칭 키를 사용하는 것은 대칭 키가 있는 프로젝트를 사용하는 것과 크게 다르지 않습니다. 유일한 변경 사항은 사용해야 하는 JwtDecoder입니다. 이 경우 토큰 유효성 검사를 위해 대칭 키를 구성하는 대신 키 쌍의 공개 부분을 구성해야 합니다. 다음 코드는 이 작업을 수행하는 방법을 보여줍니다.
+
+```java
 public JwtDecoder jwtDecoder() {
-  try {
-    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+  try {   KeyFactory keyFactory = KeyFactory.getInstance("RSA");
     var key = Base64.getDecoder().decode(publicKey);
 
     var x509 = new X509EncodedKeySpec(key);
@@ -414,7 +563,10 @@ public JwtDecoder jwtDecoder() {
     throw new RuntimeException("Wrong public key");
   }
 }
-Once you have a JwtDecoder using the public key to validate tokens, you need to set up the decoder using the oauth2ResourceServer() method. You do this like a symmetric key. The next code snippet shows how to do this. You find this example implemented in the project ssia-ch15-ex2-rs-migration.
+```
+토큰의 유효성을 검사하기 위해 공개 키를 사용하는 JwtDecoder가 있으면 oauth2ResourceServer() 메서드를 사용하여 디코더를 설정해야 합니다. 대칭 키처럼 이 작업을 수행합니다. 다음 코드는 이 작업을 수행하는 방법을 보여줍니다. 이 예제는 ssia-ch15-ex2-rs-migration 프로젝트에서 구현되었습니다.
+
+```java
 @Configuration
 public class ResourceServerConfig 
 extends WebSecurityConfigurerAdapter {
@@ -435,16 +587,28 @@ extends WebSecurityConfigurerAdapter {
 
   // Omitted code
 }
-15.2.4 USING AN ENDPOINT TO EXPOSE THE PUBLIC KEY
-In this section, we discuss a way of making the public key known to the resource server--the authorization server exposes the public key. In the system we implemented in section 15.2, we use private-public key pairs to sign and validate tokens. We configured the public key at the resource server side. The resource server uses the public key to validate JWTs. But what happens if you want to change the key pair? It is a good practice not to keep the same key pair forever, and this is what you learn to implement in this section. Over time, you should rotate the keys! This makes your system less vulnerable to key theft (figure 15.7).
+```
+
+### 15.2.4 엔드포인트를 사용하여 공개 키 노출
+
+공개 키를 리소스 서버에 알리는 방법에 대해 설명합니다. 권한 부여 서버는 공개 키를 노출합니다. 15.2에서 구현한 시스템에서 개인-공개 키 쌍을 사용하여 토큰에 서명하고 유효성을 검사합니다. 리소스 서버 측에서 공개 키를 구성했습니다. 리소스 서버는 공개 키를 사용하여 JWT의 유효성을 검사합니다. 그러나 키 쌍을 변경하려는 경우 어떻게 됩니까? 동일한 키 쌍을 영원히 유지하지 않는 것이 좋은 방법이며 이것이 이 섹션에서 구현하는 방법입니다. 시간이 지남에 따라 키를 회전해야 합니다! 이렇게 하면 시스템이 키 도난에 덜 취약해집니다(그림 15.7).
  
-Figure 15.7 If the keys are changed periodically, the system is less vulnerable to key theft. But if the keys are configured in both applications, it’s more difficult to rotate them.
-Up to now, we have configured the private key on the authorization server side and the public key on the resource server side (figure 15.7). Being set in two places makes the keys more difficult to manage. But if we configure them on one side only, you could manage the keys easier. The solution is moving the whole key pair to the authorization server side and allowing the authorization server to expose the public keys with an endpoint (figure 15.8).
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH15_F07_Spilca.png)
+
+그림 15.7 키가 주기적으로 변경되면 시스템은 키 도난에 덜 취약합니다. 그러나 키가 두 애플리케이션 모두에 구성되어 있으면 키를 회전하기가 더 어렵습니다.
+
+지금까지 인증 서버 측에 개인 키를 구성하고 리소스 서버 측에 공개 키를 구성했습니다(그림 15.7). 두 위치에 설정하면 키를 관리하기가 더 어려워집니다. 그러나 한 쪽에서만 구성하면 키를 더 쉽게 관리할 수 있습니다. 솔루션은 전체 키 쌍을 인증 서버 측으로 이동하고 인증 서버가 엔드포인트와 함께 공개 키를 노출하도록 허용합니다(그림 15.8).
  
-Figure 15.8 Both keys are configured at the authorization server. To get the public key, the resource server calls an endpoint from the authorization server. This approach allows us to rotate keys easier, as we only have to configure them in one place.
-We work on a separate application to prove how to implement this configuration with Spring Security. You can find the authorization server for this example in project ssia-ch15-ex3-as and the resource server of this example in project ssia-ch15-ex3-rs.
-For the authorization server, we keep the same setup as for the project we developed in section 15.2.3. We only need to make sure we make accessible the endpoint, which exposes the public key. Yes, Spring Boot already configures such an endpoint, but it’s just that. By default, all requests for it are denied. We need to override the endpoint’s configuration and allow anyone with client credentials to access it. In listing 15.7, you find the changes you need to make to the authorization server’s configuration class. These configurations allow anyone with valid client credentials to call the endpoint to obtain the public key.
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH15_F08_Spilca.png)
+
+그림 15.8 두 키 모두 인증 서버에서 구성됩니다. 공개 키를 가져오기 위해 리소스 서버는 권한 부여 서버에서 끝점을 호출합니다. 이 접근 방식을 사용하면 키를 한 곳에서만 구성하면 되므로 키를 더 쉽게 회전할 수 있습니다.
+
+우리는 Spring Security로 이 구성을 구현하는 방법을 증명하기 위해 별도의 애플리케이션에서 작업합니다. 프로젝트 ssia-ch15-ex3-as에서 이 예제에 대한 권한 부여 서버를, 프로젝트 ssia-ch15-ex3-rs에서 이 예제의 리소스 서버를 찾을 수 있습니다.
+
+인증 서버의 경우 15.2.3에서 개발한 프로젝트와 동일한 설정을 유지합니다. 공개 키를 노출하는 엔드포인트에 액세스할 수 있도록 하기만 하면 됩니다. 예, Spring Boot는 이미 그러한 끝점을 구성하지만 단지 그 뿐입니다. 기본적으로 모든 요청이 거부됩니다. 끝점의 구성을 재정의하고 클라이언트 자격 증명을 가진 모든 사람이 액세스할 수 있도록 해야 합니다. 목록 15.7에서 인증 서버의 구성 클래스에 대해 변경해야 할 사항을 찾을 수 있습니다. 이러한 구성을 통해 유효한 클라이언트 자격 증명을 가진 사람은 누구나 엔드포인트를 호출하여 공개 키를 얻을 수 있습니다.
+
 Listing 15.7 The configuration class for the authorization server exposing public keys
+```java
 @Configuration
 @EnableAuthorizationServer
 public class AuthServerConfig
@@ -474,61 +638,97 @@ public class AuthServerConfig
                   ("isAuthenticated()");           ❷
     }
 }
-❶ Adds the client credentials used by the resource server to call the endpoint, which exposes the public key
-❷ Configures the authorization server to expose the endpoint for the public key for any request authenticated with valid client credentials
-You can start the authorization server and call the /oauth/token_key endpoint to make sure you correctly implement the configuration. The next code snippet shows you the cURL call:
+```
+❶ 리소스 서버가 엔드포인트를 호출하는 데 사용하는 클라이언트 자격 증명을 추가하여 공개 키를 노출합니다.
+❷ 유효한 클라이언트 자격 증명으로 인증된 모든 요청에 대해 공개 키에 대한 끝점을 노출하도록 권한 부여 서버를 구성합니다.
+권한 부여 서버를 시작하고 /oauth/token_key 엔드포인트를 호출하여 구성을 올바르게 구현했는지 확인할 수 있습니다.
+
+```json
 curl -u resourceserver:resourceserversecret http://localhost:8080/oauth/token_key
+```
 The response body is
+```json
 {
   "alg":"SHA256withRSA",
   "value":"-----BEGIN PUBLIC KEY----- nMIIBIjANBgkq... -----END PUBLIC KEY-----"
 }
-For the resource server to use this endpoint and obtain the public key, you only need to configure the endpoint and the credentials in its properties file. The next code snippet defines the application.properties file of the resource server:
-server.port=9090
+```
+리소스 서버가 이 끝점을 사용하고 공개 키를 얻으려면 속성 파일에서 끝점과 자격 증명만 구성하면 됩니다. 다음 코드 조각은 리소스 서버의 application.properties 파일을 정의합니다.
 
+```yaml
+server.port=9090
 security.oauth2.resource.jwt.key-uri=http://localhost:8080/oauth/token_key
 
 security.oauth2.client.client-id=resourceserver
 security.oauth2.client.client-secret=resourceserversecret
-Because the resource server now takes the public key from the /oauth/token_key endpoint of the authorization server, you don’t need to configure it in the resource server configuration class. The configuration class of the resource server can remain empty, as the next code snippet shows:
+```
+리소스 서버는 이제 인증 서버의 /oauth/token_key 끝점에서 공개 키를 가져오기 때문에 리소스 서버 구성 클래스에서 구성할 필요가 없습니다. 다음 코드 조각에서 볼 수 있듯이 리소스 서버의 구성 클래스는 비어 있을 수 있습니다.
+
+```java
 @Configuration
 @EnableResourceServer
 public class ResourceServerConfig 
   extends ResourceServerConfigurerAdapter {
 }
-You can start the resource server as well now and call the /hello endpoint it exposes to see that the entire setup works as expected. The next code snippet shows you how to call the /hello endpoint using cURL. Here, you obtain a token as we did in section 15.2.3 and use it to call the test endpoint of the resource server:
+```
+이제 리소스 서버를 시작하고 노출되는 /hello 끝점을 호출하여 전체 설정이 예상대로 작동하는지 확인할 수 있습니다. 다음 코드 조각은 cURL을 사용하여 /hello 엔드포인트를 호출하는 방법을 보여줍니다. 여기에서 섹션에서 했던 것처럼 토큰을 얻습니다.
+
+15.2.3을 사용하여 리소스 서버의 테스트 끝점을 호출합니다.
+
+```sh
 curl -H "Authorization:Bearer eyJhbGciOiJSUzI1NiIsInR5cCI..." http://localhost:9090/hello
+```
+
 The response body is
+```
 Hello!
-15.3 Adding custom details to the JWT
-In this section, we discuss adding custom details to the JWT token. In most cases, you need no more than what Spring Security already adds to the token. However, in real-world scenarios, you’ll sometimes find requirements for which you need to add custom details in the token. In this section, we implement an example in which you learn how to change the authorization server to add custom details on the JWT and how to change the resource server to read these details. If you take one of the tokens we generated in previous examples and decode it, you see the defaults that Spring Security adds to the token. The following listing presents these defaults.
-Listing 15.8 The default details in the body of a JWT issued by the authorization server
+```
+
+## 15.3 JWT에 사용자 지정 세부 정보 추가
+
+이 섹션에서는 JWT 토큰에 사용자 지정 세부 정보를 추가하는 방법에 대해 설명합니다. 대부분의 경우 Spring Security가 이미 토큰에 추가한 것 이상은 필요하지 않습니다. 그러나 실제 시나리오에서는 토큰에 사용자 지정 세부 정보를 추가해야 하는 요구 사항을 찾을 수 있습니다. 이 섹션에서는 JWT에 사용자 지정 세부 정보를 추가하도록 권한 부여 서버를 변경하는 방법과 이러한 세부 정보를 읽도록 리소스 서버를 변경하는 방법을 배우는 예제를 구현합니다. 이전 예제에서 생성한 토큰 중 하나를 가져와 디코딩하면 Spring Security가 토큰에 추가하는 기본값을 볼 수 있습니다. 다음 목록은 이러한 기본값을 나타냅니다.
+
+**목록 15.8** 권한 부여 서버에서 발행한 JWT 본문의 기본 세부 정보
+```json
 {
-  "exp": 1582581543,                                 ❶
-  "user_name": "john",                               ❷
-  "authorities": [                                   ❸
+  "exp": 1582581543, ❶
+  "user_name": "john", ❷
+  "authorities": [ ❸
     "read"
   ],
-  "jti": "8e208653-79cf-45dd-a702-f6b694b417e7",     ❹
-  "client_id": "client",                             ❺
-  "scope": [                                         ❻
+  "jti": "8e208653-79cf-45dd-a702-f6b694b417e7", ❹
+  "client_id": "client", ❺
+  "scope": [ ❻
     "read"
   ]
 }
-❶ The timestamp when the token expires
-❷ The user that authenticated to allow the client to access their resources
-❸ The permissions granted to the user
-❹ A unique identifier of the token
-❺ The client that requested the token
-❻ The permissions granted to the client
-As you can see in listing 15.8, by default, a token generally stores all the details needed for Basic authorization. But what if the requirements of your real-world scenarios ask for something more? Some examples might be
-- You use an authorization server in an application where your readers review books. Some endpoints should only be accessible for users who have given more than a specific number of reviews.
-- You need to allow calls only if the user authenticated from a specific time zone.
-- Your authorization server is a social network, and some of your endpoints should be accessible only by users having a minimum number of connections.
-For my first example, you need to add the number of reviews to the token. For the second, you add the time zone from where the client connected. For the third example, you need to add the number of connections for the user. No matter which is your case, you need to know how to customize JWTs.
-15.3.1 CONFIGURING THE AUTHORIZATION SERVER TO ADD CUSTOM DETAILS TO TOKENS
-In this section, we discuss the changes we need to make to the authorization server for adding custom details to tokens. To make the example simple, I suppose that the requirement is to add the time zone of the authorization server itself. The project I work on for this example is ssia-ch15-ex4-as. To add additional details to your token, you need to create an object of type TokenEnhancer. The following listing defines the TokenEnhancer object I created for this example.
-Listing 15.9 A custom token enhancer
+```
+❶ 토큰이 만료되는 타임스탬프
+
+❷ 클라이언트가 자신의 리소스에 액세스할 수 있도록 인증한 사용자
+
+❸ 사용자에게 부여된 권한
+
+❹ 토큰의 고유 식별자
+
+❺ 토큰을 요청한 클라이언트
+
+❻ 클라이언트에게 부여된 권한
+
+목록 15.8에서 볼 수 있듯이 기본적으로 토큰은 일반적으로 기본 인증에 필요한 모든 세부 정보를 저장합니다. 그러나 실제 시나리오의 요구 사항이 더 많은 것을 요구한다면 어떻게 될까요? 몇 가지 예는 다음과 같습니다.
+
+- 독자가 책을 검토하는 응용 프로그램에서 권한 부여 서버를 사용합니다. 일부 엔드포인트는 특정 수 이상의 리뷰를 제공한 사용자만 액세스할 수 있어야 합니다.
+- 사용자가 특정 시간대에서 인증된 경우에만 통화를 허용해야 합니다.
+- 인증 서버는 소셜 네트워크이며 일부 엔드포인트는 최소 연결 수를 가진 사용자만 액세스할 수 있어야 합니다.
+-
+첫 번째 예에서는 토큰에 리뷰 수를 추가해야 합니다. 두 번째로 클라이언트가 연결된 시간대를 추가합니다. 세 번째 예의 경우 사용자에 대한 연결 수를 추가해야 합니다. 어떤 경우이든 JWT를 사용자 정의하는 방법을 알아야 합니다.
+
+### 15.3.1 토큰에 사용자 지정 세부 정보를 추가하도록 인증 서버 구성
+
+토큰에 사용자 지정 세부 정보를 추가하기 위해 인증 서버에 적용해야 하는 변경 사항에 대해 설명합니다. 예제를 간단하게 하기 위해 인증 서버 자체의 시간대를 추가하는 것이 요구 사항이라고 가정합니다. 이 예제에서 내가 작업하는 프로젝트는 ssia-ch15-ex4-as입니다. 토큰에 세부 정보를 추가하려면 TokenEnhancer 유형의 개체를 생성해야 합니다. 다음 목록은 이 예제를 위해 만든 TokenEnhancer 개체를 정의합니다.
+
+Listing 15.9 커스텀 토큰 인핸서
+```java
 public class CustomTokenEnhancer 
   implements TokenEnhancer {                            ❶
 
@@ -549,14 +749,23 @@ public class CustomTokenEnhancer
       return token;                                     ❻
   }
 }
-❶ Implements the TokenEnhancer contract
-❷ Overrides the enhance() method, which receives the current token and returns the enhanced token
-❸ Creates a new token object based on the one we received
-❹ Defines as a Map the details we want to add to the token
-❺ Adds the additional details to the token
-❻ Returns the token containing the additional details
-The enhance() method of a TokenEnhancer object receives as a parameter the token we enhance and returns the “enhanced” token, containing the additional details. For this example, I use the same application we developed in section 15.2 and only change the configure() method to apply the token enhancer. The following listing presents these changes.
-Listing 15.10 Configuring the TokenEnhancer object
+```
+❶ TokenEnhancer 계약 이행
+
+❷ 현재 토큰을 받고 향상된 토큰을 반환하는 향상() 메서드를 재정의합니다.
+
+❸ 수신한 토큰을 기반으로 새 토큰 개체를 만듭니다.
+
+❹ 토큰에 추가하려는 세부 정보를 Map으로 정의합니다.
+
+❺ 토큰에 추가 세부 정보 추가
+
+❻ 추가 세부 정보가 포함된 토큰을 반환합니다.
+
+TokenEnhancer 객체의 enhanced() 메서드는 우리가 강화한 토큰을 매개변수로 수신하고 추가 세부 정보가 포함된 "향상된" 토큰을 반환합니다. 이 예에서는 섹션 15.2에서 개발한 것과 동일한 애플리케이션을 사용하고 토큰 인핸서를 적용하기 위해 configure() 메서드만 변경합니다. 다음 목록은 이러한 변경 사항을 나타냅니다.
+
+목록 15.10 TokenEnhancer 객체 구성하기
+```java
 @Configuration
 @EnableAuthorizationServer
 public class AuthServerConfig
@@ -585,14 +794,26 @@ public class AuthServerConfig
 
    }
 }
-❶ Defines a TokenEnhancerChain
-❷ Adds our two token enhancer objects to a list
-❸ Adds the token enhancer’s list to the chain
-❹ Configures the token enhancer objects
-As you can observe, configuring our custom token enhancer is a bit more complicated. We have to create a chain of token enhancers and set the entire chain instead of only one object, because the access token converter object is also a token enhancer. If we configure only our custom token enhancer, we would override the behavior of the access token converter. Instead, we add both in a chain of responsibilities, and we configure the chain containing both objects.
-Let’s start the authorization server, generate a new access token, and inspect it to see how it looks. The next code snippet shows you how to call the /oauth/token endpoint to obtain the access token:
+```
+❶ TokenEnhancerChain 정의
+
+❷ 두 개의 토큰 강화 개체를 목록에 추가합니다.
+
+❸ 토큰 강화기의 목록을 체인에 추가합니다.
+
+❹ 토큰 인핸서 개체를 구성합니다.
+
+보시다시피 커스텀 토큰 인핸서를 구성하는 것은 조금 더 복잡합니다. 액세스 토큰 변환기 개체도 토큰 향상기이기 때문에 토큰 향상기 체인을 만들고 하나의 개체 대신 전체 체인을 설정해야 합니다. 사용자 지정 토큰 향상기만 구성하면 액세스 토큰 변환기의 동작을 재정의합니다. 대신 책임 체인에 두 가지를 모두 추가하고 두 개체를 모두 포함하는 체인을 구성합니다.
+
+인증 서버를 시작하고 새 액세스 토큰을 생성하고 어떻게 보이는지 검사해 보겠습니다. 다음 코드 조각은 /oauth/token 엔드포인트를 호출하여 액세스 토큰을 얻는 방법을 보여줍니다.
+
+```sh
 curl -v -XPOST -u client:secret "http://localhost:8080/oauth/token?grant_type=password&username=john&password=12345&scope=read"
+```
+
 The response body is
+
+```json
 {
   "access_token":"eyJhbGciOiJSUzI...",
   "token_type":"bearer",
@@ -602,8 +823,11 @@ The response body is
   "generatedInZone":"Europe/Bucharest",
   "jti":"0c39ace4-4991-40a2-80ad-e9fdeb14f9ec"
 }
-If you decode the token, you can see that its body looks like the one presented in listing 15.11. You can further observe that the framework adds the custom details, by default, in the response as well. But I recommend you always refer to any information from the token. Remember that by signing the token, we make sure that if anybody alters the content of the token, the signature doesn’t get validated. This way, we know that if the signature is correct, nobody changed the contents of the token. You don’t have the same guarantee on the response itself.
+```
+토큰을 디코딩하면 본문이 목록 15.11에 표시된 것과 같은 것을 볼 수 있습니다. 프레임워크가 기본적으로 응답에서도 사용자 지정 세부 정보를 추가하는 것을 추가로 관찰할 수 있습니다. 그러나 항상 토큰의 모든 정보를 참조하는 것이 좋습니다. 토큰에 서명함으로써 누군가가 토큰의 내용을 변경하더라도 서명의 유효성이 검사되지 않는다는 것을 기억하십시오. 이렇게 하면 서명이 정확하면 아무도 토큰의 내용을 변경하지 않았음을 알 수 있습니다. 응답 자체에 대해 동일한 보장이 없습니다.
+
 Listing 15.11 The body of the enhanced JWT
+```json
 {
   "user_name": "john",
   "scope": [
@@ -617,18 +841,27 @@ Listing 15.11 The body of the enhanced JWT
   "jti": "0c39ace4-4991-40a2-80ad-e9fdeb14f9ec",
   "client_id": "client"
 }
-❶ The custom details we added appear in the token’s body.
-15.3.2 CONFIGURING THE RESOURCE SERVER TO READ THE CUSTOM DETAILS OF A JWT
-In this section, we discuss the changes we need to do to the resource server to read the additional details we added to the JWT. Once you change your authorization server to add custom details to a JWT, you’d like the resource server to be able to read these details. The changes you need to do in your resource server to access the custom details are straightforward. You find the example we work on in this section in the ssia-ch15-ex4-rs project.
-We discussed in section 15.1 that AccessTokenConverter is the object that converts the token to an Authentication. This is the object we need to change so that it also takes into consideration the custom details in the token. Previously, you created a bean of type JwtAccessTokenConverter, as shown in the next code snippet:
+```
+❶ 추가한 사용자 정의 세부 정보는 토큰 본문에 나타납니다.
+
+### 15.3.2 JWT의 사용자 지정 세부 정보를 읽도록 리소스 서버 구성
+
+JWT에 추가한 추가 세부 정보를 읽기 위해 리소스 서버에 수행해야 하는 변경 사항에 대해 설명합니다. JWT에 사용자 지정 세부 정보를 추가하도록 권한 부여 서버를 변경하면 리소스 서버가 이러한 세부 정보를 읽을 수 있기를 원합니다. 사용자 지정 세부 정보에 액세스하기 위해 리소스 서버에서 수행해야 하는 변경 사항은 간단합니다. ssia-ch15-ex4-rs 프로젝트의 이 섹션에서 작업하는 예제를 찾을 수 있습니다.
+
+15.1절에서 AccessTokenConverter가 토큰을 인증으로 변환하는 객체라는 것을 논의했습니다. 이것은 토큰의 사용자 지정 세부 정보도 고려하도록 변경해야 하는 개체입니다. 이전에는 다음 코드 스니펫에 표시된 것처럼 JwtAccessTokenConverter 유형의 빈을 생성했습니다. 
+
+```java
 @Bean
 public JwtAccessTokenConverter jwtAccessTokenConverter() {
   var converter = new JwtAccessTokenConverter();
   converter.setSigningKey(jwtKey);   
   return converter;
 }
-We used this token to set the key used by the resource server for token validation. We create a custom implementation of JwtAccessTokenConverter, which also takes into consideration our new details on the token. The simplest way is to extend this class and override the extractAuthentication() method. This method converts the token in an Authentication object. The next listing shows you how to implement a custom AcessTokenConverter.
-Listing 15.12 Creating a custom AccessTokenConverter
+```
+이 토큰을 사용하여 토큰 유효성 검사를 위해 리소스 서버에서 사용하는 키를 설정했습니다. 토큰에 대한 새로운 세부 정보도 고려하는 JwtAccessTokenConverter의 사용자 지정 구현을 만듭니다. 가장 간단한 방법은 이 클래스를 확장하고 extractAuthentication() 메서드를 재정의하는 것입니다. 이 메서드는 인증 개체의 토큰을 변환합니다. 다음 목록은 사용자 지정 AcessTokenConverter를 구현하는 방법을 보여줍니다.
+
+목록 15.12 사용자 정의 AccessTokenConverter 만들기
+```java
 public class AdditionalClaimsAccessTokenConverter
   extends JwtAccessTokenConverter {
 
@@ -645,11 +878,15 @@ public class AdditionalClaimsAccessTokenConverter
 
   }
 }
-❶ Applies the logic implemented by the JwtAccessTokenConverter class and gets the initial authentication object
-❷ Adds the custom details to the authentication
-❸ Returns the authentication object
-In the configuration class of the resource server, you can now use the custom access token converter. The next listing defines the AccessTokenConverter bean in the configuration class.
-Listing 15.13 Defining the new AccessTokenConverter bean
+```
+❶ JwtAccessTokenConverter 클래스에서 구현한 로직을 적용하여 초기 인증 객체를 얻는다.
+
+❷ 인증에 사용자 지정 세부 정보 추가
+❸ 인증 대상 반환
+리소스 서버의 구성 클래스에서 이제 사용자 지정 액세스 토큰 변환기를 사용할 수 있습니다. 다음 목록은 구성 클래스에서 AccessTokenConverter 빈을 정의합니다.
+
+목록 15.13 새로운 AccessTokenConverter 빈 정의하기
+```java
 @Configuration
 @EnableResourceServer
 public class ResourceServerConfig 
@@ -665,9 +902,13 @@ public class ResourceServerConfig
     return converter;
   }
 }
-❶ Creates an instance of the new AccessTokenConverter object
-An easy way to test the changes is to inject them into the controller class and return them in the HTTP response. Listing 15.14 shows you how to define the controller class.
-Listing 15.1 The controller class
+```
+❶ 새로운 AccessTokenConverter 객체의 인스턴스 생성
+변경 사항을 테스트하는 쉬운 방법은 변경 사항을 컨트롤러 클래스에 주입하고 HTTP 응답으로 반환하는 것입니다. 목록 15.14는 컨트롤러 클래스를 정의하는 방법을 보여줍니다.
+
+**목록 15.1** 컨트롤러 클래스
+
+```java
 @RestController
 public class HelloController {
 
@@ -679,22 +920,30 @@ public class HelloController {
     return "Hello! " + details.getDecodedDetails();              ❷
   }
 }
-❶ Gets the extra details that were added to the Authentication object
-❷ Returns the details in the HTTP response
-You can now start the resource server and test the endpoint with a JWT containing custom details. The next code snippet shows you how to call the /hello endpoint and the results of the call. The getDecodedDetails() method returns a Map containing the details of the token. In this example, to keep it simple, I directly printed the entire value returned by getDecodedDetails(). If you need to use only a specific value, you can inspect the returned Map and obtain the desired value using its key.
+```
+❶ 인증 개체에 추가된 추가 세부 정보를 가져옵니다.
+
+❷ HTTP 응답의 세부 정보를 반환합니다.
+
+이제 리소스 서버를 시작하고 사용자 지정 세부 정보가 포함된 JWT로 끝점을 테스트할 수 있습니다. 다음 코드 조각은 /hello 엔드포인트를 호출하는 방법과 호출 결과를 보여줍니다. getDecodedDetails() 메서드는 토큰의 세부 정보가 포함된 Map을 반환합니다. 이 예제에서는 간단하게 유지하기 위해 getDecodedDetails()에서 반환된 전체 값을 직접 인쇄했습니다. 특정 값만 사용해야 하는 경우 반환된 Map을 검사하고 해당 키를 사용하여 원하는 값을 얻을 수 있습니다.
+
+```sh
 curl -H "Authorization:Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp... " http://localhost:9090/hello
+```
 The response body is
+```
 Hello! {user_name=john, scope=[read], generatedInZone=Europe/Bucharest, exp=1582595692, authorities=[read], jti=982b02be-d185-48de-a4d3-9b27337d1a46, client_id=client}
-You can spot in the response the new attribute generatedInZone=Europe/Bucharest.
-Summary
-- Using cryptographic signatures is frequently the way applications today validate tokens in an OAuth 2 authentication architecture.
-- When we use token validation with cryptographic signatures, JSON Web Token (JWT) is the most widely used token implementation.
-- You can use symmetric keys to sign and validate tokens. Although using symmetric keys is a straightforward approach, you cannot use it when the authorization server doesn’t trust the resource server.
-- If symmetric keys aren’t doable in your implementation, you can implement token signing and validation using asymmetric key pairs.
-- It’s recommended to change keys regularly to make the system less vulnerable to key theft. We refer to changing keys periodically as key rotation.
-- You can configure public keys directly at the resource server side. While this approach is simple, it makes key rotation more difficult.
-- To simplify key rotation, you can configure the keys at the authorization server side and allow the resource server to read them at a specific endpoint.
-- You can customize JWTs by adding details to their body according to the requirements of your implementations. The authorization server adds custom details to the token body, and the resource server uses these details for authorization.
-- Copy
-- Add Highlight
-- Add Note
+```
+
+응답에서 `generatedInZone=Europe/Bucharest` 속성을 확인할 수 있습니다.
+
+## 요약
+
+- 오늘날 애플리케이션이 OAuth 2 인증 아키텍처에서 토큰을 검증하는 방식은 암호화 서명을 사용하는 경우가 많습니다.
+- 암호화 서명과 함께 토큰 유효성 검사를 사용할 때 JWT(JSON Web Token)가 가장 널리 사용되는 토큰 구현입니다.
+- 대칭 키를 사용하여 토큰에 서명하고 유효성을 검사할 수 있습니다. 대칭 키를 사용하는 것은 간단한 접근 방식이지만 권한 부여 서버가 리소스 서버를 신뢰하지 않는 경우 사용할 수 없습니다.
+- 구현에서 대칭 키를 사용할 수 없는 경우 비대칭 키 쌍을 사용하여 토큰 서명 및 유효성 검사를 구현할 수 있습니다.
+- 시스템이 키 도난에 덜 취약하도록 키를 정기적으로 변경하는 것이 좋습니다. 주기적으로 키를 변경하는 것을 키 순환이라고 합니다.
+- 리소스 서버 측에서 직접 공개 키를 구성할 수 있습니다. 이 접근 방식은 간단하지만 키 회전을 더 어렵게 만듭니다.
+- 키 순환을 단순화하기 위해 권한 부여 서버 측에서 키를 구성하고 리소스 서버가 특정 끝점에서 키를 읽도록 허용할 수 있습니다.
+- 구현 요구 사항에 따라 본문에 세부 정보를 추가하여 JWT를 사용자 정의할 수 있습니다. 권한 부여 서버는 토큰 본문에 사용자 지정 세부 정보를 추가하고 리소스 서버는 이러한 세부 정보를 권한 부여에 사용합니다.

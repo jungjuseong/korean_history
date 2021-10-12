@@ -6,7 +6,7 @@
 - 토큰 검증 구현
 - 토큰 관리 커스터마이징
 
-이 장에서는 리소스 서버를 구현하는 방법에 대해 설명합니다. 리소스 서버는 사용자 리소스를 관리하는 구성 요소입니다. 이름 리소스 서버는 처음에는 암시적이지 않을 수 있지만 OAuth 2의 경우 이전 장에서 보호한 다른 앱과 마찬가지로 보안을 유지하는 백엔드를 나타냅니다. 예를 들어, 11장에서 구현한 비즈니스 로직 서버를 클라이언트가 액세스할 수 있도록 하려면 리소스 서버에 유효한 액세스 토큰이 필요합니다. 클라이언트는 인증 서버에서 액세스 토큰을 얻고 이를 사용하여 HTTP 요청 헤더에 토큰을 추가하여 리소스 서버의 리소스를 호출합니다. 그림 14.1은 OAuth 2 인증 아키텍처에서 리소스 서버의 위치를 ​​보여주는 12장의 환기를 제공합니다.
+이 장에서는 리소스 서버를 구현하는 방법에 대해 설명합니다. 리소스 서버는 사용자 리소스를 관리하는 구성 요소입니다. 리소스 서버는 이전 장에서 보호한 다른 앱과 마찬가지로 보안을 유지하는 백엔드를 나타냅니다. 예를 들어, 11장에서 구현한 비즈니스 로직 서버를 클라이언트가 액세스할 수 있도록 하려면 리소스 서버에 유효한 액세스 토큰이 필요합니다. 클라이언트는 인증 서버에서 액세스 토큰을 얻고 이를 사용하여 HTTP 요청 헤더에 토큰을 추가하여 리소스 서버의 리소스를 호출합니다. 그림 14.1은 OAuth 2 인증 아키텍처에서 리소스 서버의 위치를 ​​보여줍니다.
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F01_Spilca.png)
 
@@ -14,7 +14,7 @@
 
 리소스 서버 구현에서 중요한 것은 리소스 서버가 토큰의 유효성을 검사하는 방법을 선택하는 것입니다. 
 
-리소스 서버 수준에서 토큰 유효성 검사를 구현하기 위한 여러 옵션이 있습니다. 첫 번째 옵션은 리소스 서버가 인증 서버를 직접 호출하여 발급된 토큰을 확인할 수 있습니다. 그림 14.2는 이 옵션을 보여줍니다.
+리소스 서버 수준에서 토큰 유효성 검사를 구현하기 위한 여러 옵션이 있습니다. 첫 번째 옵션은 리소스 서버가 인증 서버를 직접 호출하여 발급된 토큰을 확인할 수 있습니다. 
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F02_Spilca.png)
 
@@ -36,7 +36,7 @@
 
 토큰을 발행하는 인증 서버가 있는 이유는 클라이언트가 사용자의 리소스에 액세스할 수 있도록 하기 위해서입니다. 리소스 서버는 사용자의 리소스를 관리하고 보호하므로 리소스 서버를 구현하는 방법을 알아야 합니다. 토큰이 유효한지 알아보기 위해 리소스 서버가 직접 인증 서버를 호출할 수 있도록 하는 Spring Boot에서 제공하는 기본 구현을 사용합니다(그림 14.5).
 
-> **NOTE** Authorization 서버의 경우와 마찬가지로 Spring 커뮤니티에서 리소스 서버의 구현이 변경되었습니다. 이러한 변경 사항은 이제 실제로 개발자가 리소스 서버를 구현하는 다양한 방법을 찾을 수 있기 때문에 우리에게 영향을 줍니다. 리소스 서버를 두 가지 방법으로 구성할 수 있는 예제를 제공하여 실제 시나리오에서 두 가지를 모두 이해하고 사용할 수 있습니다.
+> **NOTE** 인증 서버의 경우와 마찬가지로 Spring 커뮤니티에서 리소스 서버의 구현이 변경되었습니다. 이러한 변경 사항은 이제 실제로 개발자가 리소스 서버를 구현하는 다양한 방법을 찾을 수 있기 때문에 우리에게 영향을 줍니다. 리소스 서버를 두 가지 방법으로 구성할 수 있는 예제를 제공하여 실제 시나리오에서 두 가지를 모두 이해하고 사용할 수 있습니다.
  
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F05_Spilca.png)
 
@@ -58,9 +58,9 @@
   </dependencies>
 </dependencyManagement>
 ```
-리소스 서버의 목적은 사용자의 리소스를 관리하고 보호하는 것이므로 작동 방식을 증명하려면 액세스하려는 리소스가 필요합니다. 다음 목록에 표시된 대로 일반 컨트롤러를 정의하여 테스트에 대한 /hello 끝점을 만듭니다.
+리소스 서버의 목적은 사용자의 리소스를 관리하고 보호하는 것이므로 작동 방식을 증명하려면 액세스하려는 리소스가 필요합니다. 다음 목록에 표시된 대로 일반 컨트롤러를 정의하여 테스트에 대한 `/hello` 끝점을 만듭니다.
 
-**Listing 14.1** The controller class defining the test endpoint
+**Listing 14.1** 엔드포인트
 ```java
 @RestController
 public class HelloController {
@@ -71,9 +71,9 @@ public class HelloController {
   }
 }
 ```
-추가로 필요한 것은 `@EnableResourceServer` 주석을 사용하여 Spring Boot가 앱이 리소스 서버가 되는 데 필요한 것을 구성할 수 있도록 하는 구성 클래스입니다. 다음 목록은 구성 클래스를 나타냅니다.
+추가로 필요한 것은 @EnableResourceServer 주석을 사용하여 Spring Boot가 앱이 리소스 서버가 되는 데 필요한 것을 구성할 수 있도록 하는 구성 클래스입니다. 다음 목록은 구성 클래스를 나타냅니다.
 
-**Listing 14.2** The configuration class
+**Listing 14.2** 설정 클래스
 ```java
 @Configuration
 @EnableResourceServer
@@ -84,7 +84,7 @@ public class ResourceServerConfig {
 
 유효한 액세스 토큰을 제공하더라도 요청은 여전히 ​​작동하지 않습니다. 리소스 서버는 이것이 유효한 토큰인지, 인증 서버가 실제로 토큰을 발행했는지 확인할 수 없습니다. 리소스 서버가 액세스 토큰의 유효성을 검사하는 데 필요한 옵션을 구현하지 않았기 때문입니다. 이 접근 방식을 취하고 다음 두 섹션에서 옵션에 대해 논의하겠습니다. 15장에서는 추가 옵션을 제공합니다.
 
-> **참고** 이전 참고에서 언급했듯이 리소스 서버 구현도 변경되었습니다. Spring Security OAuth 프로젝트의 일부인 @EnableResourceServer 주석은 최근에 더 이상 사용되지 않는 것으로 표시되었습니다. Spring Security 마이그레이션 가이드(https://github.com/spring-projects/spring-security/wiki/OAuth-2.0-Migration-Guide)에서 Spring Security 팀은 Spring Security에서 직접 구성 방법을 사용하도록 초대합니다. 현재 내가 보는 대부분의 앱에서 여전히 Spring Security OAuth 프로젝트를 사용하고 있습니다. 이러한 이유로 이 장에서 예제로 제시하는 두 가지 접근 방식을 모두 이해하는 것이 중요하다고 생각합니다.
+> **참고** 이전 참고에서 언급했듯이 리소스 서버 구현도 변경되었습니다. Spring Security OAuth 프로젝트의 일부인 @EnableResourceServer 주석은 최근에 더 이상 사용되지 않는 것으로 표시되었습니다. Spring Security 마이그레이션 가이드(https://github.com/spring-projects/spring-security/wiki/OAuth-2.0-Migration-Guide)에서 Spring Security에서 직접 구성 방법을 사용하도록 초대합니다. 현재 대부분의 앱에서 여전히 Spring Security OAuth 프로젝트를 사용하고 있습니다. 이러한 이유로 이 장에서 예제로 제시하는 두 가지 접근 방식을 모두 이해하는 것이 중요합니다.
 
 ## 14.2 원격으로 토큰 확인하기
 
@@ -156,7 +156,7 @@ public class AuthServerConfig
 
 > **참고** isAuthenticated() 대신에 permitAll()을 사용하여 인증 없이 이 끝점에 액세스할 수 있도록 만들 수도 있습니다. 그러나 엔드포인트를 보호되지 않은 상태로 두는 것은 권장되지 않습니다. 실제 시나리오에서는 이 끝점에 대한 인증을 사용하는 것이 좋습니다.
 
-이 끝점을 액세스 가능하게 만드는 것 외에도 인증된 액세스만 허용하기로 결정했다면 리소스 서버 자체에 대한 클라이언트 등록이 필요합니다. 권한 부여 서버의 경우 리소스 서버도 클라이언트이며 자체 자격 증명이 필요합니다. 우리는 다른 클라이언트와 마찬가지로 이것을 추가합니다. 리소스 서버의 경우 권한 부여 유형이나 범위가 필요하지 않으며 리소스 서버가 check_token 끝점을 호출하는 데 사용하는 자격 증명 집합만 있으면 됩니다. 다음 목록은 이 예에서 리소스 서버에 대한 자격 증명을 추가하기 위한 구성 변경 사항을 보여줍니다.
+이 끝점을 액세스 가능하게 만드는 것 외에도 인증된 액세스만 허용하기로 결정했다면 리소스 서버 자체에 대한 클라이언트 등록이 필요합니다. 권한 부여 서버의 경우 리소스 서버도 클라이언트이며 자체 자격 증명이 필요합니다. 다른 클라이언트와 마찬가지로 이것을 추가합니다. 리소스 서버의 경우 권한 부여 유형이나 범위가 필요하지 않으며 리소스 서버가 check_token 끝점을 호출하는 데 사용하는 자격 증명 집합만 있으면 됩니다. 다음 목록은 이 예에서 리소스 서버에 대한 자격 증명을 추가하기 위한 구성 변경 사항을 보여줍니다.
 
 **Listing 14.4** 리소스 서버에 자격증명 추가
 ```java
@@ -183,9 +183,10 @@ public class AuthServerConfig
     }
   }
 ```
-❶ Adds a set of credentials for the resource server to use when calling the /oauth/check_token endpoint
 
-You can now start the authorization server and obtain a token like you learned in chapter 13. Here’s the cURL call:
+❶ /oauth/check_token 끝점을 호출할 때 사용할 리소스 서버에 대한 자격 증명 집합을 추가합니다.
+
+이제 인증 서버를 시작하고 13장에서 배운 것처럼 토큰을 얻을 수 있습니다. 다음은 cURL 호출입니다.
 ```
 curl -v -XPOST -u client:secret "http://localhost:8080/oauth/token?grant_type=password&username=john&password=12345&scope=read"
 ```
@@ -200,7 +201,9 @@ The response body is
   "expires_in":43199,"scope":"read"
 }
 ```
-Next, we call the check_token endpoint to find the details about the access token we obtained in the previous code snippet. Here’s that call:
+
+다음으로 check_token 엔드포인트를 호출하여 이전 코드에서 얻은 액세스 토큰에 대한 세부 정보를 찾습니다. 그 호출은 다음과 같습니다.
+
 ```
 curl -XPOST -u resourceserver:resourceserversecret "http://localhost:8080/oauth/check_token?token=4f2b7a6d-ced2-43dc-86d7-cbe844d3e16b"
 ```
@@ -218,11 +221,13 @@ The response body is
 }
 ```
 check_token 끝점에서 반환되는 응답을 관찰합니다. 액세스 토큰에 대해 필요한 모든 세부 정보를 알려줍니다.
+
 - 토큰이 아직 활성 상태인지 여부와 만료 시기
 - 토큰이 발행된 사용자
 - 특권을 대표하는 권한
 - 토큰이 발행된 클라이언트
-이제 cURL을 사용하여 엔드포인트를 호출하면 리소스 서버가 이를 사용하여 토큰을 확인할 수 있어야 합니다. 인증 서버의 끝점과 리소스 서버가 끝점에 액세스하는 데 사용하는 자격 증명을 구성해야 합니다. application.properties 파일에서 이 모든 작업을 수행할 수 있습니다. 다음 코드 조각은 세부 정보를 제공합니다.
+
+이제 cURL을 사용하여 엔드포인트를 호출하면 리소스 서버가 이를 사용하여 토큰을 확인할 수 있어야 합니다. 인증 서버의 끝점과 리소스 서버가 끝점에 액세스하는 데 사용하는 자격 증명을 구성해야 합니다. application.properties 파일에서 이 모든 작업을 수행할 수 있습니다. 다음 코드는 세부 정보를 제공합니다.
 ```
 server.port=9090
 security.oauth2.resource.token-info-uri=http:/./localhost:8080/oauth/check_token
@@ -241,7 +246,8 @@ The response body is
 
 `Hello!`
 
-If you had called the endpoint without a token or with the wrong one, the result would have been a 401 Unauthorized status on the HTTP response. The next code snippet presents the response:
+
+토큰 없이 또는 잘못된 토큰을 사용하여 끝점을 호출한 경우 HTTP 응답에서 결과는 401 Unauthorized 상태가 되었을 것입니다. 다음 코드 조각은 응답을 제공합니다.
 
 ```bsh
 curl -v "http:/./localhost:9090/hello"
@@ -263,7 +269,9 @@ The (truncated) response is
 
 요즘 공통적인 관심사는 Spring Security OAuth 없이 이전 예제와 같이 리소스 서버를 구현하는 방법입니다. Spring Security OAuth가 더 이상 사용되지 않는다고 말하지만 기존 프로젝트에서 이러한 클래스를 찾을 수 있는 좋은 기회가 있기 때문에 여전히 이해해야 한다고 생각합니다. 이 측면을 명확히 하기 위해 Spring Security OAuth 없이 동일한 것을 구현하는 방법과 관련된 비교를 추가합니다. 이 사이드바에서는 Spring Security OAuth를 사용하지 않고 Spring Security 구성으로 직접 토큰 검사를 사용하여 리소스 서버를 구현하는 방법에 대해 설명합니다. 다행히 생각보다 쉽습니다.
 
-기억한다면 이전 장에서 httpBasic(), formLogin() 및 기타 인증 방법에 대해 논의했습니다. 이러한 메서드를 호출할 때 필터 체인에 새 필터를 추가하기만 하면 앱에서 다른 인증 메커니즘을 사용할 수 있다는 것을 배웠습니다. 뭔지 맞춰봐? 최신 버전에서 Spring Security는 리소스 서버 인증 방법을 활성화하는 oauth2ResourceServer() 메서드도 제공합니다. 인증 방법을 설정하기 위해 지금까지 사용했던 다른 방법처럼 사용할 수 있으며 더 이상 종속성에 Spring Security OAuth 프로젝트가 필요하지 않습니다. 그러나 이 기능은 아직 완성되지 않았으며 이를 사용하려면 Spring Boot에서 자동으로 파악하지 못하는 다른 종속성을 추가해야 합니다. 다음 코드 조각은 토큰 자체 검사를 사용하여 리소스 서버를 구현하는 데 필요한 종속성을 나타냅니다.
+이전 장에서 httpBasic(), formLogin() 및 기타 인증 방법에 대해 논의했습니다. 이러한 메서드를 호출할 때 필터 체인에 새 필터를 추가하기만 하면 앱에서 다른 인증 메커니즘을 사용할 수 있다는 것을 배웠습니다. 최신 버전에서 Spring Security는 리소스 서버 인증 방법을 활성화하는 oauth2ResourceServer() 메서드도 제공합니다.
+
+인증 방법을 설정하기 위해 지금까지 사용했던 다른 방법처럼 사용할 수 있으며 더 이상 종속성에 Spring Security OAuth 프로젝트가 필요하지 않습니다. 그러나 이 기능은 아직 완성되지 않았으며 이를 사용하려면 Spring Boot에서 자동으로 파악하지 못하는 다른 종속성을 추가해야 합니다. 다음 코드는 토큰 자체 검사를 사용하여 리소스 서버를 구현하는 데 필요한 종속성을 나타냅니다.
 
 ```xml
 <dependency>
@@ -279,7 +287,7 @@ The (truncated) response is
    <scope>runtime</scope>
 </dependency>
 ```
-Once you add the needed dependencies to your pom.xml file, you can configure the authentication method as shown in the next code snippet:
+pom.xml 파일에 필요한 종속성을 추가하고 나면 다음 코드 같이 인증 방법을 구성할 수 있습니다
 
 ```java
 @Configuration
@@ -305,23 +313,25 @@ public class ResourceServerConfig
 
 ## 14.3 JdbcTokenStore로 블랙보드 구현하기
 
-인증 서버와 리소스 서버가 공유 데이터베이스를 사용하는 애플리케이션을 구현합니다. 우리는 이것을 건축 스타일의 칠판이라고 부릅니다. 왜 칠판을 쓰나요? 이를 인증 서버와 칠판을 사용하여 토큰을 관리하는 리소스 서버로 생각할 수 있습니다. 토큰을 발급하고 검증하기 위한 이러한 접근 방식은 리소스 서버와 권한 부여 서버 간의 직접 통신을 제거하는 이점이 있습니다. 그러나 이는 병목 현상이 발생할 수 있는 공유 데이터베이스를 추가함을 의미합니다. 모든 건축 스타일과 마찬가지로 다양한 상황에 적용할 수 있습니다. 예를 들어 데이터베이스를 공유하는 서비스가 이미 있는 경우 액세스 토큰에도 이 접근 방식을 사용하는 것이 합리적일 수 있습니다. 이러한 이유로 이 접근 방식을 구현하는 방법을 아는 것이 중요하다고 생각합니다.
+인증 서버와 리소스 서버가 데이터베이스를 공유하는 애플리케이션을 구현합니다. 우리는 이것을 건축 스타일의 블랙보드라고 부릅니다.이를 인증 서버와 블랙보드를 사용하여 토큰을 관리하는 리소스 서버로 생각할 수 있습니다. 토큰을 발급하고 검증하기 위한 이러한 접근 방식은 리소스 서버와 권한 부여 서버 간의 직접 통신을 제거하는 이점이 있습니다. 
 
-이전 구현과 마찬가지로 우리는 애플리케이션에서 이러한 아키텍처를 사용하는 방법을 보여줍니다. 프로젝트에서 이 애플리케이션을 인증 서버의 경우 ssia-ch14-ex2-as, 리소스 서버의 경우 ssia-ch14-ex2-rs로 찾을 수 있습니다. 이 아키텍처는 인증 서버가 토큰을 발행할 때 리소스 서버와 공유되는 데이터베이스에도 토큰을 저장함을 의미합니다(그림 14.8).
+그러나 이는 병목 현상이 발생할 수 있는 공유 데이터베이스를 추가함을 의미합니다. 모든 건축 스타일과 마찬가지로 다양한 상황에 적용할 수 있습니다. 예를 들어 데이터베이스를 공유하는 서비스가 이미 있는 경우 액세스 토큰에도 이 접근 방식을 사용하는 것이 합리적일 수 있습니다. 이러한 이유로 이 접근 방식을 구현하는 방법을 아는 것이 중요하다고 생각합니다.
+
+이전 구현과 마찬가지로 애플리케이션에서 이러한 아키텍처를 사용하는 방법을 보여줍니다. 프로젝트에서 이 애플리케이션을 인증 서버의 경우 ssia-ch14-ex2-as, 리소스 서버의 경우 ssia-ch14-ex2-rs로 찾을 수 있습니다. 이 아키텍처는 인증 서버가 토큰을 발행할 때 리소스 서버와 공유되는 데이터베이스에도 토큰을 저장함을 의미합니다(그림 14.8).
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F08_Spilca.png)
 
-그림 14.8 권한 부여 서버는 토큰을 발행할 때 공유 데이터베이스에도 토큰을 저장합니다. 이렇게 하면 리소스 서버가 토큰을 가져와 나중에 확인할 수 있습니다.
+**그림 14.8** 권한 부여 서버는 토큰을 발행할 때 공유 데이터베이스에도 토큰을 저장합니다. 이렇게 하면 리소스 서버가 토큰을 가져와 나중에 확인할 수 있습니다.
 또한 리소스 서버가 토큰의 유효성을 검사해야 할 때 데이터베이스에 액세스함을 의미합니다(그림 14.9).
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F09_Spilca.png)
 
-그림 14.9 리소스 서버는 공유 데이터베이스에서 토큰을 검색합니다. 토큰이 존재하는 경우 리소스 서버는 사용자 이름 및 권한을 포함하여 데이터베이스에서 토큰과 관련된 세부 정보를 찾습니다. 이러한 세부 정보를 사용하여 리소스 서버는 요청을 승인할 수 있습니다.
+**그림 14.9** 리소스 서버는 공유 데이터베이스에서 토큰을 검색합니다. 토큰이 존재하는 경우 리소스 서버는 사용자 이름 및 권한을 포함하여 데이터베이스에서 토큰과 관련된 세부 정보를 찾습니다. 이러한 세부 정보를 사용하여 리소스 서버는 요청을 승인할 수 있습니다.
 인증 서버와 리소스 서버 모두에서 Spring Security에서 토큰을 관리하는 객체를 나타내는 계약은 TokenStore입니다. 권한 부여 서버의 경우 이전에 SecurityContext를 사용한 인증 아키텍처에서의 위치를 ​​시각화할 수 있습니다. 인증이 완료되면 인증 서버는 TokenStore를 사용하여 토큰을 생성합니다(그림 14.10).
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH14_F11_Spilca.png)
 
-그림 14.10 인증 서버는 토큰 저장소를 사용하여 인증 프로세스가 끝날 때 토큰을 생성합니다. 클라이언트는 이러한 토큰을 사용하여 리소스 서버에서 관리하는 리소스에 액세스합니다.
+**그림 14.10** 인증 서버는 토큰 저장소를 사용하여 인증 프로세스가 끝날 때 토큰을 생성합니다. 클라이언트는 이러한 토큰을 사용하여 리소스 서버에서 관리하는 리소스에 액세스합니다.
 
 리소스 서버의 경우 인증 필터는 TokenStore를 사용하여 토큰의 유효성을 검사하고 나중에 인증에 사용하는 사용자 세부 정보를 찾습니다. 그런 다음 리소스 서버는 보안 컨텍스트에 사용자의 세부 정보를 저장합니다(그림 14.11).
 
@@ -331,17 +341,17 @@ public class ResourceServerConfig
 
 > **참고** 권한 부여 서버와 리소스 서버는 두 가지 다른 책임을 구현하지만 반드시 두 개의 별도 응용 프로그램에서 수행할 필요는 없습니다. 대부분의 실제 구현에서는 다른 응용 프로그램에서 이를 개발하므로 이 책의 예제에서도 동일한 작업을 수행합니다. 그러나 동일한 응용 프로그램에서 둘 다 구현하도록 선택할 수 있습니다. 이 경우 호출을 설정하거나 공유 데이터베이스를 가질 필요가 없습니다. 그러나 동일한 앱에서 두 가지 책임을 구현하면 권한 부여 서버와 리소스 서버 모두 동일한 빈에 액세스할 수 있습니다. 따라서 이들은 동일한 것을 사용할 수 있습니다.token store without needing to do network calls or to access a database.
 
-Spring Security는 TokenStore 계약에 대한 다양한 구현을 제공하며 대부분의 경우 자체 구현을 작성할 필요가 없습니다. 예를 들어, 이전의 모든 인증 서버 구현에 대해 TokenStore 구현을 지정하지 않았습니다. Spring Security는 InMemoryTokenStore 유형의 기본 토큰 저장소를 제공했습니다. 상상할 수 있듯이 이 모든 경우에 토큰은 애플리케이션의 메모리에 저장되었습니다. 그들은 지속하지 않았다! 권한 부여 서버를 다시 시작하면 다시 시작하기 전에 발급된 토큰은 더 이상 유효하지 않습니다.
+TokenStore 계약에 대한 다양한 구현을 제공하며 대부분의 경우 자체 구현을 작성할 필요가 없습니다. 예를 들어, 이전의 모든 인증 서버 구현에 대해 TokenStore 구현을 지정하지 않았습니다. Spring Security는 InMemoryTokenStore 유형의 기본 토큰 저장소를 제공했습니다. 상상할 수 있듯이 이 모든 경우에 토큰은 애플리케이션의 메모리에 저장되었습니다. 그들은 지속하지 않았다! 권한 부여 서버를 다시 시작하면 다시 시작하기 전에 발급된 토큰은 더 이상 유효하지 않습니다.
 
-블랙보드로 토큰 관리를 구현하기 위해 Spring Security는 JdbcTokenStore 구현을 제공합니다. 이름에서 알 수 있듯이 이 토큰 저장소는 JDBC를 통해 직접 데이터베이스와 함께 작동합니다. 3장에서 논의한 JdbcUserDetailsManager와 유사하게 작동하지만 사용자를 관리하는 대신 JdbcTokenStore가 토큰을 관리합니다.
+블랙보드로 토큰 관리를 구현하기 위해 JdbcTokenStore 구현을 제공합니다. 이름에서 알 수 있듯이 이 토큰 저장소는 JDBC를 통해 직접 데이터베이스와 함께 작동합니다. 3장에서 논의한 JdbcUserDetailsManager와 유사하게 작동하지만 사용자를 관리하는 대신 JdbcTokenStore가 토큰을 관리합니다.
 
-> 참고 이 예제에서는 JdbcTokenStore를 사용하여 블랙보드를 구현합니다. 그러나 토큰을 유지하고 /oauth/check_token 끝점을 계속 사용하기 위해 TokenStore를 사용하도록 선택할 수 있습니다. 공유 데이터베이스를 사용하고 싶지 않지만 인증 서버가 다시 시작되더라도 이전에 발행된 토큰을 계속 사용할 수 있도록 토큰을 유지해야 하는 경우 그렇게 하도록 선택합니다.
+> **참고** 이 예제에서는 JdbcTokenStore를 사용하여 블랙보드를 구현합니다. 그러나 토큰을 유지하고 /oauth/check_token 끝점을 계속 사용하기 위해 TokenStore를 사용하도록 선택할 수 있습니다. 공유 데이터베이스를 사용하고 싶지 않지만 인증 서버가 다시 시작되더라도 이전에 발행된 토큰을 계속 사용할 수 있도록 토큰을 유지해야 하는 경우 그렇게 하도록 선택합니다.
 
-JdbcTokenStore는 데이터베이스에 두 개의 테이블이 있을 것으로 예상합니다. 하나의 테이블을 사용하여 액세스 토큰(이 테이블의 이름은 oauth_access _token이어야 함)을 저장하고 하나의 테이블을 사용하여 새로 고침 토큰을 저장합니다(이 테이블의 이름은 oauth_refresh_token이어야 함). 토큰을 저장하는 데 사용되는 테이블은 새로 고침 토큰을 유지합니다.
+JdbcTokenStore는 데이터베이스에 두 개의 테이블이 있을 것으로 예상합니다. 하나의 테이블을 사용하여 액세스 토큰(이 테이블의 이름은 oauth_access _token이어야 함)을 저장하고 하나의 테이블을 사용하여 리프레시 토큰을 저장합니다(이 테이블의 이름은 oauth_refresh_token이어야 함). 토큰을 저장하는 데 사용되는 테이블은 리프레시 토큰을 유지합니다.
 
 > **참고** 3장에서 논의한 JdbcUserDetailsManager 구성 요소의 경우와 같이 테이블이나 열에 다른 이름을 사용하도록 JdbcTokenStore를 사용자 정의할 수 있습니다. JdbcTokenStore 메소드는 토큰의 세부 정보를 검색하거나 저장하는 데 사용하는 SQL 쿼리를 재정의해야 합니다. 짧게 유지하기 위해 이 예에서는 기본 이름을 사용합니다.
 
-pom.xml 파일을 변경하여 데이터베이스에 연결하는 데 필요한 종속성을 선언해야 합니다. 다음 코드 조각은 pom.xml 파일에서 사용하는 종속성을 나타냅니다.
+pom.xml 파일을 변경하여 데이터베이스에 연결하는 데 필요한 종속성을 선언해야 합니다. 다음 코드는 pom.xml 파일에서 사용하는 종속성을 나타냅니다.
 
 ```xml
 <dependency>
@@ -393,9 +403,10 @@ spring.datasource.username=root
 spring.datasource.password=
 spring.datasource.initialization-mode=always
 ```
-The following listing presents the AuthServerConfig class the way we used it in the first example.
 
-Listing 14.5 The AuthServerConfig class
+다음 목록은 첫 번째 예에서 사용한 방식으로 AuthServerConfig 클래스를 보여줍니다.
+
+**Listing 14.5** The AuthServerConfig class
 ```java
 @Configuration
 @EnableAuthorizationServer
@@ -424,9 +435,10 @@ public class AuthServerConfig
    }
 }
 ```
-We change this class to inject the data source and then define and configure the token store. The next listing shows this change.
 
-Listing 14.6 Defining and configuring JdbcTokenStore
+이 클래스를 변경하여 데이터 소스를 삽입한 다음 토큰 저장소를 정의 및 구성합니다. 다음 목록은 이 변경 사항을 보여줍니다.
+
+**Listing 14.6** Defining and configuring JdbcTokenStore
 ```java
 @Configuration
 @EnableAuthorizationServer
@@ -455,13 +467,13 @@ public class AuthServerConfig
     AuthorizationServerEndpointsConfigurer endpoints) {
       endpoints
         .authenticationManager(authenticationManager)
-        .tokenStore(tokenStore());                    ❷
+        .tokenStore(tokenStore()); ❷
   }
 
   @Bean
-  public TokenStore tokenStore() {                    ❸
-      return new JdbcTokenStore(dataSource);          ❸
-  }                                                   ❸
+  public TokenStore tokenStore() { ❸
+      return new JdbcTokenStore(dataSource); ❸
+  } ❸
 }
 ```
 ❶ application.properties 파일에서 구성한 데이터 소스를 삽입합니다.
@@ -487,7 +499,7 @@ The response body is
   "scope":"read"
 }
 ```
-응답에서 반환된 액세스 토큰은 `oauth_access_token` 테이블의 레코드로도 찾을 수 있습니다. 새로 고침 토큰 부여 유형을 구성하기 때문에 새로 고침 토큰을 받습니다. 이러한 이유로 `oauth_refresh_token` 테이블에서 새로 고침 토큰에 대한 레코드도 찾습니다. 데이터베이스가 토큰을 유지하기 때문에 리소스 서버는 권한 부여 서버가 다운되거나 다시 시작된 후에도 발행된 토큰의 유효성을 검사할 수 있습니다.
+응답에서 반환된 액세스 토큰은 `oauth_access_token` 테이블의 레코드로도 찾을 수 있습니다. 리프레시 토큰 부여 유형을 구성하기 때문에 리프레시 토큰을 받습니다. 이러한 이유로 `oauth_refresh_token` 테이블에서 리프레시 토큰에 대한 레코드도 찾습니다. 데이터베이스가 토큰을 유지하기 때문에 리소스 서버는 권한 부여 서버가 다운되거나 다시 시작된 후에도 발행된 토큰의 유효성을 검사할 수 있습니다.
 
 이제 동일한 데이터베이스를 사용하도록 리소스 서버를 구성할 시간입니다. 이를 위해 `ssia-ch14-ex2-rs` 프로젝트에서 일합니다. 섹션 14.1에서 작업한 구현으로 시작합니다. 인증 서버의 경우 pom.xml 파일에 필요한 종속성을 추가해야 합니다. 리소스 서버는 데이터베이스에 연결해야 하므로 spring-boot-starter-jdbc 종속성과 JDBC 드라이버도 추가해야 합니다. 다음 코드 조각은 pom.xml 파일의 종속성을 보여줍니다.
 
@@ -532,13 +544,13 @@ public class ResourceServerConfig
   extends ResourceServerConfigurerAdapter {
 
   @Autowired
-  private DataSource dataSource;                ❶
+  private DataSource dataSource; ❶
 
   @Override
   public void configure(
     ResourceServerSecurityConfigurer resources) {
     
-    resources.tokenStore(tokenStore());         ❷
+    resources.tokenStore(tokenStore()); ❷
   }
 
   @Bean
@@ -605,6 +617,6 @@ Hello!
 
 - 토큰 관리를 구현하려면 TokenStore 유형의 개체를 사용해야 합니다. TokenStore의 자체 구현을 작성할 수 있지만 대부분의 경우 Spring Security에서 제공하는 구현을 사용합니다.
 
-- JdbcTokenStore는 데이터베이스에서 액세스 및 새로 고침 토큰을 유지하는 데 사용할 수 있는 TokenStore 구현입니다.
+- JdbcTokenStore는 데이터베이스에서 액세스 및 리프레시 토큰을 유지하는 데 사용할 수 있는 TokenStore 구현입니다.
 
  

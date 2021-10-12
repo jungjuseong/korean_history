@@ -560,12 +560,13 @@ public class AuthServerConfig
   }
 }
 ```
-❶ Adds refresh_token in the authorized grant types list of the client
-Now try the same cURL command you used in section 13.4. You’ll see the response is similar but now includes a refresh token:
+❶ 클라이언트의 권한 부여 유형 목록에 refresh_token 추가
 
-"curl -v -XPOST -u client:secret http://localhost:8080/oauth/token?grant_type=password&username=john&password=12345&scope=read"
-
-The next code snippet presents the response of the previous command:
+이제 섹션 13.4에서 사용한 것과 동일한 cURL 명령을 시도하십시오. 응답이 비슷하지만 이제 새로 고침 토큰이 포함된 것을 볼 수 있습니다.
+```
+curl -v -XPOST -u client:secret http://localhost:8080/oauth/token?grant_type=password&username=john&password=12345&scope=read
+```
+다음 코드 조각은 이전 명령의 응답을 나타냅니다.
 ```json
 {
   "access_token":"da2a4837-20a4-447d-917b-a22b4c0e9517",

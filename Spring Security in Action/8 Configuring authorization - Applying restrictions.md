@@ -1,5 +1,5 @@
 
-8 Configuring authorization: Applying restrictions
+# 8 Configuring authorization: Applying restrictions
 This chapter covers
 - Selecting requests to apply restrictions using matcher methods
 - Learning best-case scenarios for each matcher method

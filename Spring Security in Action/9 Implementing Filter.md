@@ -1,4 +1,5 @@
-9 Implementing filters
+# 9 Implementing filters
+
 This chapter covers
 - Working with the filter chain
 - Defining custom filters

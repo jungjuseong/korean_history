@@ -1,107 +1,185 @@
+# 11 실습: 책임 분리
 
- 
-11 Hands-on: A separation of responsibilities
-This chapter covers
-- Implementing and using tokens
-- Working with JSON Web Tokens
-- Separating authentication and authorization responsibilities in multiple apps
-- Implementing a multi-factor authentication scenario
-- Using multiple custom filters and multiple AuthenticationProvider objects
-- Choosing from various possible implementations for a scenario
-We’ve come a long way, and you’re now in front of the second hands-on chapter of the book. It’s time again to put into action all you’ve learned in an exercise that shows you the big picture. Fasten your seat belts, open your IDEs, and get ready for an adventure!
-In this chapter, we’ll design a system of three actors: the client, the authentication server, and the business logic server. From these three actors, we’ll implement the backend part of the authentication server and a business logic server. As you’ll observe, our examples are more complex. This is a sign that we are getting closer and closer to real-world scenarios.
-This exercise is also a great chance to recap, apply, and better understand what you’ve already learned and to touch on new subjects like JSON Web Tokens (JWTs). You also see a first demonstration of separating the authentication and authorization responsibilities in a system. We’ll extend this discussion in chapters 12 through 15 with the OAuth 2 framework. Getting closer to what we’ll discuss in the following chapters is one of the reasons for the design I chose for the exercise in this chapter.
-11.1 The scenario and requirements of the example
-In this section, we discuss the requirements for the applications we develop together throughout this chapter. Once you understand what has to be done, we discuss how to implement the system and which are our best options in section 11.2. Then, we get our hands dirty with Spring Security and implement the scenario from head to toe in sections 11.3 and 11.4. The architecture of the system has three components. You’ll find these components illustrated in figure 11.1. The three components are
-- The client --This is the application consuming the backend. It could be a mobile app or the frontend of a web application developed using a framework like Angular, ReactJS, or Vue.js. We don’t implement the client part of the system, but keep in mind that it exists in a real-world application. Instead of using the client to call endpoints, we use cURL.
-- The authentication server --This is an application with a database of user credentials. The purpose of this application is to authenticate users based on their credentials (username and password) and send them a one-time password (OTP) through SMS. Because we won’t actually send an SMS in this example, we’ll read the value of the OTP from the database directly.
-In this chapter, we implement this whole application without sending the SMS. Later, you can also extend it to send messages using a service of your choice, like AWS SNS (https://aws.amazon.com/sns/), Twillio (https://www .twilio.com/sms), or others.
-- The business logic server --This is the application exposing endpoints that our client consumes. We want to secure access to these endpoints. Before calling an endpoint, the user must authenticate with their username and password and then send an OTP. The user receives the OTP through an SMS message. Because this application is our target application, we secure it with Spring Security.
- 
-Figure 11.1 The client calls the endpoints exposed by the business logic server. To authenticate the user, the business logic server uses the responsibility implemented by the authentication server. The authentication server stores the user credentials in its database.
-To call any endpoint on the business logic server, the client has to follow three steps:
-1.	Authenticate the username and password by calling the /login endpoint on the business logic server to obtain a randomly generated OTP.
-2.	Call the /login endpoint with the username and OTP.
-3.	Call any endpoint by adding the token received in step 2 to the Authorization header of the HTTP request.
-When the client authenticates the username and password, the business logic server sends a request for an OTP to the authentication server. After successful authentication, the authentication server sends a randomly generated OTP to the client via SMS (figure 11.2). This way of identifying the user is called multi-factor authentication (MFA), and it’s pretty common nowadays. We generally need users to prove who they are both by using their credentials and with another means of identification (for example, they own a specific mobile device).
-In the second authentication step, once the client has the code from the received SMS, the user can call the /login endpoint, again with the username and the code. The business logic server validates the code with the authentication server. If the code is valid, the client receives a token that it can use to call any endpoint on the business logic server (figure 11.3). In section 11.2, we’ll talk in detail about what this token is, how we implement it, and why we use it.
- 
-Figure 11.2 The first authentication step consists of identifying the user with their username and password. The user sends their credentials, and the authentication server returns an OTP for the second authentication step.
- 
-Figure 11.3 The second authentication step. The client sends the code they received through the SMS message, together with their username. The business logic server calls the authentication server to validate the OTP. If the OTP is valid, the business logic server issues a token back to the client. The client uses this token to call any other endpoint on the business logic server.
- 
-Figure 11.4 The third authentication step. To call any endpoint exposed by the business logic server, the client adds a valid token in the authorization HTTP request header.
-In the third authentication step, the client can now call any endpoint by adding the token it receives in step 2 to the Authorization header of the HTTP request. Figure 11.4 illustrates this step.
-NOTE This example allows us to work on a bigger application, which includes more of the concepts we discussed in previous chapters. To allow you to focus on the Spring Security concepts I want to include in the application, I simplify the architecture of the system. Someone could argue that this architecture uses vicious approaches as the client should only share passwords with the authentication server and never with the business logic server. This is correct! In our case, it’s just a simplification. In real-world scenarios, in general, we strive to keep credentials and secrets known by as few components in the system as possible. Also, someone could argue that the MFA scenario itself could be more easily implemented by using a third-party management system like Okta or something similar. Part of the purpose of the example is to teach you how to define custom filters. For this reason, I chose the hard way to implement, ourselves, this part in the authentication architecture.
-11.2 Implementing and using tokens
-A token is similar to an access card. An application obtains a token as a result of the authentication process and to access resources. Endpoints represent the resources in a web application. For a web application, a token is a string, usually sent through an HTTP header by clients that want to access a particular endpoint. This string can be plain like a pure universally unique identifier (UUID), or it might have a more complex shape like a JSON Web Token (JWT).
-Today, tokens are often used in authentication and authorization architectures, and that’s why you need to understand them. As you’ll find out in chapter 12, these are one of the most important elements in the OAuth 2 architecture, which is also frequently used today. And as you’ll learn in this chapter, but also in chapters 12 through 15, tokens offer us advantages (like separation of responsibilities in the authentication and authorization architecture), help us make our architecture stateless, and provide possibilities to validate requests.
-11.2.1 WHAT IS A TOKEN?
-Tokens provide a method that an application uses to prove it has authenticated a user, which allows the user to access the application’s resources. In section 11.2.2, you’ll discover one of the most common token implementations used today: the JWT.
-What are tokens? A token is just an access card, theoretically. When you visit an office building, you first go to the reception desk. There, you identify yourself (authentication), and you receive an access card (token). You can use the access card to open some doors, but not necessarily all doors. This way, the token authorizes your access and decides whether you’re allowed to do something, like opening a particular door. Figure 11.5 presents this concept.
- 
-Figure 11.5 To access the mothership (business logic server), Zglorb needs an access card (token). After being identified, Zglorb gets an access card. This access card (token) only allows him to access his room and his office (resources).
-At the implementation level, tokens can even be regular strings. What’s most important is to be able to recognize these after you issue them. You can generate UUIDs and store them in memory or in a database. Let’s assume the following scenario:
-1.	The client proves its identity to the server with its credentials.
-2.	The server issues the client a token in the format of a UUID. This token, now associated with the client, is stored in memory by the server (figure 11.6).
- 
-Figure 11.6 When the client authenticates, the server generates a token and returns it to the client. This token is then used by the client to access resources on the server.
-3.	When the client calls an endpoint, the client provides the token and gets authorized. Figure 11.7 presents this step.
- 
-Figure 11.7 When the client needs to access a user resource, they must provide a valid token in the request. A valid token is one previously issued by the server when the user authenticates.
-This is the general flow associated with using tokens in the authentication and authorization process. Which are its main advantages? Why would you use such a flow? Doesn’t it add more complexity than a simple login? (You can rely only on the user and the password anyway, you might think.) But tokens bring more advantages, so let’s enumerate them and then discuss them one by one:
-- Tokens help you avoid sharing credentials in all requests.
-- You can define tokens with a short lifetime.
-- You can invalidate tokens without invalidating the credentials.
-- Tokens can also store details like user authorities that the client needs to send in the request.
-- Tokens help you delegate the authentication responsibility to another component in the system.
-Tokens help you avoid sharing credentials in all requests. In chapters 2 through 10, we worked with HTTP Basic as the authentication method for all requests. And this method, as you learned, assumes you send credentials for each request. Sending credentials with each request isn’t OK because it often means that you expose them. The more often you expose the credentials, the bigger the chances are that someone intercepts them. With tokens, we change the strategy. We send credentials only in the first request to authenticate. Once authenticated, we get a token, and we can use it to get authorized for calling resources. This way, we only have to send credentials once to obtain the token.
-You can define tokens with a short lifetime. If a deceitful individual steals the token, they won’t be able to use it forever. Most probably, the token might expire before they find out how to use it to break into your system. You can also invalidate tokens. If you find out a token has been exposed, you can refute it. This way, it can’t be used anymore by anyone.
-Tokens can also store details needed in the request. We can use tokens to store details like authorities and roles of the user. This way, we can replace a server-side session with a client-side session, which offers us better flexibility for horizontal scaling. You’ll see more about this approach in chapters 12 through 15 when we discuss the OAuth 2 flow.
-Tokens help you separate the authentication responsibility to another component in the system. We might find ourselves implementing a system that doesn’t manage its own users. Instead, it allows users to authenticate using credentials from accounts they have on other platforms such as GitHub, Twitter, and so on. Even if we also choose to implement the component that does authentication, it’s to our advantage that we can make the implementation separate. It helps us enhance scalability, and it makes the system architecture more natural to understand and develop. Chapters 5 and 6 of API Security in Action by Neil Madden (Manning, 2020) are also good reads related to this topic. Here are the links to access these resources:
+이 장에서는 다음을 다룹니다.
+
+- 토큰 구현 및 사용
+- JSON 웹 토큰 작업
+- 여러 앱에서 인증 및 권한 부여 책임 분리
+- 다단계 인증 시나리오 구현
+- 여러 사용자 정의 필터 및 여러 AuthenticationProvider 개체 사용
+- 시나리오에 대한 다양한 가능한 구현 중에서 선택
+  
+우리는 먼 길을 왔습니다. 이제 이 책의 두 번째 실습 장 앞에 섰습니다. 이제 큰 그림을 보여주는 연습에서 배운 모든 것을 행동으로 옮길 때입니다. 안전 벨트를 착용하고 IDE를 열고 모험을 떠날 준비를 하세요!
+
+이 장에서는 클라이언트, 인증 서버 및 비즈니스 논리 서버의 세 가지 행위자로 구성된 시스템을 설계합니다. 이 세 액터에서 인증 서버와 비즈니스 로직 서버의 백엔드 부분을 구현합니다. 보시다시피, 우리의 예는 더 복잡합니다. 이것은 우리가 실제 시나리오에 점점 더 가까워지고 있다는 신호입니다.
+
+이 연습은 또한 이미 학습한 내용을 요약하고 적용하고 더 잘 이해하고 JSON 웹 토큰(JWT)과 같은 새로운 주제를 다룰 수 있는 좋은 기회입니다. 또한 시스템에서 인증 및 권한 부여 책임을 분리하는 첫 번째 데모도 볼 수 있습니다. 우리는 OAuth 2 프레임워크를 사용하여 12장에서 15장까지 이 논의를 확장할 것입니다. 다음 장에서 논의할 내용에 더 가까이 다가가는 것은 이 장의 실습을 위해 내가 디자인을 선택한 이유 중 하나입니다.
+
+# 11.1 예제의 시나리오 및 요구 사항
+
+이 장 전체에서 함께 개발하는 응용 프로그램의 요구 사항에 대해 설명합니다. 수행해야 할 작업을 이해하고 나면 11.2에서 시스템을 구현하는 방법과 최선의 옵션에 대해 논의합니다. 그런 다음 Spring Security로 11.3 및 11.4에서 머리부터 발끝까지 시나리오를 구현합니다. 시스템 아키텍처에는 세 가지 구성 요소가 있습니다. 그림 11.1에서 이러한 구성 요소를 찾을 수 있습니다. 세 가지 구성 요소는
+
+- **클라이언트** -- 백엔드를 사용하는 애플리케이션입니다. Angular, ReactJS 또는 Vue.js와 같은 프레임워크를 사용하여 개발된 모바일 앱 또는 웹 애플리케이션의 프론트엔드일 수 있습니다. 우리는 시스템의 클라이언트 부분을 구현하지 않지만 실제 응용 프로그램에 존재한다는 것을 명심하십시오. 클라이언트를 사용하여 끝점을 호출하는 대신 cURL을 사용합니다.
+
+- **인증 서버** --이것은 사용자 자격 증명 데이터베이스가 있는 응용 프로그램입니다. 이 응용 프로그램의 목적은 자격 증명(사용자 이름 및 암호)을 기반으로 사용자를 인증하고 SMS를 통해 일회용 암호(OTP)를 보내는 것입니다. 이 예에서는 실제로 SMS를 보내지 않기 때문에 데이터베이스에서 OTP 값을 직접 읽습니다.
+  
+이 장에서는 SMS를 보내지 않고 이 전체 응용 프로그램을 구현합니다. 나중에 AWS SNS(https://aws.amazon.com/sns/), Twillio(https://www .twilio.com/sms).
+
+- **비즈니스 로직 서버** -- 클라이언트가 소비하는 엔드포인트를 노출하는 애플리케이션입니다. 우리는 이러한 끝점에 대한 액세스를 보호하려고 합니다. 엔드포인트를 호출하기 전에 사용자는 사용자 이름과 비밀번호로 인증한 다음 OTP를 보내야 합니다. 사용자는 SMS 메시지를 통해 OTP를 수신합니다. 이 애플리케이션은 대상 애플리케이션이므로 Spring Security로 보호합니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH11_F01_Spilca.png)
+
+그림 11.1 클라이언트는 비즈니스 로직 서버에 의해 노출된 끝점을 호출합니다. 사용자를 인증하기 위해 비즈니스 로직 서버는 인증 서버에 의해 구현된 책임을 사용합니다. 인증 서버는 데이터베이스에 사용자 자격 증명을 저장합니다.
+
+비즈니스 로직 서버에서 엔드포인트를 호출하려면 클라이언트는 다음 세 단계를 따라야 합니다.
+
+1. 무작위로 생성된 OTP를 얻기 위해 비즈니스 논리 서버에서 /login 끝점을 호출하여 사용자 이름과 암호를 인증합니다.
+
+2. 사용자 이름과 OTP를 사용하여 /login 엔드포인트를 호출합니다.
+
+3. 2단계에서 받은 토큰을 HTTP 요청의 Authorization 헤더에 추가하여 엔드포인트를 호출합니다.
+
+클라이언트가 사용자 이름과 암호를 인증하면 비즈니스 로직 서버는 OTP에 대한 요청을 인증 서버로 보냅니다. 인증에 성공하면 인증 서버는 무작위로 생성된 OTP를 SMS를 통해 클라이언트에 보냅니다(그림 11.2). 이러한 사용자 식별 방식을 MFA(다단계 인증)라고 하며 오늘날에는 꽤 일반적입니다. 일반적으로 사용자는 자격 증명과 다른 식별 수단(예: 특정 모바일 장치 소유)을 사용하여 자신이 누구인지 증명해야 합니다.
+
+두 번째 인증 단계에서 클라이언트가 수신된 SMS의 코드를 받으면 사용자는 다시 사용자 이름과 코드를 사용하여 /login 엔드포인트를 호출할 수 있습니다. 비즈니스 로직 서버는 인증 서버로 코드의 유효성을 검사합니다. 코드가 유효하면 클라이언트는 비즈니스 논리 서버의 모든 끝점을 호출하는 데 사용할 수 있는 토큰을 받습니다(그림 11.3). 11.2에서 이 토큰이 무엇인지, 어떻게 구현하는지, 왜 사용하는지 자세히 설명합니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH11_F02_Spilca.png)
+
+그림 11.2 첫 번째 인증 단계는 사용자 이름과 비밀번호로 사용자를 식별하는 것으로 구성됩니다. 사용자는 자격 증명을 보내고 인증 서버는 두 번째 인증 단계에서 OTP를 반환합니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH11_F03_Spilca.png)
+
+그림 11.3 두 번째 인증 단계. 클라이언트는 SMS 메시지를 통해 받은 코드를 사용자 이름과 함께 보냅니다. 비즈니스 로직 서버는 인증 서버를 호출하여 OTP를 검증합니다. OTP가 유효한 경우 비즈니스 논리 서버는 클라이언트에 토큰을 다시 발행합니다. 클라이언트는 이 토큰을 사용하여 비즈니스 논리 서버의 다른 끝점을 호출합니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH11_F04_Spilca.png)
+
+그림 11.4 세 번째 인증 단계. 비즈니스 로직 서버에 의해 노출된 엔드포인트를 호출하기 위해 클라이언트는 인증 HTTP 요청 헤더에 유효한 토큰을 추가합니다.
+
+세 번째 인증 단계에서 클라이언트는 이제 2단계에서 수신한 토큰을 HTTP 요청의 Authorization 헤더에 추가하여 모든 엔드포인트를 호출할 수 있습니다. 그림 11.4는 이 단계를 보여줍니다.
+
+> **참고** 이 예제를 사용하면 이전 장에서 논의한 개념을 더 많이 포함하는 더 큰 응용 프로그램에서 작업할 수 있습니다. 애플리케이션에 포함하려는 Spring Security 개념에 집중할 수 있도록 시스템 아키텍처를 단순화합니다. 누군가는 클라이언트가 인증 서버와만 암호를 공유해야 하고 비즈니스 논리 서버와 절대 공유해서는 안 되므로 이 아키텍처가 악의적인 접근 방식을 사용한다고 주장할 수 있습니다. 이것은 정확합니다! 우리의 경우에는 단순화일 뿐입니다. 실제 시나리오에서는 일반적으로 시스템의 가능한 적은 수의 구성 요소에서 알려진 자격 증명과 비밀을 유지하려고 노력합니다. 또한 누군가는 MFA 시나리오 자체가 Okta 또는 이와 유사한 것과 같은 타사 관리 시스템을 사용하여 더 쉽게 구현될 수 있다고 주장할 수 있습니다. 이 예제의 목적 중 일부는 사용자 정의 필터를 정의하는 방법을 가르치는 것입니다. 이러한 이유로 인증 아키텍처에서 이 부분을 구현하는 어려운 방법을 선택했습니다.
+
+# 11.2 토큰 구현 및 사용
+
+토큰은 액세스 카드와 유사합니다. 애플리케이션은 인증 프로세스의 결과로 토큰을 얻고 리소스에 액세스합니다. 끝점은 웹 애플리케이션의 리소스를 나타냅니다. 웹 응용 프로그램의 경우 토큰은 일반적으로 특정 끝점에 액세스하려는 클라이언트가 HTTP 헤더를 통해 보내는 문자열입니다. 이 문자열은 순수 UUID처럼 단순하거나 JWT(JSON Web Token)와 같이 더 복잡한 모양을 가질 수 있습니다.
+
+오늘날 토큰은 인증 및 권한 부여 아키텍처에서 자주 사용합니다. OAuth 2 아키텍처에서 가장 중요한 요소 중 하나입니다. 그리고 이 장과 12장에서 15장에서 배우게 될 것처럼 토큰은 이점(인증 및 권한 부여 아키텍처의 책임 분리와 같은)을 제공하고 아키텍처를 상태 비저장 상태로 만드는 데 도움이 되며 요청을 검증할 수 있는 가능성을 제공합니다.
+
+### 11.2.1 토큰이란 무엇입니까?
+
+토큰은 응용 프로그램이 사용자를 인증했음을 증명하는 데 사용하는 방법을 제공하여 사용자가 응용 프로그램의 리소스에 액세스할 수 있도록 합니다. 11.2.2에서는 오늘날 사용되는 가장 일반적인 토큰 구현 중 하나인 JWT를 발견할 것입니다.
+
+토큰이란 무엇입니까? 토큰은 이론적으로 액세스 카드일 뿐입니다. 사무실 건물을 방문하면 가장 먼저 접수처로 이동합니다. 그곳에서 본인을 식별(인증)하고 액세스 카드(토큰)를 받습니다. 출입 카드를 사용하여 일부 문을 열 수 있지만 반드시 모든 문을 열 수는 없습니다. 이렇게 하면 토큰이 액세스를 승인하고 특정 문을 여는 것과 같은 작업을 수행할 수 있는지 여부를 결정합니다. 그림 11.5는 이 개념을 나타냅니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH11_F05_Spilca.png)
+
+**그림 11.5** 모선(비즈니스 논리 서버)에 액세스하려면 Zglorb에 액세스 카드(토큰)가 필요합니다. 식별 후 Zglorb는 액세스 카드를 받습니다. 이 액세스 카드(토큰)는 ​​방과 사무실(자원)에만 액세스할 수 있도록 합니다.
+
+구현 수준에서 토큰은 일반 문자열일 수도 있습니다. 가장 중요한 것은 발급 후 이를 인식할 수 있어야 한다는 것입니다. UUID를 생성하여 메모리나 데이터베이스에 저장할 수 있습니다. 다음 시나리오를 가정해 보겠습니다.
+
+1. 클라이언트는 자격 증명을 사용하여 서버에 자신의 ID를 증명합니다.
+
+2. 서버는 클라이언트에게 UUID 형식의 토큰을 발급합니다. 이제 클라이언트와 연결된 이 토큰은 서버에 의해 메모리에 저장됩니다(그림 11.6).
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH11_F06_Spilca.png)
+
+**그림 11.6** 클라이언트가 인증되면 서버는 토큰을 생성하여 클라이언트에 반환합니다. 그런 다음 이 토큰은 클라이언트에서 서버의 리소스에 액세스하는 데 사용됩니다.
+
+3. 클라이언트가 엔드포인트를 호출하면 클라이언트는 토큰을 제공하고 권한을 얻습니다. 그림 11.7은 이 단계를 보여줍니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH11_F07_Spilca.png)
+
+그림 11.7 클라이언트가 사용자 리소스에 액세스해야 하는 경우 요청에 유효한 토큰을 제공해야 합니다. 유효한 토큰은 사용자가 인증할 때 서버에서 이전에 발행한 토큰입니다.
+
+이것은 인증 및 권한 부여 프로세스에서 토큰을 사용하는 것과 관련된 일반적인 흐름입니다. 단순한 로그인보다 복잡하지 않습니까? (어쨌든 사용자와 비밀번호에만 의존할 수 있다고 생각할 수 있습니다) 하지만 토큰은 더 많은 이점을 제공하므로 토큰을 열거한 다음 하나씩 논의해 보겠습니다.
+
+- 토큰은 모든 요청에서 자격 증명 공유를 방지하는 데 도움이 됩니다.
+
+- 수명이 짧은 토큰을 정의할 수 있습니다.
+
+- 자격 증명을 무효화하지 않고 토큰을 무효화할 수 있습니다.
+
+- 토큰은 또한 클라이언트가 요청에서 보내야 하는 사용자 권한과 같은 세부 정보를 저장할 수 있습니다.
+
+- 토큰은 인증 책임을 시스템의 다른 구성 요소에 위임하는 데 도움이 됩니다.
+
+토큰은 모든 요청에서 자격 증명 공유를 방지하는 데 도움이 됩니다. 2장에서 10장까지 모든 요청에 ​​대한 인증 방법으로 HTTP Basic을 사용했습니다. 그리고 이 방법은 배운 대로 각 요청에 대해 자격 증명을 보낸다고 가정합니다. 각 요청과 함께 자격 증명을 보내는 것은 종종 노출을 의미하기 때문에 좋지 않습니다. 자격 증명을 더 자주 노출할수록 누군가가 자격 증명을 가로챌 가능성이 커집니다. 토큰으로 우리는 전략을 바꿉니다. 
+
+인증을 위한 첫 번째 요청에서만 자격 증명을 보냅니다. 일단 인증되면 토큰을 얻고 이를 사용하여 리소스 호출에 대한 권한을 얻을 수 있습니다. 이렇게 하면 토큰을 얻기 위해 자격 증명을 한 번만 보내면 됩니다.
+
+수명이 짧은 토큰을 정의할 수 있습니다. 누군가 토큰을 훔치면 영원히 사용할 수 없습니다. 아마도 토큰을 사용하여 시스템에 침입하는 방법을 찾기 전에 토큰이 만료될 수 있고 무효화할 수도 있습니다. 토큰이 노출되었다는 사실을 알게 되면 이를 반박할 수 있습니다. 이렇게 하면 더 이상 사용할 수 없습니다.
+
+토큰은 요청에 필요한 세부 정보를 저장할 수도 있습니다. 토큰을 사용하여 사용자의 권한 및 역할과 같은 세부 정보를 저장할 수 있습니다. 이런 식으로 서버 측 세션을 클라이언트 측 세션으로 교체할 수 있으며 수평 확장에 더 나은 유연성을 제공합니다. 이 접근 방식에 대한 자세한 내용은 OAuth 2 흐름에 대해 논의할 때 12~15장에서 볼 수 있습니다.
+
+토큰은 인증 책임을 시스템의 다른 구성 요소로 분리하는 데 도움이 됩니다. 자체 사용자를 관리하지 않는 시스템을 구현하고 있는지도 모릅니다. 대신 사용자가 GitHub, Twitter 등과 같은 다른 플랫폼에 있는 계정의 자격 증명을 사용하여 인증할 수 있습니다. 인증을 수행하는 구성 요소를 구현하기로 선택하더라도 구현을 별도로 만들 수 있다는 것이 유리합니다. 확장성을 높이는 데 도움이 되며 시스템 아키텍처를 보다 자연스럽게 이해하고 개발할 수 있습니다. Neil Madden의 API Security in Action(Manning, 2020)의 5장과 6장도 이 주제와 관련된 좋은 읽을거리입니다. 다음은 이러한 리소스에 액세스할 수 있는 링크입니다.
+
 https://livebook.manning.com/book/api-security-in-action/chapter-5/
 https://livebook.manning.com/book/api-security-in-action/chapter-6/
-11.2.2 WHAT IS A JSON WEB TOKEN?
-In this section, we discuss a more specific implementation of tokens--the JSON Web Token (JWT). This token implementation has benefits that make it quite common in today’s applications. This is why we discuss it in this section, and this is also why I’ve chosen to apply it within the hands-on example of this chapter. You’ll also find it in chapters 12 through 15, where we’ll discuss OAuth 2.
-You already learned in section 11.2.1 that a token is anything the server can identify later: a UUID, an access card, and even the sticker you receive when you buy a ticket in a museum. Let’s find out what a JWT looks like, and why a JWT is special. It’s easy to understand a lot about JWTs from the name of the implementation itself:
-- JSON--It uses JSON to format the data it contains.
-- Web--It’s designed to be used for web requests.
-- Token--It’s a token implementation.
-A JWT has three parts, each part separated from the others by a dot (a period). You find an example in this code snippet:
-                    ↓                               ↓
-eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImRhbmllbGxlIn0.wg6LFProg7s_KvFxvnYGiZF-Mj4rr-0nJA1tVGZNn8U
-The first two parts are the header and the body. The header (from the beginning of the token to the first dot) and the body (between the first and the second dot) are formatted as JSON and then are Base64 encoded. We use the header and the body to store details in the token. The next code snippet shows what the header and the body look like before these are Base64 encoded:
-{
-  "alg": "HS256"            ❶
-}
 
+### 11.2.2 JSON 웹 토큰이란 무엇입니까?
+
+토큰 구체인 JSON 웹 토큰(JWT)에 대해 설명합니다. 이 토큰 구현에는 오늘날의 응용 프로그램에서 매우 일반적으로 사용되는 이점이 있습니다. 이것이 이 섹션에서 논의하는 이유이며 이 장의 실습 예제에 적용하기로 선택한 이유이기도 합니다. OAuth 2에 대해 논의할 12~15장에서도 찾을 수 있습니다.
+
+섹션 11.2.1에서 토큰은 서버가 나중에 식별할 수 있는 모든 것(UUID, 액세스 카드 및 박물관에서 티켓을 구입할 때 받는 스티커)이라는 것을 이미 배웠습니다. JWT가 어떻게 생겼는지, 왜 JWT가 특별한지 알아봅시다. 구현 자체의 이름에서 JWT에 대해 많은 것을 이해하는 것은 쉽습니다.
+
+- JSON -- JSON을 사용하여 포함된 데이터의 형식을 지정합니다.
+- 웹--웹 요청에 사용하도록 설계되었습니다.
+- 토큰--토큰 구현입니다.
+
+JWT에는 세 부분이 있으며 각 부분은 점(마침표)으로 구분됩니다. 다음 코드 스니펫에서 예를 찾을 수 있습니다.
+                    ↓                               ↓
+```
+eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImRhbmllbGxlIn0.wg6LFProg7s_KvFxvnYGiZF-Mj4rr-0nJA1tVGZNn8U
+```
+처음 두 부분은 헤더와 본문입니다. 헤더(토큰의 시작부터 첫 번째 점까지)와 본문(첫 번째 점과 두 번째 점 사이)은 JSON으로 형식이 지정된 다음 Base64로 인코딩됩니다. 헤더와 본문을 사용하여 토큰에 세부 정보를 저장합니다. 다음 코드 스니펫은 헤더와 본문이 Base64로 인코딩되기 전의 모습을 보여줍니다.
+```
 {
-  "username": "danielle"    ❷
+  "alg": "HS256" ❶
 }
-❶ The Base64 encoded header
-❷ The Base64 encoded body
-In the header, you store metadata related to the token. In this case, because I chose to sign the token (as you’ll soon learn in the example), the header contains the name of the algorithm that generates the signature (HS256). In the body, you can include details needed later for authorization. In this case, we only have the username. I recommend that you keep the token as short as possible and that you don’t add a lot of data in the body. Even if, technically, there’s no limitation, you’ll find that
-- If the token is long, it slows the request.
-- When you sign the token, the longer the token, the more time the cryptographic algorithm needs for signing it.
-The last part of the token (from the second dot to the end) is the digital signature, but this part can be missing. Because you’ll usually prefer to sign the header and the body, when you sign the content of the token, you can later use the signature to check that the content hasn’t changed. Without a signature, you can’t be sure that someone didn’t intercept the token when transferred on the network and chang its content.
-To sum it up, JWT is a token implementation. It adds the benefit of easily transferring data during authentication, as well as signing data to validate its integrity (figure 11.8). You’ll find a great discussion on JWT in chapter 7 and appendix H of Microservices Security in Action by Prabath Siriwardena and Nuwan Dias (Manning, 2020):
+{
+  "username": "danielle" ❷
+}
+```
+❶ Base64로 인코딩된 헤더
+
+❷ Base64로 인코딩된 바디
+
+헤더에는 토큰과 관련된 메타데이터를 저장합니다. 이 경우 토큰에 서명하기로 선택했기 때문에(예제에서 곧 배우게 될 것임) 헤더에는 서명을 생성하는 알고리즘(HS256)의 이름이 포함됩니다. 본문에는 나중에 권한 부여에 필요한 세부 정보를 포함할 수 있습니다. 이 경우 사용자 이름만 있습니다. 토큰을 가능한 짧게 유지하고 본문에 많은 데이터를 추가하지 않는 것이 좋습니다. 기술적으로 제한이 없더라도
+
+- 토큰이 길면 요청이 느려집니다.
+
+- 토큰에 서명할 때 토큰이 길수록 암호화 알고리즘이 서명하는 데 더 많은 시간이 필요합니다.
+
+토큰의 마지막 부분(두 번째 점부터 끝까지)은 디지털 서명이지만 이 부분은 누락될 수 있습니다. 일반적으로 헤더와 본문에 서명하는 것을 선호하기 때문에 토큰 내용에 서명할 때 나중에 서명을 사용하여 내용이 변경되지 않았는지 확인할 수 있습니다. 서명이 없으면 네트워크에서 토큰을 전송하고 내용을 변경할 때 누군가가 토큰을 가로채지 않았는지 확신할 수 없습니다.
+
+요약하자면 JWT는 토큰 구현입니다. 이는 인증 중에 데이터를 쉽게 전송하고 무결성을 검증하기 위해 데이터에 서명하는 이점을 추가합니다(그림 11.8). Prabath Siriwardena와 Nuwan Dias(Manning, 2020)의 7장과 Microservices Security in Action의 부록 H에서 JWT에 대한 훌륭한 토론을 찾을 수 있습니다.
+
 https://livebook.manning.com/book/microservices-security-in-action/chapter-7/
 https://livebook.manning.com/book/microservices-security-in-action/h-json-web-token-jwt-/
- 
-Figure 11.8 A JWT is composed of three parts: the header, the body, and the signature. The header and the body are JSON representations of the data stored in the token. To make these easy to send in a request header, they are Base64 encoded. The last part of the token is the signature. The parts are concatenated with dots.
-In this chapter, we’ll use Java JSON Web Token (JJWT) as the library to create and parse JWTs. This is one of the most frequently used libraries to generate and parse JWT tokens in Java applications. Besides all the needed details related to how to use this library, on JJWT’s GitHub repository, I also found a great explanation of JWTs. You might find it useful to read as well:
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH11_F08_Spilca.png)
+
+그림 11.8 JWT는 헤더, 본문 및 서명의 세 부분으로 구성됩니다. 헤더와 본문은 토큰에 저장된 데이터의 JSON 표현입니다. 요청 헤더에서 쉽게 보낼 수 있도록 Base64로 인코딩됩니다. 토큰의 마지막 부분은 서명입니다. 부품은 점으로 연결됩니다.
+
+이 장에서는 JWT(Java JSON Web Token)를 라이브러리로 사용하여 JWT를 만들고 구문 분석합니다. 이것은 Java 애플리케이션에서 JWT 토큰을 생성하고 구문 분석하는 데 가장 자주 사용되는 라이브러리 중 하나입니다. 이 라이브러리를 사용하는 방법과 관련된 모든 필요한 세부 정보 외에도 JJWT의 GitHub 저장소에서 JWT에 대한 훌륭한 설명도 찾았습니다. 다음을 읽는 것도 유용할 수 있습니다.
+
 https://github.com/jwtk/jjwt#overview
-11.3 Implementing the authentication server
-In this section, we start the implementation of our hands-on example. The first dependency we have is the authentication server. Even if it’s not the application on which we focus on using Spring Security, we need it for our final result. To let you focus on what’s essential in this hands-on, I take out some parts of the implementation. I mention these throughout the example and leave these for you to implement as an exercise.
-In our scenario, the authentication server connects to a database where it stores the user credentials and the OTPs generated during request authentication events. We need this application to expose three endpoints (figure 11.9):
-- /user/add--Adds a user that we use later for testing our implementation.
-- /user/auth--Authenticates a user by their credentials and sends an SMS with an OTP. We take out the part that sends the SMS, but you can do this as an exercise.
-- /otp/check--Verifies that an OTP value is the one that the authentication server generated earlier for a specific user.
-For a refresher on how to create REST endpoints, I recommend that you read chapter 6 in Spring in Action, 6th ed., by Craig Walls:
+
+## 11.3 인증 서버 구현
+
+이 섹션에서는 실습 예제의 구현을 시작합니다. 첫 번째 종속성은 인증 서버입니다. Spring Security 사용에 중점을 둔 애플리케이션이 아니더라도 최종 결과를 위해서는 필요합니다. 이 실습에서 필수적인 것에 집중할 수 있도록 구현의 일부를 가져옵니다. 나는 예제 전체에서 이것들을 언급하고 연습으로 구현하도록 남겨둡니다.
+이 시나리오에서 인증 서버는 요청 인증 이벤트 중에 생성된 OTP와 사용자 자격 증명을 저장하는 데이터베이스에 연결합니다. 3개의 엔드포인트를 노출하려면 이 애플리케이션이 필요합니다(그림 11.9).
+- /user/add--나중에 구현 테스트에 사용할 사용자를 추가합니다.
+- /user/auth--자격 증명으로 사용자를 인증하고 OTP가 포함된 SMS를 보냅니다. 우리는 SMS를 보내는 부분을 제거하지만 이것은 연습으로 할 수 있습니다.
+- /otp/check--OTP 값이 인증 서버가 특정 사용자에 대해 이전에 생성한 값인지 확인합니다.
+REST 끝점을 만드는 방법에 대한 복습을 위해 Craig Walls의 Spring in Action, 6th ed.의 6장을 읽을 것을 권장합니다.
 https://livebook.manning.com/book/spring-in-action-sixth-edition/chapter-6/
- 
-Figure 11.9 The class design for an authentication server. The controller exposes REST endpoints that call the logic defined in a service class. The two repositories are the access layer to the database. We also write a utility class to separate the code that generates the OTP to be sent through SMS.
-We create a new project and add the needed dependencies as the next code snippet shows. You can find this app implemented in the project ssia-ch11-ex1-s1.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH11_F09_Spilca.png)
+
+그림 11.9 인증 서버를 위한 클래스 디자인. 컨트롤러는 서비스 클래스에 정의된 로직을 호출하는 REST 엔드포인트를 노출합니다. 두 개의 저장소는 데이터베이스에 대한 액세스 계층입니다. 또한 SMS를 통해 보낼 OTP를 생성하는 코드를 분리하는 유틸리티 클래스를 작성합니다.
+새 프로젝트를 만들고 다음 코드 스니펫에 표시된 대로 필요한 종속성을 추가합니다. ssia-ch11-ex1-s1 프로젝트에서 구현된 이 앱을 찾을 수 있습니다.
+```
 <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-web</artifactId>
@@ -119,10 +197,15 @@ We create a new project and add the needed dependencies as the next code snippet
   <artifactId>mysql-connector-java</artifactId>
   <scope>runtime</scope>
 </dependency>
+```
+
 We also need to make sure we create the database for the application. Because we store user credentials (username and password), we need a table for this. And we also need a second table to store the OTP values associated with authenticated users (figure 11.10).
- 
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH11_F10_Spilca.png)
+
 Figure 11.10 The app database has two tables. In one of the tables, the app stores user credentials, while in the second one, the app stores the generated OTP codes.
 I use a database named spring and add the scripts to create the two tables required in a schema.sql file. Remember to place the schema.sql file in the resources folder of your project as this is where Spring Boot picks it up to execute the scripts. In the next code snippet, you find the content of my schema.sql file. (If you don’t like the approach with the schema.sql file, you can create the database structure manually anytime or use any other method you prefer.)
+```sql
 CREATE TABLE IF NOT EXISTS `spring`.`user` (
     `username` VARCHAR(45) NULL,
     `password` TEXT NULL,
@@ -132,17 +215,26 @@ CREATE TABLE IF NOT EXISTS `spring`.`otp` (
     `username` VARCHAR(45) NOT NULL,
     `code` VARCHAR(45) NULL,
     PRIMARY KEY (`username`));
-In the application.properties file, we provide the parameters needed by Spring Boot to create the data source. The next code snippet shows the content of the application.properties file:
+```
+application.properties 파일에서 Spring Boot가 데이터 소스를 생성하는 데 필요한 매개변수를 제공합니다. 다음 코드 조각은 application.properties 파일의 내용을 보여줍니다.
+
+```yml
 spring.datasource.url=jdbc:mysql://localhost/spring
 spring.datasource.username=root
 spring.datasource.password=
 spring.datasource.initialization-mode=always
-I added Spring Security to the dependencies as well for this application. The only reason I did this for the authentication server is to have the BCryptPasswordEncoder that I like to use to hash the users’ passwords when stored in the database. To keep the example short and relevant to our purpose, I don’t implement authentication between the business logic server and the authentication server. But I’d like to leave this to you as an exercise later, after finishing with the hands-on example. For the implementation we work on in this chapter, the configuration class for the project looks like the one in listing 11.1.
-EXERCISE Change the applications from this hands-on chapter to validate the requests between the business logic server and the authentication server:
-- By using a symmetric key
-- By using an asymmetric key pair
+```
+이 애플리케이션에 대한 종속성에도 Spring Security를 추가했습니다. 인증 서버에 대해 이 작업을 수행한 유일한 이유는 데이터베이스에 저장할 때 사용자의 암호를 해시하는 데 사용하는 BCryptPasswordEncoder를 사용하기 위해서입니다. 예제를 짧고 목적에 맞게 유지하기 위해 비즈니스 로직 서버와 인증 서버 간에 인증을 구현하지 않습니다. 그러나 이것은 실습 예제를 마친 후 나중에 연습으로 남겨두고 싶습니다. 이 장에서 작업하는 구현의 경우 프로젝트의 구성 클래스는 목록 11.1에 있는 것과 같습니다.
+
+> EXERCISE Change the applications from this hands-on chapter to validate the requests between the business logic server and the authentication server:
+
+- 대칭키로
+- 비대칭키 쌍으로
+
 To solve the exercise, you might find it useful to review the example we worked on in section 9.2.
+
 Listing 11.1 The configuration class for the authentication server
+```java
 @Configuration
 public class ProjectConfig 
   extends WebSecurityConfigurerAdapter {
@@ -159,11 +251,17 @@ public class ProjectConfig
           .anyRequest().permitAll();                             ❸
   }
 }
-❶ Defines a password encoder to hash the passwords stored in the database
-❷ Disables CSRF so we can call all the endpoints of the application directly
-❸ Allows all the calls without authentication
-With the configuration class in place, we can continue with defining the connection to the database. Because we use Spring Data JPA, we need to write the JPA entities and then the repositories, and because we have two tables, we define two JPA entities and two repository interfaces. The following listing shows the definition of the User entity. It represents the user table where we store user credentials.
+```
+데이터베이스에 저장된 비밀번호를 해시하기 위한 비밀번호 인코더 정의
+
+❷ 애플리케이션의 모든 엔드포인트를 직접 호출할 수 있도록 CSRF를 비활성화합니다.
+
+❸ 인증 없이 모든 통화 허용
+
+구성 클래스가 있으면 데이터베이스에 대한 연결을 계속 정의할 수 있습니다. Spring Data JPA를 사용하기 때문에 JPA 엔터티를 작성한 다음 저장소를 작성해야 하고 테이블이 2개 있으므로 JPA 엔터티 2개와 저장소 인터페이스 2개를 정의합니다. 다음 목록은 사용자 엔터티의 정의를 보여줍니다. 사용자 자격 증명을 저장하는 사용자 테이블을 나타냅니다.
+
 Listing 11.2 The User entity
+```java
 @Entity
 public class User {
 
@@ -173,8 +271,11 @@ public class User {
 
   // Omitted getters and setters
 }
-The next listing presents the second entity, Otp. This entity represents the otp table where the application stores the generated OTPs for authenticated users.
+```
+다음 목록은 두 번째 엔티티인 Otp를 나타냅니다. 이 엔터티는 애플리케이션이 인증된 사용자에 대해 생성된 OTP를 저장하는 otp 테이블을 나타냅니다.
+
 Listing 11.3 The Otp entity
+```java
 @Entity
 public class Otp {
 
@@ -184,20 +285,28 @@ public class Otp {
 
   // Omitted getters and setters
 }
+```
 Listing 11.4 presents the Spring Data JPA repository for the User entity. In this interface, we define a method to retrieve a user by their username. We need this for the first step of authentication, where we validate the username and password.
+
 Listing 11.4 The UserRepository interface
+```java
 public interface UserRepository extends JpaRepository<User, String> {
 
   Optional<User> findUserByUsername(String username);
 }
+```
 Listing 11.5 presents the Spring Data JPA repository for the Otp entity. In this interface, we define a method to retrieve the OTP by username. We need this method for the second authentication step, where we validate the OTP for a user.
+
 Listing 11.5 The OtpRepository interface
+```java
 public interface OtpRepository extends JpaRepository<Otp, String> {
 
   Optional<Otp> findOtpByUsername(String username);
 }
+```
 With the repositories and entities in place, we can work on the logic of the application. For this, I create a service class that I call UserService. As shown in listing 11.6, the service has dependencies on the repositories and the password encoder. Because we use these objects to implement the application logic, we need to autowire them.
 Listing 11.6 Autowiring the dependencies in the UserService class
+```java
 @Service
 @Transactional
 public class UserService {
@@ -212,8 +321,11 @@ public class UserService {
   private OtpRepository otpRepository;
 
 }
+```
 Next, we need to define a method to add a user. You can find the definition of this method in the following listing.
+
 Listing 11.7 Defining the addUser() method
+```java
 @Service
 @Transactional
 public class UserService {
@@ -225,8 +337,11 @@ public class UserService {
     userRepository.save(user);
   }
 }
+```
 What does the business logic server need? It needs a way to send a username and password to be authenticated. After the user is authenticated, the authentication server generates an OTP for the user and sends it via SMS. The following listing shows the definition of the auth() method, which implements this logic.
+
 Listing 11.8 Implementing the first authentication step
+```java
 @Service
 @Transactional
 public class UserService {

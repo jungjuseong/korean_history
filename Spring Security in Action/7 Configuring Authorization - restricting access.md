@@ -1,21 +1,26 @@
+# 7 권한 설정: 접근 제한
 
- 
-7 Configuring authorization: Restricting access
-This chapter covers
-- Defining authorities and roles
-- Applying authorization rules on endpoints
-Some years ago, I was skiing in the beautiful Carpathian mountains when I witnessed this funny scene. About ten, maybe fifteen people were queuing up to get into the cabin to go to the top of the ski slope. A well-known pop artist showed up, accompanied by two bodyguards. He confidently strode up, expecting to skip the queue because he was famous. Reaching the head of the line, he got a surprise. “Ticket, please!” said the person managing the boarding, who then had to explain, “Well, you first need a ticket, and second, there is no priority line for this boarding, sorry. The queue ends there.” He pointed to the end of the queue. As in most cases in life, it doesn’t matter who you are. We can say the same about software applications. It doesn’t matter who you are when trying to access a specific functionality or data!
-Up to now, we’ve only discussed authentication, which is, as you learned, the process in which the application identifies the caller of a resource. In the examples we worked on in the previous chapters, we didn’t implement any rule to decide whether to approve a request. We only cared if the system knew the user or not. In most applications, it doesn’t happen that all the users identified by the system can access every resource in the system. In this chapter, we’ll discuss authorization. Authorization is the process during which the system decides if an identified client has permission to access the requested resource (figure 7.1).
+이 장에서는 다음을 다룹니다.
+- 권한 및 역할 정의
+- 엔드포인트에 권한 부여 규칙 적용
+
+몇 년 전 아름다운 카르파티아 산맥에서 스키를 타던 중 이 재미있는 장면을 목격했습니다. 약 10명, 아마도 15명의 사람들이 스키 슬로프 정상에 오르기 위해 캐빈에 들어가기 위해 줄을 서고 있었습니다. 두 명의 경호원과 함께 유명한 팝 아티스트가 나타났습니다. 그는 유명하기 때문에 대기열을 건너 뛰기를 기대하면서 자신있게 걸어 올라갔습니다. 라인의 선두에 도달, 그는 놀라움을 얻었다. “티켓 주세요!” 탑승을 관리하는 사람은 "글쎄요, 먼저 표가 필요하고, 두 번째로 이 탑승에는 우선 순위가 없습니다. 죄송합니다. 대기열은 거기서 끝납니다.” 그는 줄의 끝을 가리켰다. 삶의 대부분의 경우와 마찬가지로, 당신이 누구인지는 중요하지 않습니다. 소프트웨어 응용 프로그램에 대해서도 마찬가지입니다. 특정 기능이나 데이터에 액세스하려고 할 때 당신이 누구인지는 중요하지 않습니다!
+
+지금까지 우리는 인증, 즉 배웠듯이 애플리케이션이 리소스의 호출자를 식별하는 프로세스에 대해서만 논의했습니다. 이전 장에서 작업한 예제에서는 요청 승인 여부를 결정하는 규칙을 구현하지 않았습니다. 우리는 시스템이 사용자를 알고 있는지 여부에만 신경을 썼습니다. 대부분의 응용 프로그램에서 시스템에서 식별한 모든 사용자가 시스템의 모든 리소스에 액세스할 수 있는 것은 아닙니다. 이 장에서는 권한 부여에 대해 설명합니다. 인증은 식별된 클라이언트가 요청된 리소스에 액세스할 수 있는 권한이 있는지 시스템이 결정하는 프로세스입니다(그림 7.1).
  
-Figure 7.1 Authorization is the process during which the application decides whether an authenticated entity is allowed to access a resource. Authorization always happens after authentication.
-In Spring Security, once the application ends the authentication flow, it delegates the request to an authorization filter. The filter allows or rejects the request based on the configured authorization rules (figure 7.2).
-To cover all the essential details on authorization, in this chapter we’ll follow these steps:
-1.	Gain an understanding of what an authority is and apply access rules on all endpoints based on a user’s authorities.
-2.	Learn how to group authorities in roles and how to apply authorization rules based on a user’s roles.
+그림 7.1 권한 부여는 인증된 엔터티가 리소스에 액세스할 수 있는지 여부를 애플리케이션이 결정하는 프로세스입니다. 권한 부여는 항상 인증 후에 발생합니다.
+
+Spring Security에서 애플리케이션은 인증 흐름을 종료하면 요청을 인증 필터에 위임합니다. 필터는 구성된 권한 부여 규칙에 따라 요청을 허용하거나 거부합니다(그림 7.2).
+권한 부여에 대한 모든 필수 세부 정보를 다루기 위해 이 장에서 다음 단계를 따릅니다.
+
+1. 권한이 무엇인지 이해하고 사용자 권한을 기반으로 모든 엔드포인트에 액세스 규칙을 적용합니다.
+2. 권한을 역할별로 그룹화하는 방법과 사용자의 역할에 따라 권한 부여 규칙을 적용하는 방법을 배웁니다.
  
-Figure 7.2 When the client makes the request, the authentication filter authenticates the user. After successful authentication, the authentication filter stores the user details in the security context and forwards the request to the authorization filter. The authorization filter decides whether the call is permitted. To decide whether to authorize the request, the authorization filter uses the details from the security context.
-In chapter 8, we’ll continue with selecting endpoints to which we’ll apply the authorization rules. For now, let’s look at authorities and roles and how these can restrict access to our applications.
-7.1 Restricting access based on authorities and roles
+그림 7.2 클라이언트가 요청하면 인증 필터가 사용자를 인증합니다. 인증에 성공하면 인증 필터가 사용자 세부 정보를 보안 컨텍스트에 저장하고 요청을 권한 부여 필터로 전달합니다. 권한 부여 필터는 호출이 허용되는지 여부를 결정합니다. 요청을 승인할지 여부를 결정하기 위해 권한 부여 필터는 보안 컨텍스트의 세부 정보를 사용합니다.
+8장에서는 계속해서 권한 부여 규칙을 적용할 끝점을 선택합니다. 지금은 권한과 역할을 살펴보고 이것이 애플리케이션에 대한 액세스를 제한하는 방법을 살펴보겠습니다.
+
+## 7.1 Restricting access based on authorities and roles
+
 In this section, you learn about the concepts of authorization and roles. You use these to secure all the endpoints of your application. You need to understand these concepts before you can apply them in real-world scenarios, where different users have different permissions. Based on what privileges users have, they can only execute a specific action. The application provides privileges as authorities and roles.
 In chapter 3, you implemented the GrantedAuthority interface. I introduced this contract when discussing another essential component: the UserDetails interface. We didn’t work with GrantedAuthority then because, as you’ll learn in this chapter, this interface is mainly related to the authorization process. We can now return to GrantedAuthority to examine its purpose. Figure 7.3 presents the relationship between the UserDetails contract and the GrantedAuthority interface. Once we finish discussing this contract, you’ll learn how to use these rules individually or for specific requests.
  

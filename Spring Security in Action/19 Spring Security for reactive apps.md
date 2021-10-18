@@ -1,36 +1,60 @@
+# 19 반응형 앱을 위한 스프링 시큐리티
 
- 
+이 장에서는 다음을 다룹니다.
 
- 
-19 Spring Security for reactive apps
-This chapter covers
-- Using Spring Security with reactive applications
-- Using reactive apps in a system designed with OAuth 2
-Reactive is a programming paradigm where we apply a different way of thinking when developing our applications. Reactive programming is a powerful way of developing web apps that has gained wide acceptance. I would even say that it became fashionable a few years ago when any important conference had at least a few presentations discussing reactive apps. But like any other technology in software development, reactive programming doesn’t represent a solution applicable to every situation.
-In some cases, a reactive approach is an excellent fit. In other cases, it might only complicate your life. But, in the end, the reactive approach exists because it addresses some limitations of imperative programming, and so is used to avoid such limitations. One of these limitations involves executing large tasks that can somehow be fragmented. With an imperative approach, you give the application a task to execute, and the application has the responsibility to solve it. If the task is large, it might take a substantial amount of time for the application to solve it. The client who assigned the task needs to wait for the task to be entirely solved before receiving a response. With reactive programming, you can divide the task so that the app has the opportunity to approach some of the subtasks concurrently. This way, the client receives the processed data faster.
-In this chapter, we’ll discuss implementing application-level security in reactive applications with Spring Security. As with any other application, security is an important aspect of reactive apps. But because reactive apps are designed differently, Spring Security has adapted the way we implement features discussed previously in this book.
-We’ll start with a short overview of implementing reactive apps with the Spring framework in section 19.1. Then, we’ll apply the security features you learned throughout this book on security apps. In section 19.2, we’ll discuss user management in reactive apps, and in section 19.3, w’lle continue with applying authorization rules. Finally, in section 19.4, you’ll learn how to implement reactive applications in a system designed over OAuth 2. You’ll learn what changes from the Spring Security perspective when it comes to reactive applications, and of course, you’ll learn how to apply this with examples.
-19.1 What are reactive apps?
-In this section, we briefly discuss reactive apps. This chapter is about applying security for reactive apps, so with this section, I want to make sure you grasp the essentials of reactive apps before going deeper into Spring Security configurations. Because the topic of reactive applications is big, in this section I only review the main aspects of reactive apps as a refresher. If you aren’t yet aware of how reactive apps work, or you need to understand them in more detail, I recommend you read chapter 10 of Spring in Action by Craig Walls (Manning, 2020):
+- 반응형 애플리케이션과 함께 Spring Security 사용
+- OAuth 2로 설계된 시스템에서 반응형 앱 사용
+
+Reactive는 애플리케이션을 개발할 때 다른 사고 방식을 적용하는 프로그래밍 패러다임입니다. 반응형 프로그래밍은 널리 받아들여진 웹 앱을 개발하는 강력한 방법입니다. 몇 년 전만 해도 어떤 중요한 회의에서 반응형 앱에 대해 논의하는 프레젠테이션이 최소한 몇 개 있을 때 유행이 되었다고 말할 수도 있습니다. 그러나 소프트웨어 개발의 다른 기술과 마찬가지로 반응형 프로그래밍은 모든 상황에 적용할 수 있는 솔루션을 나타내지 않습니다.
+
+어떤 경우에는 반응적 접근 방식이 매우 적합합니다. 다른 경우에는 삶이 복잡해질 수 있습니다. 그러나 결국, 반응적 접근 방식은 명령형 프로그래밍의 몇 가지 제한 사항을 해결하고 이러한 제한 사항을 피하기 위해 사용되기 때문에 존재합니다. 이러한 제한 사항 중 하나는 어떻게든 조각화될 수 있는 대규모 작업을 실행하는 것과 관련이 있습니다. 
+
+명령형 접근 방식을 사용하면 응용 프로그램에 실행할 작업을 부여하고 응용 프로그램은 이를 해결할 책임이 있습니다. 작업이 큰 경우 응용 프로그램에서 해결하는 데 상당한 시간이 걸릴 수 있습니다. 작업을 할당한 클라이언트는 응답을 받기 전에 작업이 완전히 해결될 때까지 기다려야 합니다. 반응형 프로그래밍을 사용하면 앱이 일부 하위 작업에 동시에 접근할 수 있도록 작업을 나눌 수 있습니다. 이러한 방식으로 클라이언트는 처리된 데이터를 더 빨리 수신합니다.
+
+이 장에서는 Spring Security를 ​​사용하여 반응형 애플리케이션에서 애플리케이션 수준 보안을 구현하는 방법에 대해 설명합니다. 다른 애플리케이션과 마찬가지로 보안은 반응형 앱의 중요한 측면입니다. 그러나 반응형 앱은 다르게 설계되었기 때문에 Spring Security는 이 책에서 이전에 논의한 기능을 구현하는 방식을 조정했습니다.
+
+19.1에서 Spring 프레임워크로 반응형 앱을 구현하는 간단한 개요로 시작하겠습니다. 그런 다음 이 책에서 배운 보안 기능을 보안 앱에 적용합니다. 
+
+19.2에서 리액티브 앱의 사용자 관리에 대해 논의하고 섹션 19.3에서 권한 부여 규칙 적용을 계속할 것입니다. 
+
+마지막으로 섹션 19.4에서 OAuth 2를 통해 설계된 시스템에서 반응형 애플리케이션을 구현하는 방법을 배우게 됩니다. 
+
+반응형 애플리케이션과 관련하여 Spring Security 관점에서 변경되는 사항을 배우고 물론 이를 예제와 함께 적용합니다.
+
+## 19.1 반응형 앱이란 무엇입니까?
+
+반응형 앱에 대해 간략하게 설명합니다. 이 장은 반응형 앱에 보안을 적용하는 것에 관한 것이므로 이 섹션에서는 Spring Security 구성에 대해 더 깊이 들어가기 전에 반응형 앱의 필수 사항을 이해했는지 확인하고 싶습니다. 리액티브 애플리케이션의 주제는 크기 때문에 여기서는 리액티브 앱의 주요 측면만 복습으로 검토합니다. 반응형 앱이 어떻게 작동하는지 아직 알지 못하거나 더 자세히 이해해야 하는 경우 Craig Walls의 Spring in Action(Manning, 2020)의 10장을 읽는 것이 좋습니다.
+
 https://livebook.manning.com/book/spring-in-action-sixth-edition/chapter-10/
-When we implement reactive apps, we use two fashions to implement the functionalities. The following list elaborates on these approaches:
-- With the imperative approach, your app processes the bulk of your data all at once. For example, a client app calls an endpoint exposed by the server and sends all the data that needs to be processed to the backend. Say you implement a functionality where the user uploads files. If the user selects a number of files, and all of these are received by the backend app to be processed all at once, you’re working with an imperative approach.
-- With the reactive approach, your app receives and processes the data in fragments. Not all the data has to be fully available from the beginning to be processed. The backend receives and processes data as it gets it. Say the user selects some files, and the backend needs to upload and process them. The backend doesn’t wait to receive all the files at once before processing. The backend might receive the files one by one and process each while waiting for more files to come.
-Figure 19.1 presents an analogy for the two programming approaches. Imagine a factory bottling milk. If the factory gets all the milk in the morning, and once it finishes the bottling, it delivers the milk, then we say it’s non-reactive (imperative). If the factory gets the milk throughout the day, and once it finishes bottling enough milk for an order, it delivers the order, then we say it’s reactive. Clearly, for the milk factory, it’s more advantageous to use a reactive approach rather than a non-reactive one.
+
+반응형 앱을 구현할 때 두 가지 방식을 사용하여 기능을 구현합니다. 다음 목록은 이러한 접근 방식에 대해 자세히 설명합니다.
+
+- **명령형 접근 방식**을 사용하면 앱에서 대량의 데이터를 한 번에 처리합니다. 예를 들어 클라이언트 앱은 서버에 의해 노출된 끝점을 호출하고 처리해야 하는 모든 데이터를 백엔드로 보냅니다. 사용자가 파일을 업로드하는 기능을 구현한다고 가정해 보겠습니다. 사용자가 여러 파일을 선택하고 백엔드 앱에서 이 모든 파일을 수신하여 한 번에 처리하는 경우 명령적 접근 방식으로 작업하고 있는 것입니다.
+
+- **반응적 접근 방식**을 사용하면 앱이 데이터를 조각으로 수신하고 처리합니다. 모든 데이터를 처음부터 완전히 사용할 수 있어야 처리할 수 있는 것은 아닙니다. 백엔드는 데이터를 받는 대로 데이터를 수신하고 처리합니다. 사용자가 일부 파일을 선택하고 백엔드에서 파일을 업로드하고 처리해야 한다고 가정해 보겠습니다. 백엔드는 처리하기 전에 모든 파일을 한 번에 수신할 때까지 기다리지 않습니다. 백엔드는 파일을 하나씩 수신하고 더 많은 파일이 올 때까지 기다리는 동안 각각을 처리할 수 있습니다.
+
+그림 19.1은 두 가지 프로그래밍 접근 방식에 대한 비유를 보여줍니다. 우유를 병에 넣는 공장을 상상해보십시오. 공장에서 아침에 모든 우유를 받고 병입이 완료되면 우유를 배달하면 명령형(필수)이라고 합니다. 공장에서 하루 종일 우유를 받고 주문에 필요한 충분한 우유를 병에 채우고 나면 주문을 배달하고 반응적이라고 합니다. 분명히 우유 공장의 경우 비반응적 접근보다 사후적 접근 방식을 사용하는 것이 더 유리합니다.
  
-Figure 19.1 Non-reactive vs. reactive. In a non-reactive approach, the milk factory gets all the milk to be packaged in the morning and delivers all the boxes in the evening. In a reactive approach, as the milk is brought to the factory, it’s packaged and then delivered. For this scenario, a reactive approach is better as it allows milk to be collected throughout the day and delivered sooner to the clients.
-For implementing reactive apps, the Reactive Streams specification (http://www.reactive-streams.org/) provides a standard way for asynchronous stream processing. One of the implementations of this specification is the Project Reactor, which builds the foundations of Spring’s reactive programming model. Project Reactor provides a functional API for composing Reactive Streams.
-To get a more hands-on feeling, let’s start a simple implementation of a reactive app. We’ll continue further with this same application in section 19.2 when discussing user management in reactive apps. I created a new project named ssia-ch19-ex1, and we’ll develop a reactive web app that exposes a demo endpoint. In the pom.xml file, we need to add the reactive web dependency as presented in the next code snippet. This dependency houses the Project Reactor and enables us to use its related classes and interfaces in our project:
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH19_F01_Spilca.png)
+
+그림 19.1 무반응 대 반응성. 무반응 접근 방식에서 우유 공장은 아침에 포장할 모든 우유를 가져오고 저녁에 모든 상자를 배달합니다. 반응적 접근 방식에서는 우유가 공장으로 운반될 때 포장됩니다.
+```xml
 <dependency>
    <groupId>org.springframework.boot</groupId>
    <artifactId>spring-boot-starter-webflux</artifactId>
 </dependency>
-Next, we define a simple HelloController to hold the definition of our demo endpoint. Listing 19.1 shows the definition of the HelloController class. In the definition of the endpoint, you’ll observe I used as a return type a Mono. Mono is one of the essential concepts defined by a Reactor implementation. When working with Reactor, you often use Mono and Flux, which both define publishers (sources of data). In the Reactive Streams specification, a publisher is described by the Publisher interface. This interface describes one of the essential contracts used with Reactive Streams. The other contract is the Subscriber. This contract describes the component consuming the data.
-When designing an endpoint that returns something, the endpoint becomes a publisher, so it has to return a Publisher implementation. If using Project Reactor, this will be a Mono or a Flux. Mono is a publisher for a single value, while Flux is a publisher for multiple values. Figure 19.2 describes these components and the relationships among these.
- 
-Figure 19.2 In a reactive stream, a publisher produces values, and a subscriber consumes those values. Contracts defined by the Reactive Streams specification describe publishers and subscribers. Project Reactor implements the Reactive Streams specification and implements the Publisher and Subscriber contracts. In the figure, the components we use in the examples in this chapter are shaded.
-To make this explanation even more precise, let’s go back to the milk factory analogy. The milk factory is a reactive backend implementation that exposes an endpoint to receive the milk to be processed. This endpoint produces something (bottled milk), so it needs to return a Publisher. If more than one bottle of milk is requested, then the milk factory needs to return a Flux, which is Project Reactor’s publisher implementation that deals with zero or more produced values.
-Listing 19.1 The definition of the HelloController class
+```
+다음으로 데모 끝점의 정의를 유지하기 위해 간단한 HelloController를 정의합니다. 목록 19.1은 HelloController 클래스의 정의를 보여줍니다. 끝점의 정의에서 반환 유형으로 Mono를 사용했음을 관찰할 수 있습니다. Mono는 Reactor 구현에 의해 정의된 필수 개념 중 하나입니다. Reactor로 작업할 때 게시자(데이터 소스)를 정의하는 Mono 및 Flux를 자주 사용합니다. Reactive Streams 사양에서 게시자는 게시자 인터페이스로 설명됩니다. 이 인터페이스는 Reactive Streams와 함께 사용되는 필수 계약 중 하나를 설명합니다. 다른 계약은 가입자입니다. 이 계약은 데이터를 사용하는 구성 요소를 설명합니다.
+
+무언가를 반환하는 끝점을 디자인할 때 끝점은 게시자가 되므로 게시자 구현을 반환해야 합니다. Project Reactor를 사용하는 경우 Mono 또는 Flux가 됩니다. Mono는 단일 값의 게시자이고 Flux는 여러 값의 게시자입니다. 그림 19.2는 이러한 구성 요소와 이들 간의 관계를 설명합니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH19_F02_Spilca.png)
+
+그림 19.2 반응 스트림에서 게시자는 값을 생성하고 구독자는 해당 값을 소비합니다. Reactive Streams 사양에 정의된 계약은 게시자와 구독자를 설명합니다. Project Reactor는 Reactive Streams 사양을 구현하고 게시자 및 구독자 계약을 구현합니다. 그림에서 이 장의 예제에서 사용하는 구성 요소는 음영 처리되어 있습니다.
+
+이 설명을 더 정확하게 하기 위해 우유 공장 비유로 돌아가 보겠습니다. 우유 공장은 처리할 우유를 수신하는 엔드포인트를 노출하는 반응형 백엔드 구현입니다. 이 끝점은 무언가(병에 담긴 우유)를 생산하므로 게시자를 반환해야 합니다. 두 병 이상의 우유가 요청되면 우유 공장은 0개 이상의 생산된 값을 처리하는 Project Reactor의 게시자 구현인 Flux를 반환해야 합니다.
+
+목록 19.1 HelloController 클래스의 정의
 @RestController
 public class HelloController {
 
@@ -39,27 +63,49 @@ public class HelloController {
     return Mono.just("Hello!");      ❶
   }
 }
-❶ Creates and returns a Mono stream source with one value on the stream
-You can now start and test the application. The first thing you observe by looking in the app’s terminal is that Spring Boot doesn’t configure a Tomcat server anymore. Spring Boot used to configure a Tomcat for a web application by default, and you may have observed this aspect in any of the examples we previously developed in this book. Instead, now Spring Boot autoconfigures Netty as the default reactive web server for a Spring Boot project.
-The second thing you may have observed when calling the endpoint is that it doesn’t behave differently from an endpoint developed with a non-reactive approach. You can still find in the HTTP response body the Hello! message that the endpoint returns in its defined Mono stream. The next code snippet presents the app’s behavior when calling the endpoint:
+❶ 스트림에 하나의 값으로 Mono 스트림 소스를 생성하고 반환합니다.
+
+이제 응용 프로그램을 시작하고 테스트할 수 있습니다. 앱의 터미널에서 가장 먼저 관찰한 것은 Spring Boot가 더 이상 Tomcat 서버를 구성하지 않는다는 것입니다. Spring Boot는 기본적으로 웹 애플리케이션용 Tomcat을 구성하는 데 사용되었으며 이 책에서 이전에 개발한 예제에서 이 측면을 관찰했을 수 있습니다. 대신 이제 Spring Boot는 Netty를 Spring Boot 프로젝트의 기본 반응 웹 서버로 자동 구성합니다.
+
+끝점을 호출할 때 관찰할 수 있는 두 번째 사항은 비반응적 접근 방식으로 개발된 끝점과 다르게 동작하지 않는다는 것입니다. 여전히 HTTP 응답 본문에서 Hello!를 찾을 수 있습니다. 엔드포인트가 정의된 Mono 스트림에서 반환하는 메시지입니다. 다음 코드 스니펫은 엔드포인트를 호출할 때 앱의 동작을 나타냅니다.
+
+```sh
 curl http://localhost:8080/hello
-The response body is
+```
+응답 본문은
+```sh
 Hello!
-But why is the reactive approach different in terms of Spring Security? Behind the scenes, a reactive implementation uses multiple threads to solve the tasks on the stream. In other words, it changes the philosophy of one-thread-per-request, which we use for a web app designed with an imperative approach (figure 19.3). And, from here, more differences:
-- The SecurityContext implementation doesn’t work the same way in reactive applications. Remember, the SecurityContext is based on a ThreadLocal, and now we have more than one thread per request. (We discussed this component in chapter 5.)
-- Because of the SecurityContext, any authorization configuration is now affected. Remember that the authorization rules generally rely on the Authentication instance stored in the SecurityContext. So now, the security configurations applied at the endpoint layer as well as the global method security functionality are affected.
-- The UserDetailsService, the component responsible for retrieving the user details, is a data source. Because of this, the user details service also needs to support a reactive approach. (We learned about this contract in chapter 2.)
- 
-Figure 19.3 In the figure, each arrow represents the timeline of a different thread, and squares represent the processed tasks from requests A, B, and C. Because in a reactive app, tasks from one request might be handled on multiple threads, the authentication details cannot be stored at the thread level anymore.
-Fortunately, Spring Security offers support for reactive apps and covers all cases in which you can’t use the implementations for non-reactive apps anymore. We’ll continue in this chapter by discussing the way you implement security configurations with Spring Security for reactive apps. We’ll start in section 19.2 with implementing user management and continue in section 19.3 with applying endpoint authorization rules, where we’ll find out how security context works in reactive apps. We’ll then continue our discussion with reactive method security, which replaces the global method security of imperative apps.
-19.2 User management in reactive apps
-Often in applications, the way a user authenticates is based on a pair of username and password credentials. This approach is basic, and we discussed it, starting with the most straightforward application we implemented in chapter 2. But with reactive apps, the implementation of the component taking care of user management changes as well. In this section, we discuss implementing user management in a reactive app.
-We continue the implementation of the ssia-ch19-ex1 application we started in section 19.1 by adding a ReactiveUserDetailsService to the context of the application. We want to make sure the /hello endpoint can be called only by an authenticated user. As its name suggests, the ReactiveUserDetailsService contract defines the user details service for a reactive app.
-The definition of the contract is as simple as the one for UserDetailsService. The ReactiveUserDetailsService defines a method used by Spring Security to retrieve a user by its username. The difference is that the method described by the ReactiveUserDetailsService directly returns a Mono<UserDetails> and not the UserDetails as happens for UserDetailsService. The next code snippet shows the definition of the ReactiveUserDetailsService interface:
+```
+그러나 Spring Security 측면에서 반응적 접근 방식이 다른 이유는 무엇입니까? 뒤에서 반응 구현은 스트림의 작업을 해결하기 위해 여러 스레드를 사용합니다. 즉, 명령형 접근 방식으로 설계된 웹 앱에 사용하는 요청당 스레드 1개라는 철학을 변경합니다(그림 19.3). 그리고 여기에서 더 많은 차이점이 있습니다.
+
+- SecurityContext 구현은 반응형 애플리케이션에서 동일한 방식으로 작동하지 않습니다. SecurityContext는 ThreadLocal을 기반으로 하며 이제 요청당 하나 이상의 스레드가 있음을 기억하십시오. (이 구성요소는 5장에서 논의했습니다.)
+
+- SecurityContext로 인해 이제 모든 권한 부여 구성이 영향을 받습니다. 권한 부여 규칙은 일반적으로 SecurityContext에 저장된 인증 인스턴스에 의존한다는 것을 기억하십시오. 따라서 이제 엔드포인트 계층에 적용된 보안 구성과 전역 메서드 보안 기능이 영향을 받습니다.
+
+- 사용자 세부 정보 검색을 담당하는 구성 요소인 UserDetailsService는 데이터 소스입니다. 이 때문에 사용자 세부 정보 서비스도 반응적 접근 방식을 지원해야 합니다. (이 계약에 대해서는 2장에서 배웠습니다.)
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH19_F03_Spilca.png)
+그림 19.3 그림에서 각 화살표는 다른 스레드의 타임라인을 나타내고 사각형은 요청 A, B 및 C에서 처리된 작업을 나타냅니다. 리액티브 앱에서는 한 요청의 작업이 여러 스레드에서 처리될 수 있기 때문에 인증 세부 정보는 더 이상 스레드 수준에 저장할 수 없습니다.
+
+다행히 Spring Security는 반응형 앱에 대한 지원을 제공하고 더 이상 명령형 앱에 대한 구현을 사용할 수 없는 모든 경우를 다룹니다. 반응형 앱을 위한 Spring Security로 보안 구성을 구현하는 방법을 논의하여 이 장에서 계속할 것입니다. 섹션 19.2에서 사용자 관리 구현으로 시작하여 섹션 19.3에서 엔드포인트 권한 부여 규칙 적용으로 계속하여 보안 컨텍스트가 반응형 앱에서 작동하는 방식을 알아봅니다. 그런 다음 명령형 앱의 전역 메서드 보안을 대체하는 사후 메서드 보안에 대한 논의를 계속할 것입니다.
+
+## 19.2 반응형 앱의 사용자 관리
+
+종종 응용 프로그램에서 사용자 인증 방식은 사용자 이름과 암호 자격 증명 쌍을 기반으로 합니다. 이 접근 방식은 기본이며 2장에서 구현한 가장 간단한 응용 프로그램부터 시작하여 논의했습니다. 그러나 반응형 응용 프로그램에서는 사용자 관리를 처리하는 구성 요소의 구현도 변경됩니다. 이 섹션에서는 반응형 앱에서 사용자 관리를 구현하는 방법에 대해 설명합니다.
+
+애플리케이션 컨텍스트에 ReactiveUserDetailsService를 추가하여 섹션 19.1에서 시작한 ssia-ch19-ex1 애플리케이션의 구현을 계속합니다. 인증된 사용자만 /hello 엔드포인트를 호출할 수 있도록 하고 싶습니다. 이름에서 알 수 있듯이 ReactiveUserDetailsService 계약은 반응형 앱에 대한 사용자 세부 정보 서비스를 정의합니다.
+
+계약의 정의는 UserDetailsService에 대한 정의만큼 간단합니다. ReactiveUserDetailsService는 사용자 이름으로 사용자를 검색하기 위해 Spring Security에서 사용하는 메소드를 정의합니다. 차이점은 ReactiveUserDetailsService에서 설명하는 메서드가 UserDetailsService에서 발생하는 것처럼 UserDetails가 아니라 Mono<UserDetails>를 직접 반환한다는 것입니다. 다음 코드 조각은 ReactiveUserDetailsService 인터페이스의 정의를 보여줍니다.
+
+```java
 public interface ReactiveUserDetailsService {
   Mono<UserDetails> findByUsername(String username);
 }
-As in the case of the UserDetailsService, you can write a custom implementation of the ReactiveUserDetailsService to give Spring Security a way to obtain the user details. To simplify this demonstration, we use an implementation provided by Spring Security. The MapReactiveUserDetailsService implementation stores the user details in memory (same as the InMemoryUserDetailsManager that you learned about in chapter 2). We change the pom.xml file of the ssia-ch19-ex1 project and add the Spring Security dependency, as the next code snippet presents:
+```
+UserDetailsService의 경우처럼 Spring Security에 사용자 세부 정보를 얻을 수 있는 방법을 제공하기 위해 ReactiveUserDetailsService의 사용자 정의 구현을 작성할 수 있습니다. 이 데모를 단순화하기 위해 Spring Security에서 제공하는 구현을 사용합니다. 
+
+MapReactiveUserDetailsService 구현은 사용자 세부 정보를 메모리에 저장합니다(2장에서 배운 InMemoryUserDetailsManager와 동일). 다음 코드 조각이 제시하는 것처럼 ssia-ch19-ex1 프로젝트의 pom.xml 파일을 변경하고 Spring Security 종속성을 추가합니다. 
+```xml
 <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-security</artifactId>
@@ -68,42 +114,62 @@ As in the case of the UserDetailsService, you can write a custom implementation 
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-webflux</artifactId>
 </dependency>
-We then create a configuration class and add a ReactiveUserDetailsService and a PasswordEncoder to the Spring Security context. I named the configuration class ProjectConfig. You can find the definition of this class in listing 19.2. Using a ReactiveUserDetailsService, we then define one user with its username john, the password 12345, and an authority I named read. As you can observe, it’s similar to working with a UserDetailsService. The main difference in the implementation of the ReactiveUserDetailsService is that the method returns a reactive Publisher object containing the UserDetails instead of the UserDetails instance itself. Spring Security takes the rest of the duty for integration.
+```
+그런 다음 구성 클래스를 만들고 ReactiveUserDetailsService 및 PasswordEncoder를 Spring Security 컨텍스트에 추가합니다. 구성 클래스의 이름을 ProjectConfig로 지정했습니다. 이 클래스의 정의는 목록 19.2에서 찾을 수 있습니다. ReactiveUserDetailsService를 사용하여 사용자 이름 john, 암호 12345, 권한 읽기를 사용하여 사용자 한 명을 정의합니다. 
+
+관찰할 수 있듯이 UserDetailsService로 작업하는 것과 유사합니다. ReactiveUserDetailsService 구현의 주요 차이점은 메서드가 UserDetails 인스턴스 자체 대신 UserDetails를 포함하는 반응 게시자 개체를 반환한다는 것입니다. Spring Security는 통합에 대한 나머지 작업을 수행합니다.
+
 Listing 19.2 The ProjectConfig class
+```java
 @Configuration
 public class ProjectConfig {
 
-  @Bean                                                    ❶
+  @Bean ❶
   public ReactiveUserDetailsService userDetailsService() {
-    var  u = User.withUsername("john")                     ❷
+    var  u = User.withUsername("john") ❷
               .password("12345")
               .authorities("read")
               .build();
 
-    var uds = new MapReactiveUserDetailsService(u);        ❸
+    var uds = new MapReactiveUserDetailsService(u); ❸
 
     return uds;
   }
 
-  @Bean                                                    ❹
+  @Bean ❹
   public PasswordEncoder passwordEncoder() {
     return NoOpPasswordEncoder.getInstance();
   }
 }
-❶ Adds a ReactiveUserDetailsService to the Spring context
-❷ Creates a new user with its username, password, and authorities
-❸ Creates a MapReactiveUserDetailsService to manage the UserDetails instances
-❹ Adds a PasswordEncoder to the Spring context
-Starting and testing the application now, you might notice that you can call the endpoint only when you authenticate using the proper credentials. In our case, we can only use john with its password 12345, as it’s the only user record we added. The following code snippet shows you the behavior of the app when calling the endpoint with valid credentials:
+```
+❶ Spring 컨텍스트에 ReactiveUserDetailsService 추가
+
+❷ 사용자 이름, 암호 및 권한을 사용하여 새 사용자를 만듭니다.
+
+❸ UserDetails 인스턴스를 관리하기 위해 MapReactiveUserDetailsService 생성
+
+❹ Spring 컨텍스트에 PasswordEncoder 추가
+
+지금 애플리케이션을 시작하고 테스트하면 적절한 자격 증명을 사용하여 인증할 때만 엔드포인트를 호출할 수 있음을 알 수 있습니다. 우리가 추가한 유일한 사용자 레코드이기 때문에 비밀번호 12345로만 john을 사용할 수 있습니다. 다음 코드는 유효한 자격 증명으로 엔드포인트를 호출할 때 앱의 동작을 보여줍니다.
+```
 curl -u john:12345 http://localhost:8080/hello
+```
 The response body is
+```
 Hello!
-Figure 19.4 explains the architecture we use in this application. Behind the scenes, an AuthenticationWebFilter intercepts the HTTP request. This filter delegates the authentication responsibility to an authentication manager. The authentication manager implements the ReactiveAuthenticationManager contract. Unlike non-reactive apps, we don’t have authentication providers. The ReactiveAuthenticationManager directly implements the authentication logic.
- 
-Figure 19.4  An AuthenticationWebFilter intercepts the request and delegates the authentication responsibility to a ReactiveAuthenticationManager. If the authentication logic involves users and passwords, the ReactiveAuthenticationManager uses a ReactiveUserDetailsService to find the user details and a PasswordEncoder to verify the password.
-If you want to create your own custom authentication logic, implement the ReactiveAuthenticationManager interface. The architecture for reactive apps is not much different from the one we already discussed throughout this book for non-reactive applications. As presented in figure 19.4, if authentication involves user credentials, then we use a ReactiveUserDetailsService to obtain the user details and a PasswordEncoder to verify the password.
-Moreover, the framework still knows to inject an authentication instance when you request it. You request the Authentication details by adding Mono<Authentication> as a parameter to the method in the controller class. Listing 19.3 presents the changes done to the controller class. Again, the significant change is that you use reactive publishers. Observe that we need to use Mono<Authentication> instead of the plain Authentication as we used in non-reactive apps.
-Listing 19.3 The HelloController class
+```
+그림 19.4는 이 애플리케이션에서 사용하는 아키텍처를 설명합니다. 뒤에서 AuthenticationWebFilter가 HTTP 요청을 가로챕니다. 이 필터는 인증 책임을 인증 관리자에게 위임합니다. 인증 관리자는 ReactiveAuthenticationManager 계약을 구현합니다. 명령형 앱과 달리 인증 공급자가 없습니다. ReactiveAuthenticationManager는 인증 로직을 직접 구현합니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH19_F04_Spilca.png)
+
+그림 19.4 AuthenticationWebFilter는 요청을 가로채고 인증 책임을 ReactiveAuthenticationManager에 위임합니다. 인증 논리에 사용자 및 암호가 포함된 경우 ReactiveAuthenticationManager는 ReactiveUserDetailsService를 사용하여 사용자 세부 정보를 찾고 PasswordEncoder를 사용하여 암호를 확인합니다.
+
+사용자 정의 인증 로직을 생성하려면 ReactiveAuthenticationManager 인터페이스를 구현하십시오. 반응형 앱의 아키텍처는 이 책 전체에서 명령형 응용 프로그램에 대해 이미 논의한 것과 크게 다르지 않습니다. 그림 19.4에 나와 있는 것처럼 인증에 사용자 자격 증명이 포함된 경우 ReactiveUserDetailsService를 사용하여 사용자 세부 정보를 얻고 PasswordEncoder를 사용하여 암호를 확인합니다.
+
+또한 프레임워크는 사용자가 요청할 때 인증 인스턴스를 주입하는 것을 여전히 알고 있습니다. Mono<Authentication>을 컨트롤러 클래스의 메서드에 매개 변수로 추가하여 인증 세부 정보를 요청합니다. Listing 19.3은 컨트롤러 클래스에 대한 변경 사항을 보여줍니다. 다시 말하지만 중요한 변경 사항은 반응 게시자를 사용한다는 것입니다. 반응이 없는 앱에서 사용한 일반 인증 대신 Mono<Authentication>을 사용해야 합니다.
+
+목록 19.3 HelloController 클래스
+```java
 @RestController
 public class HelloController {
 
@@ -117,17 +183,28 @@ public class HelloController {
     return message;
   }
 }
-❶ Requests the framework to provide the authentication object
-❷ Returns the name of the principal in the response
-Rerunning the application and calling the endpoint, you observe the behavior is as presented in the next code snippet:
+```
+❶ 프레임워크에 인증 대상 제공 요청
+
+❷ 응답에서 교장 이름을 반환합니다.
+응용 프로그램을 다시 실행하고 끝점을 호출하면 다음 코드 조각에 표시된 대로 동작이 관찰됩니다.
+
+```sh
 curl -u john:12345 http://localhost:8080/hello
+```
 The response body is
+```
 Hello john
-And now, probably your question is, where did the Authentication object come from? Being that this is a reactive app, we can’t afford to use a ThreadLocal anymore because the framework is designed to manage the SecurityContext. But Spring Security offers us a different implementation of the context holder for reactive apps, ReactiveSecurityContextHolder. We use this to work with the SecurityContext in a reactive app. So we still have the SecurityContext, but now it’s managed differently. Figure 19.5 describes the end of the authentication process once the ReactiveAuthenticationManager successfully authenticates the request.
- 
-Figure 19.5 Once the ReactiveAuthenticationManager successfully authenticates the request, it returns the Authentication object to the filter. The filter stores the Authentication instance in the SecurityContext.
-Listing 19.4 shows you how to rewrite the controller class if you want to get the authentication details directly from the security context. This approach is an alternative to allowing the framework to inject it through the method’s parameter. You find this change implemented in project ssia-ch19-ex2.
-Listing 19.4 Working with a ReactiveSecurityContextHolder
+```
+그리고 이제 아마도 귀하의 질문은 인증 개체가 어디에서 왔습니까? 이것이 반응형 앱이기 때문에 프레임워크가 SecurityContext를 관리하도록 설계되었기 때문에 더 이상 ThreadLocal을 사용할 여유가 없습니다. 그러나 Spring Security는 ReactiveSecurityContextHolder 반응형 앱에 대한 컨텍스트 홀더의 다른 구현을 제공합니다. 이것을 사용하여 반응형 앱에서 SecurityContext와 함께 작업합니다. 따라서 여전히 SecurityContext가 있지만 이제는 다르게 관리됩니다. 그림 19.5는 ReactiveAuthenticationManager가 요청을 성공적으로 인증한 후 인증 프로세스의 끝을 설명합니다.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH19_F05_Spilca.png)
+
+그림 19.5 ReactiveAuthenticationManager가 요청을 성공적으로 인증하면 인증 개체를 필터에 반환합니다. 필터는 SecurityContext에 인증 인스턴스를 저장합니다.
+
+Listing 19.4는 보안 컨텍스트에서 직접 인증 세부 정보를 얻으려는 경우 컨트롤러 클래스를 다시 작성하는 방법을 보여줍니다. 이 접근 방식은 프레임워크가 메서드의 매개변수를 통해 주입하도록 하는 대안입니다. 이 변경 사항은 프로젝트 ssia-ch19-ex2에서 구현되었습니다.
+
+목록 19.4 ReactiveSecurityContextHolder로 작업하기
 @RestController
 public class HelloController {
 
@@ -143,21 +220,39 @@ public class HelloController {
       return message;
     }
 }
-❶ From the ReactiveSecurityContextHolder, takes a Mono<SecurityContext>
-❷ Maps the SecurityContext to the Authentication object
-❸ Maps the Authentication object to the returned message
-If you rerun the application and test the endpoint again, you can observe it behaves the same as in the previous examples of this section. Here’s the command:
+```
+❶ ReactiveSecurityContextHolder에서 Mono<SecurityContext>
+
+❷ SecurityContext를 Authentication 객체에 매핑
+
+❸ 인증 개체를 반환된 메시지에 매핑합니다.
+
+애플리케이션을 다시 실행하고 엔드포인트를 다시 테스트하면 이 섹션의 이전 예제와 동일하게 동작하는 것을 관찰할 수 있습니다. 다음은 명령입니다.
+
+```sh
 curl -u john:12345 http://localhost:8080/hello
+
+```
 The response body is
+```
 Hello john
-Now that you know Spring Security offers an implementation to properly manage the SecurityContext in a reactive environment, you know this is how your app applies the authorization rules. And these details that you just learned open the way to configuring the authorization rules, which we’ll discuss in section 19.3.
-19.3 Configuring authorization rules in reactive apps
-In this section, we discuss configuring authorization rules. As you already know from the previous chapters, authorization follows authentication. We discussed in sections 19.1 and 19.2 how Spring Security manages users and the SecurityContext in reactive apps. But once the app finishes authentication and stores the details of the authenticated request in the SecurityContext, it’s time for authorization.
-As for any other application, you probably need to configure authorization rules when developing reactive apps as well. To teach you how to set authorization rules in reactive apps, we’ll discuss first in section 19.3.1 the way you make configurations at the endpoint layer. Once we finish discussing authorization configuration at the endpoint layer, you’ll learn in section 19.3.2 how to apply it at any other layer of your application using method security.
-19.3.1 APPLYING AUTHORIZATION AT THE ENDPOINT LAYER IN REACTIVE APPS
-In this section, we discuss configuring authorization at the endpoint layer in reactive apps. Setting the authorization rules in the endpoint layer is the most common approach for configuring authorization in a web app. You already discovered this while working on the previous examples in this book. Authorization configuration at the endpoint layer is essential--you use it in almost every app. Thus, you need to know how to apply it for reactive apps as well.
-You learned from previous chapters to set the authorization rules by overriding the configure(HttpSecurity http) method of the WebSecurityConfigurerAdapter class. This approach doesn’t work in reactive apps. To teach you how to configure authorization rules for the endpoint layer properly for reactive apps, we start by working on a new project, which I named ssia-ch19-ex3.
-In reactive apps, Spring Security uses a contract named SecurityWebFilterChain to apply the configurations we used to do by overriding one of the configure() methods of the WebSecurityConfigurerAdapter class, as discussed in previous chapters. With reactive apps, we add a bean of type SecurityWebFilterChain in the Spring context. To teach you how to do this, let’s implement a basic application having two endpoints that we secure independently. In the pom.xml file of our newly created ssia-ch19-ex3 project, add the dependencies for reactive web apps and, of course, Spring Security:
+```
+이제 Spring Security가 반응 환경에서 SecurityContext를 적절하게 관리하기 위한 구현을 제공한다는 것을 알았으므로 이것이 앱이 권한 부여 규칙을 적용하는 방법이라는 것을 알게 되었습니다. 그리고 방금 배운 이러한 세부 정보는 19.3 섹션에서 논의할 권한 부여 규칙을 구성하는 방법을 제공합니다.
+
+# 19.3 반응형 앱에서 권한 부여 규칙 구성
+
+이 섹션에서는 권한 부여 규칙 구성에 대해 설명합니다. 이전 장에서 이미 알고 있듯이 권한 부여는 인증을 따릅니다. 19.1절과 19.2절에서 Spring Security가 반응형 앱에서 사용자와 SecurityContext를 관리하는 방법에 대해 논의했습니다. 그러나 앱이 인증을 완료하고 인증된 요청의 세부 정보를 SecurityContext에 저장하면 인증할 시간입니다.
+다른 애플리케이션과 마찬가지로 반응형 앱도 개발할 때 권한 부여 규칙을 구성해야 합니다. 반응형 앱에서 권한 부여 규칙을 설정하는 방법을 가르치기 위해 먼저 섹션 19.3.1에서 엔드포인트 계층에서 구성을 만드는 방법을 설명합니다. 엔드포인트 계층에서 권한 부여 구성에 대한 논의를 마치면 19.3.2절에서 메서드 보안을 사용하여 애플리케이션의 다른 계층에 적용하는 방법을 배우게 됩니다.
+
+### 19.3.1 반응형 앱의 엔드포인트 계층에서 승인 적용
+
+이 섹션에서는 반응형 앱의 엔드포인트 계층에서 권한 부여를 구성하는 방법에 대해 설명합니다. 엔드포인트 계층에서 권한 부여 규칙을 설정하는 것은 웹 앱에서 권한 부여를 구성하기 위한 가장 일반적인 접근 방식입니다. 이 책의 이전 예제를 작업하는 동안 이미 이것을 발견했습니다. 엔드포인트 계층의 권한 부여 구성은 필수적입니다. 거의 모든 앱에서 이를 사용합니다. 따라서 반응형 앱에도 적용하는 방법을 알아야 합니다.
+
+이전 장에서 WebSecurityConfigurerAdapter 클래스의 configure(HttpSecurity http) 메서드를 재정의하여 권한 부여 규칙을 설정하는 방법을 배웠습니다. 이 접근 방식은 반응형 앱에서는 작동하지 않습니다. 반응형 앱에 대해 엔드포인트 계층에 대한 권한 부여 규칙을 적절하게 구성하는 방법을 가르치기 위해 먼저 ssia-ch19-ex3이라는 새 프로젝트 작업을 시작합니다.
+
+반응형 앱에서 Spring Security는 SecurityWebFilterChain이라는 계약을 사용하여 이전 장에서 설명한 대로 WebSecurityConfigurerAdapter 클래스의 configure() 메서드 중 하나를 재정의하여 수행했던 구성을 적용합니다. 반응형 앱을 사용하여 Spring 컨텍스트에 SecurityWebFilterChain 유형의 빈을 추가합니다. 이를 수행하는 방법을 가르치기 위해 독립적으로 보호하는 두 개의 엔드포인트가 있는 기본 애플리케이션을 구현해 보겠습니다. 새로 생성된 ssia-ch19-ex3 프로젝트의 pom.xml 파일에서 반응형 웹 앱과 Spring Security에 대한 종속성을 추가합니다.
+
+```xml
 <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-security</artifactId>
@@ -166,8 +261,12 @@ In reactive apps, Spring Security uses a contract named SecurityWebFilterChain t
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-webflux</artifactId>
 </dependency>
-Create a controller class to define the two endpoints for which we configure the authorization rules. These endpoints are accessible at the paths /hello and /ciao. To call the /hello endpoint, a user needs to authenticate, but you can call the /ciao endpoint without authentication. The following listing presents the definition of the controller.
-Listing 19.5 The HelloController class defining the endpoints to secure
+```
+권한 부여 규칙을 구성하는 두 끝점을 정의하는 컨트롤러 클래스를 만듭니다. 이러한 끝점은 /hello 및 /ciao 경로에서 액세스할 수 있습니다. /hello 엔드포인트를 호출하려면 사용자가 인증해야 하지만 인증 없이 /ciao 엔드포인트를 호출할 수 있습니다. 다음 목록은 컨트롤러의 정의를 나타냅니다.
+
+Listing 19.5 보안을 위해 엔드포인트를 정의하는 HelloController 클래스
+
+```java
 @RestController
 public class HelloController {
 
@@ -182,8 +281,11 @@ public class HelloController {
     return Mono.just("Ciao!");
   }
 }
-In the configuration class, we make sure to declare a ReactiveUserDetailsService and a PasswordEncoder to define a user, as you learned in section 19.2. The following listing defines these declarations.
-Listing 19.6 The configuration class declaring components for user management
+```
+구성 클래스에서 섹션 19.2에서 배운 것처럼 사용자를 정의하기 위해 ReactiveUserDetailsService 및 PasswordEncoder를 선언해야 합니다. 다음 목록은 이러한 선언을 정의합니다.
+
+목록 19.6 사용자 관리를 위한 구성 요소를 선언하는 구성 클래스
+```java
 @Configuration
 public class ProjectConfig {
 
@@ -206,8 +308,12 @@ public class ProjectConfig {
 
   // ...
 }
-In listing 19.7, we work in the same configuration class we declared in listing 19.6, but omit the declaration of the ReactiveUserDetailsService and the PasswordEncoder so that you can focus on the authorization configuration we discuss. In listing 19.7, you might notice that we add a bean of type SecurityWebFilterChain to the Spring context. The method receives as a parameter an object of type ServerHttpSecurity, which is injected by Spring. ServerHttpSecurity enables us to build an instance of SecurityWebFilterChain. ServerHttpSecurity provides methods for configuration similar to the ones you used when configuring authorization for non-reactive apps.
-Listing 19.7 Configuring endpoint authorization for reactive apps
+```
+
+목록 19.7에서 우리는 목록 19.6에서 선언한 것과 동일한 구성 클래스에서 작업하지만, 우리가 논의하는 인증 구성에 집중할 수 있도록 ReactiveUserDetailsService 및 PasswordEncoder의 선언을 생략합니다. 목록 19.7에서 SecurityWebFilterChain 유형의 빈을 Spring 컨텍스트에 추가한 것을 알 수 있습니다. 메소드는 Spring에 의해 주입되는 ServerHttpSecurity 유형의 객체를 매개변수로 받습니다. ServerHttpSecurity를 사용하면 SecurityWebFilterChain의 인스턴스를 구축할 수 있습니다. ServerHttpSecurity는 명령형 앱에 대한 권한 부여를 구성할 때 사용한 것과 유사한 구성 방법을 제공합니다.
+
+목록 19.7 리액티브 앱에 대한 엔드포인트 승인 구성 
+```java
 @Configuration
 public class ProjectConfig {
 
@@ -217,33 +323,52 @@ public class ProjectConfig {
   public SecurityWebFilterChain securityWebFilterChain(
     ServerHttpSecurity http) {
     
-    return http.authorizeExchange()                      ❶
+    return http.authorizeExchange() ❶
                .pathMatchers(HttpMethod.GET, "/hello")
-                   .authenticated()                      ❷
- 
-               .anyExchange()                            ❸
-                   .permitAll()                          ❹
-               .and().httpBasic()                        ❺
-               .and().build();                           ❻
+                   .authenticated() ❷
+               .anyExchange() ❸
+                   .permitAll() ❹
+               .and().httpBasic() ❺
+               .and().build(); ❻
     }
 }
-❶ Begins the endpoint authorization configuration
-❷ Selects the requests for which we apply the authorization rules
-❸ Configures the selected requests to only be accessible when authenticated
-❹ Refers to any other request
-❺ Allows requests to be called without needing authentication
-❻ Builds the SecurityWebFilterChain object to be returned
-We start the authorization configuration with the authorizeExchange() method. We call this method similarly to the way we call the authorizeRequests() method when configuring endpoint authorization for non-reactive apps. Then we continue by using the pathMatchers() method. You can consider this method as the equivalent of using mvcMatchers() when configuring endpoint authorization for non-reactive apps.
-As for non-reactive apps, once we use the matcher method to group requests to which we apply the authorization rule, we then specify what the authorization rule is. In our example, we called the authenticated() method, which states that only authenticated requests are accepted. You used a method named authenticated() also when configuring endpoint authorization for non-reactive apps. The methods for reactive apps are named the same to make them more intuitive. Similarly to the authenticated() method, you can also call these methods:
-- permitAll()--Configures the app to allow requests without authentication
-- denyAll()--Denies all requests
-- hasRole() and hasAnyRole()--Apply rules based on roles
-- hasAuthority() and hasAnyAuthority()--Apply rules based on authorities
-It looks like something’s missing, doesn’t it? Do we also have an access() method as we had for configuring authorization rules in non-reactive apps? Yes. But it’s a bit different, so we’ll work on a separate example to prove it. Another similarity in naming is the anyExchange() method that takes the role of what used to be anyRequest() in non-reactive apps.
-NOTE Why is it called anyExchange(), and why didn’t the developers keep the same name for the method anyRequest()? Why authorizeExchange() and why not authorizeRequests()? This simply comes from the terminology used with reactive apps. We generally refer to communication between two components in a reactive fashion as exchanging data. This reinforces the image of data being sent as segmented in a continuous stream and not as a big bunch in one request.
-We also need to specify the authentication method like any other related configuration. We do this with the same ServerHttpSecurity instance, using methods with the same name and in the same fashion you learned to use for non-reactive apps: httpBasic(), formLogin(), csrf(), cors(), adding filters and customizing the filter chain, and so on. In the end, we call the build() method to create the instance of SecurityWebFilterChain, which we finally return to add to the Spring context.
-I told you earlier in this section that you can also use the access() method in the endpoint authorization configuration of reactive apps just as you can for non-reactive apps. But as I said when discussing the configuration of non-reactive apps in chapters 7 and 8, use the access() method only when you can’t apply your configuration otherwise. The access() method offers you great flexibility, but also makes your app’s configuration more difficult to read. Always prefer the simpler solution over the more complex one. But you’ll find situations in which you need this flexibility. For example, suppose you need to apply a more complex authorization rule, and using hasAuthority() or hasRole() and its companion methods isn’t enough. For this reason, I’ll also teach you how to use the access() method. I created a new project named ssia-ch19-ex4 for this example. In listing 19.8, you see how I built the SecurityWebFilterChain object to allow access to the /hello path only if the user has the admin role. Also, access can be done only before noon. For all other endpoints, I completely restrict access.
-Listing 19.8 Using the access() method when implementing configuration rules
+```
+❶ 엔드포인트 인증 설정 시작
+
+❷ 승인 규칙을 적용할 요청을 선택합니다.
+
+❸ 인증된 경우에만 액세스할 수 있도록 선택한 요청 구성
+
+❹ 기타 요청사항 참조
+
+❺ 인증 없이 요청을 호출할 수 있습니다.
+
+❻ 반환할 SecurityWebFilterChain 객체를 빌드합니다.
+
+AuthorizeExchange() 메서드를 사용하여 권한 부여 구성을 시작합니다. 명령형 앱에 대한 엔드포인트 권한 부여를 구성할 때 authorizeRequests() 메서드를 호출하는 방식과 유사하게 이 메서드를 호출합니다. 그런 다음 pathMatchers() 메서드를 사용하여 계속합니다. 이 방법을 명령형 앱에 대한 엔드포인트 권한 부여를 구성할 때 mvcMatchers()를 사용하는 것과 동일하다고 생각할 수 있습니다.
+
+명령형 앱의 경우, 승인 규칙을 적용하는 요청을 그룹화하기 위해 매처 메소드를 사용하고 나면 승인 규칙이 무엇인지 지정합니다. 이 예에서는 인증된 요청만 수락된다는 인증된() 메서드를 호출했습니다. 명령형 앱에 대한 엔드포인트 권한 부여를 구성할 때도 authenticated()라는 메서드를 사용했습니다. 반응형 앱의 메서드 이름은 더 직관적으로 만들기 위해 동일하게 지정됩니다. 인증된() 메서드와 유사하게 다음 메서드를 호출할 수도 있습니다.
+
+- permitAll()--인증 없이 요청을 허용하도록 앱을 구성합니다.
+
+- denyAll() -- 모든 요청을 거부합니다.
+
+- hasRole() 및 hasAnyRole() -- 역할을 기반으로 규칙 적용
+
+- hasAuthority() 및 hasAnyAuthority() -- 권한을 기반으로 규칙 적용
+
+뭔가 빠진 것 같죠? 명령형 앱에서 권한 부여 규칙을 구성할 때와 마찬가지로 access() 메서드도 있습니까? 예. 그러나 그것은 약간 다르기 때문에 우리는 그것을 증명하기 위해 별도의 예제를 연구할 것입니다. 이름 지정의 또 다른 유사점은 명령형 앱에서 이전에 anyRequest() 역할을 하는 anyExchange() 메서드입니다.
+
+> **참고** 왜 이것을 anyExchange()라고 하며, 개발자들은 왜 anyRequest() 메소드에 대해 같은 이름을 유지하지 않았습니까? 왜 AuthorizeExchange()이고 왜 authorizeRequests()가 아닌가요? 이것은 단순히 반응 앱과 함께 사용되는 용어에서 비롯된 것입니다. 우리는 일반적으로 반응적인 방식으로 두 구성 요소 간의 통신을 데이터 교환이라고 합니다. 이는 하나의 요청에서 큰 묶음이 아닌 연속 스트림으로 분할되어 전송되는 데이터의 이미지를 강화합니다.
+
+또한 다른 관련 구성과 마찬가지로 인증 방법을 지정해야 합니다. 동일한 ServerHttpSecurity 인스턴스로 동일한 이름의 메소드를 사용하고 명령형 앱에 대해 배운 것과 동일한 방식으로 이 작업을 수행합니다: httpBasic(), formLogin(), csrf(), cors(), 필터 추가 및 사용자 정의 필터 체인 등. 결국, 우리는 SecurityWebFilterChain의 인스턴스를 생성하기 위해 build() 메소드를 호출하고, 마침내 Spring 컨텍스트에 추가하기 위해 반환합니다.
+
+이 섹션의 앞부분에서 명령형 앱의 경우와 마찬가지로 반응형 앱의 엔드포인트 권한 부여 구성에서 access() 메서드를 사용할 수도 있다고 말했습니다. 하지만 7장과 8장에서 non-reactive 앱의 설정에 대해 이야기할 때 말했듯이, access() 메서드는 설정을 적용할 수 없을 때만 사용하세요. access() 메서드는 뛰어난 유연성을 제공하지만 앱 구성을 읽기 더 어렵게 만듭니다. 항상 복잡한 솔루션보다 간단한 솔루션을 선호합니다. 그러나 이러한 유연성이 필요한 상황을 찾을 수 있습니다. 예를 들어 더 복잡한 권한 부여 규칙을 적용해야 하고 hasAuthority() 또는 hasRole() 및 관련 메서드를 사용하는 것만으로는 충분하지 않다고 가정합니다. 이러한 이유로 access() 메서드를 사용하는 방법도 알려 드리겠습니다. 
+
+이 예제에서는 ssia-ch19-ex4라는 새 프로젝트를 만들었습니다. 목록 19.8에서 사용자에게 관리자 역할이 있는 경우에만 /hello 경로에 대한 액세스를 허용하도록 SecurityWebFilterChain 객체를 빌드한 방법을 볼 수 있습니다. 또한 정오 이전에만 액세스가 가능합니다. 다른 모든 엔드포인트에 대해서는 액세스를 완전히 제한합니다.
+
+목록 19.8 구성 규칙을 구현할 때 access() 메서드 사용
+```java
 @Configuration
 public class ProjectConfig {
 
@@ -255,42 +380,50 @@ public class ProjectConfig {
     
 
     return http.authorizeExchange()
-        .anyExchange()                                   ❶
+        .anyExchange() ❶
            .access(this::getAuthorizationDecisionMono)
         .and().httpBasic()
         .and().build();
    }
 
   private Mono<AuthorizationDecision> 
-    getAuthorizationDecisionMono(                        ❷
+    getAuthorizationDecisionMono( ❷
             Mono<Authentication> a,
             AuthorizationContext c) {
 
-    String path = getRequestPath(c);                     ❸
+    String path = getRequestPath(c); ❸
 
-    boolean restrictedTime =                             ❹
-      LocalTime.now().isAfter(LocalTime.NOON);
+    boolean restrictedTime = LocalTime.now().isAfter(LocalTime.NOON); ❹
 
-    if(path.equals("/hello")) {                          ❺
+    if(path.equals("/hello")) { ❺
       return  a.map(isAdmin())
                .map(auth -> auth && !restrictedTime)
                .map(AuthorizationDecision::new);
     }
-
-      return Mono.just(new AuthorizationDecision(false));
+    return Mono.just(new AuthorizationDecision(false));
   }
 
   // Omitted code
 }
-❶ For any request, applies a custom authorization rule
-❷ The method defining the custom authorization rule receives the Authentication and the request context as parameters.
-❸ From the context, obtains the path of the request
-❹ Defines the restricted time
-❺ For the /hello path, applies the custom authorization rule
-It might look difficult, but it’s not that complicated. When you use the access() method, you provide a function receiving all possible details about the request, which are the Authentication object and the AuthorizationContext. Using the Authentication object, you have the details of the authenticated user: username, roles or authorities, and other custom details depending on how you implement the authentication logic. The AuthorizationContext provides the information on the request: the path, headers, query params, cookies, and so on.
-The function you provide as a parameter to the access() method should return an object of type AuthorizationDecision. As you guessed, AuthorizationDecision is the answer that tells the app whether the request is allowed. When you create an instance with new AuthorizationDecision(true), it means that you allow the request. If you create it with new AuthorizationDecision(false), it means you disallow the request.
-In listing 19.9, you find the two methods I omitted in listing 19.8 for your convenience: getRequestPath() and isAdmin(). By omitting these, I let you focus on the logic used by the access() method. As you can observe, the methods are simple. The isAdmin() method returns a function that returns true for an Authentication instance having the ROLE_ADMIN attribute. The getRequestPath() method simply returns the path of the request.
-Listing 19.9 The definition of the getRequestPath() and isAdmin() methods
+```
+❶ 모든 요청에 ​​대해 사용자 지정 권한 부여 규칙 적용
+
+❷ 사용자 정의 권한 부여 규칙을 정의하는 메소드는 인증 및 요청 컨텍스트를 매개변수로 수신합니다.
+
+❸ 컨텍스트에서 요청 경로를 얻습니다.
+
+❹ 제한시간 정의
+
+❺ /hello 경로의 경우 사용자 지정 권한 부여 규칙을 적용합니다.
+
+어려워 보일 수 있지만 그렇게 복잡하지 않습니다. access() 메서드를 사용할 때 요청에 대해 가능한 모든 세부 정보를 수신하는 함수를 제공합니다. 이는 인증 개체와 AuthorizationContext입니다. 인증 개체를 사용하면 인증된 사용자의 세부 정보(사용자 이름, 역할 또는 권한 및 인증 논리를 구현하는 방법에 따라 다른 사용자 지정 세부 정보)가 있습니다. AuthorizationContext는 요청에 대한 정보(경로, 헤더, 쿼리 매개변수, 쿠키 등)를 제공합니다.
+
+access() 메서드에 매개 변수로 제공하는 함수는 AuthorizationDecision 유형의 개체를 반환해야 합니다. 짐작했듯이 AuthorizationDecision은 요청이 허용되는지 여부를 앱에 알려주는 답변입니다. new AuthorizationDecision(true)으로 인스턴스를 생성하면 요청을 허용한다는 의미입니다. new AuthorizationDecision(false)로 생성하면 요청을 허용하지 않는다는 의미입니다.
+
+목록 19.9에서 편의를 위해 목록 19.8에서 생략한 getRequestPath() 및 isAdmin()의 두 가지 메소드를 찾을 수 있습니다. 이를 생략하여 access() 메서드에서 사용하는 논리에 집중할 수 있습니다. 보시다시피 방법은 간단합니다. isAdmin() 메서드는 ROLE_ADMIN 속성이 있는 인증 인스턴스에 대해 true를 반환하는 함수를 반환합니다. getRequestPath() 메서드는 단순히 요청 경로를 반환합니다.
+
+목록 19.9 getRequestPath() 및 isAdmin() 메소드의 정의
+```java
 @Configuration
 public class ProjectConfig {
 
@@ -309,22 +442,39 @@ public class ProjectConfig {
        .anyMatch(e -> e.getAuthority().equals("ROLE_ADMIN"));
   }
 }
-Running the application and calling the endpoint either results in a response status 403 Forbidden if any of the authorization rules we applied aren’t fulfilled or simply displays a message in the HTTP response body:
+```
+애플리케이션을 실행하고 엔드포인트를 호출하면 우리가 적용한 인증 규칙 중 하나라도 충족되지 않은 경우 응답 상태 403 Forbidden이 발생하거나 단순히 HTTP 응답 본문에 메시지를 표시합니다.
+```
 curl -u john:12345 http://localhost:8080/hello
-The response body is
+```
+응답은
+```
 Hello john
-What happened behind the scenes in the examples in this section? When authentication ended, another filter intercepted the request. The AuthorizationWebFilter delegates the authorization responsibility to a ReactiveAuthorizationManager (figure 19.6).
- 
-Figure 19.6  After the authentication process successfully ends, another filter, named AuthorizationWebFilter, intercepts the request. This filter delegates the authorization responsibility to a ReactiveAuthorizationManager.
-Wait! Does this mean we only have a ReactiveAuthorizationManager? How does this component know how to authorize a request based on the configurations we made? To the first question, no, there are actually multiple implementations of the ReactiveAuthorizationManager. The AuthorizationWebFilter uses the SecurityWebFilterChain bean we added to the Spring context. With this bean, the filter decides which ReactiveAuthorizationManager implementation to delegate the authorization responsibility to (figure 19.7).
- 
-Figure 19.7  The AuthorizationFilter uses the SecurityWebFilterChain bean (shaded) that we added to the context to know which ReactiveAuthorizationManager to use.
-19.3.2 USING METHOD SECURITY IN REACTIVE APPS
-In this section, we discuss applying authorization rules for all layers of reactive apps. For non-reactive apps, we used global method security, and in chapters 16 and 17, you learned different approaches to apply authorization rules at the method level. Being able to apply authorization rules at layers other than the endpoint layer offers you great flexibility and enables you to apply authorization for non-web applications. To teach you how to use method security for reactive apps, we work on a separate example, which I named ssia-ch19-ex5.
-Instead of global method security, when working with non-reactive apps, we call the approach reactive method security, where we apply authorization rules directly at the method level. Unfortunately, reactive method security isn’t a mature implementation yet and only enables us to use the @PreAuthorize and @PostAuthorize annotations. When using @PreFilter and @PostFilter annotations, an issue was added for the Spring Security team back in 2018, but it isn’t yet implemented. For more details, see
+```
+이 섹션의 예에서 배후에서 무슨 일이 일어났습니까? 인증이 종료되면 다른 필터가 요청을 가로챕니다. AuthorizationWebFilter는 권한 부여 책임을 ReactiveAuthorizationManager에 위임합니다(그림 19.6).
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH19_F06_Spilca.png)
+
+그림 19.6 인증 프로세스가 성공적으로 종료되면 AuthorizationWebFilter라는 다른 필터가 요청을 가로챕니다. 이 필터는 권한 부여 책임을 ReactiveAuthorizationManager에 위임합니다.
+기다리다! 이것은 ReactiveAuthorizationManager만 있다는 것을 의미합니까? 이 구성 요소는 우리가 만든 구성을 기반으로 요청을 승인하는 방법을 어떻게 압니까? 첫 번째 질문에 대해 아니오, 실제로 ReactiveAuthorizationManager의 여러 구현이 있습니다. 
+AuthorizationWebFilter는 Spring 컨텍스트에 추가한 SecurityWebFilterChain 빈을 사용합니다. 이 빈을 사용하여 필터는 권한 부여 책임을 위임할 ReactiveAuthorizationManager 구현을 결정합니다(그림 19.7).
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH19_F07_Spilca.png)
+
+그림 19.7 AuthorizationFilter는 사용할 ReactiveAuthorizationManager를 알기 위해 컨텍스트에 추가한 SecurityWebFilterChain 빈(음영 처리)을 사용합니다.
+
+### 19.3.2 반응형 앱에서 메서드 보안 사용
+
+이 섹션에서는 반응형 앱의 모든 계층에 권한 부여 규칙을 적용하는 방법에 대해 설명합니다. 명령형 앱의 경우 전역 메서드 보안을 사용했으며 16장과 17장에서 메서드 수준에서 권한 부여 규칙을 적용하는 다양한 접근 방식을 배웠습니다. 엔드포인트 계층 이외의 계층에서 권한 부여 규칙을 적용할 수 있으므로 유연성이 뛰어나고 웹 응용 프로그램이 아닌 응용 프로그램에 권한 부여를 적용할 수 있습니다. 반응형 앱에 메서드 보안을 사용하는 방법을 가르치기 위해 ssia-ch19-ex5라는 별도의 예제를 작업합니다.
+
+전역 메서드 보안 대신 명령형 앱으로 작업할 때 접근 방식 반응형 메서드 보안이라고 하며, 여기서 메서드 수준에서 직접 권한 부여 규칙을 적용합니다. 불행히도 반응적 메서드 보안은 아직 성숙한 구현이 아니며 @PreAuthorize 및 @PostAuthorize 주석만 사용할 수 있습니다. @PreFilter 및 @PostFilter 주석을 사용할 때 2018년에 Spring Security 팀에 문제가 추가되었지만 아직 구현되지 않았습니다. 
+
+자세한 내용은
 https://github.com/spring-projects/spring-security/issues/5249
-For our example, we use @PreAuthorize to validate that a user has a specific role to call a test endpoint. To keep the example simple, we use the @PreAuthorize annotation directly over the method defining the endpoint. But you can use it the same way we discussed in chapter 16 for non-reactive apps: on any other component method in your reactive application. Listing 19.10 shows the definition of the controller class. Observe that we use @PreAuthorize, similar to what you learned in chapter 16. Using SpEL expressions, we declare that only an admin can call the annotated method.
-Listing 19.10 The definition of the controller class
+이 예에서는 @PreAuthorize를 사용하여 사용자에게 테스트 끝점을 호출할 특정 역할이 있는지 확인합니다. 예제를 단순하게 유지하기 위해 끝점을 정의하는 메서드에 직접 @PreAuthorize 주석을 사용합니다. 하지만 명령형 앱에 대해 16장에서 논의한 것과 같은 방식으로 사용할 수 있습니다. 목록 19.10은 컨트롤러 클래스의 정의를 보여줍니다. 16장에서 배운 것과 유사하게 @PreAuthorize를 사용하는 것을 관찰하십시오. SpEL 표현식을 사용하여 우리는 관리자만 주석이 달린 메소드를 호출할 수 있다고 선언합니다.
+
+목록 19.10 컨트롤러 클래스의 정의
+```java
 @RestController
 public class HelloController {
 
@@ -334,9 +484,13 @@ public class HelloController {
     return Mono.just("Hello");
   }
 }
-❶ Uses @PreAuthorize to restrict access to the method
-Here, you find the configuration class in which we use the annotation @EnableReactiveMethodSecurity to enable the reactive method security feature. Similar to global method security, we need to explicitly use an annotation to enable it. Besides this annotation, in the configuration class, you also find the usual user management definition.
-Listing 19.11 The configuration class
+```
+❶ @PreAuthorize를 사용하여 메서드에 대한 액세스를 제한합니다.
+
+여기에서 @EnableReactiveMethodSecurity 주석을 사용하여 반응적 메서드 보안 기능을 활성화하는 구성 클래스를 찾을 수 있습니다. 전역 메서드 보안과 유사하게 이를 활성화하려면 주석을 명시적으로 사용해야 합니다. 이 주석 외에도 구성 클래스에서 일반적인 사용자 관리 정의도 찾을 수 있습니다.
+
+목록 19.11 구성 클래스
+```java
 @Configuration
 @EnableReactiveMethodSecurity       ❶
 public class ProjectConfig {
@@ -363,20 +517,40 @@ public class ProjectConfig {
     return NoOpPasswordEncoder.getInstance();
   }
 }
-❶ Enables the reactive method security feature
-You can now start the application and test the behavior of the endpoint by calling it for each of the users. You should observe that only John can call the endpoint because we defined him as the admin. Bill is just a regular user, so if we try to call the endpoint authenticating as Bill, we get back a response having the status HTTP 403 Forbidden. Calling the /hello endpoint authenticating with user John looks like this:
+```
+❶ 사후 대응 방식 보안 기능 활성화
+
+이제 애플리케이션을 시작하고 각 사용자에 대해 엔드포인트를 호출하여 엔드포인트의 동작을 테스트할 수 있습니다. John을 관리자로 정의했기 때문에 John만 엔드포인트를 호출할 수 있음을 관찰해야 합니다. Bill은 일반 사용자이므로 Bill로 인증하는 엔드포인트를 호출하려고 하면 HTTP 403 Forbidden 상태의 응답이 반환됩니다. 사용자 John으로 인증하는 /hello 엔드포인트를 호출하는 것은 다음과 같습니다.
+
+```sh
 curl -u john:12345 http://localhost:8080/hello
-The response body is
+``
+응답은
+```
 Hello
+```
 Calling the /hello endpoint authenticating with user Bill looks like this:
+
+```sh
 curl -u bill:12345 http://localhost:8080/hello
-The response body is
+```
+응답은
+```
 Denied
-Behind the scenes, this functionality works the same as for non-reactive apps. In chapters 16 and 17, you learned that an aspect intercepts the call to the method and implements the authorization. If the call doesn’t fulfill the specified prepreauthorization rules, the aspect doesn’t delegate the call to the method (figure 19.8).
- 
-Figure 19.8  When using method security, an aspect intercepts the call to a protected method. If the call doesn’t fulfill the preauthorization rules, the aspect doesn’t delegate the call to the method.
-19.4 Reactive apps and OAuth 2
-You’re probably wondering by now if we could use reactive applications in a system designed over the OAuth 2 framework. In this section, we discuss implementing a resource server as a reactive app. You learn how to configure your reactive application to rely on an authentication approach implemented over OAuth 2. Because using OAuth 2 is so common nowadays, you might encounter requirements where your resource server application needs to be designed as a reactive server. I created a new project named ssia-ch19-ex6, and we’ll implement a reactive resource server application. You need to add the dependencies in pom.xml, as the next code snippet illustrates:
+```
+이면에서 이 기능은 반응하지 않는 앱과 동일하게 작동합니다. 16장과 17장에서 aspect가 메서드 호출을 가로채고 권한 부여를 구현한다는 것을 배웠다. 호출이 지정된 사전 승인 규칙을 충족하지 않으면 aspect는 호출을 메서드에 위임하지 않습니다(그림 19.8).
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH19_F08_Spilca.png)
+
+그림 19.8 메서드 보안을 사용할 때 관점은 보호된 메서드에 대한 호출을 가로챕니다. 호출이 사전 승인 규칙을 충족하지 않으면 aspect는 호출을 메소드에 위임하지 않습니다.
+
+## 19.4 반응형 앱과 OAuth 2
+
+지금쯤이면 OAuth 2 프레임워크를 통해 설계된 시스템에서 반응형 애플리케이션을 사용할 수 있는지 궁금할 것입니다. 이 섹션에서는 리소스 서버를 반응형 앱으로 구현하는 방법에 대해 설명합니다. OAuth 2를 통해 구현된 인증 접근 방식에 의존하도록 반응 애플리케이션을 구성하는 방법을 배웁니다. 
+
+오늘날 OAuth 2를 사용하는 것이 매우 일반적이기 때문에 리소스 서버 애플리케이션을 반응 서버로 설계해야 하는 요구 사항이 발생할 수 있습니다. ssia-ch19-ex6이라는 새 프로젝트를 만들었으며 반응형 리소스 서버 응용 프로그램을 구현할 것입니다. pom.xml에 종속성을 추가합니다.
+
+```xml
 <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-webflux</artifactId>
@@ -393,7 +567,10 @@ You’re probably wondering by now if we could use reactive applications in a sy
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 </dependency>
-We need an endpoint to test the application, so we add a controller class. The next code snippet presents the controller class:
+```
+애플리케이션을 테스트하려면 끝점이 필요하므로 컨트롤러 클래스를 추가합니다. 다음은 컨트롤러 클래스를 나타냅니다.
+
+```java
 @RestController
 public class HelloController {
 
@@ -402,9 +579,13 @@ public class HelloController {
     return Mono.just("Hello!");
   }
 }
-And now, the most important part of the example: the security configuration. For this example, we configure the resource server to use the public key exposed by the authorization server for token signature validation. This approach is the same as in chapter 18, when we used Keycloak as our authorization server. I actually used the same configured server for this example. You can choose to do the same, or you can implement a custom authorization server, as we discussed in chapter 13.
-To configure the authentication method, we use the SecurityWebFilterChain, as you learned about in section 19.3. But instead of using the httpBasic() method, we call the oauth2ResourceServer() method. Then, by calling the jwt() method, we define the kind of token we use, and by using a Customizer object, we specify the way the token signature is validated. In listing 19.12, you find the definition of the configuration class.
-Listing 19.12 The configuration class
+```
+이제 예제에서 가장 중요한 부분인 보안 구성입니다. 이 예에서는 토큰 서명 유효성 검사를 위해 권한 부여 서버에서 공개한 공개 키를 사용하도록 리소스 서버를 구성합니다. 이 접근 방식은 18장에서 Keycloak을 인증 서버로 사용했을 때와 동일합니다. 이 예에서는 실제로 동일한 구성된 서버를 사용했습니다. 동일한 작업을 선택하거나 13장에서 논의한 것처럼 사용자 지정 권한 부여 서버를 구현할 수 있습니다.
+
+인증 방법을 구성하기 위해 섹션 19.3에서 배운 것처럼 SecurityWebFilterChain을 사용합니다. 그러나 httpBasic() 메서드를 사용하는 대신 oauth2ResourceServer() 메서드를 호출합니다. 그런 다음 jwt() 메서드를 호출하여 사용하는 토큰의 종류를 정의하고 Customizer 개체를 사용하여 토큰 서명의 유효성을 검사하는 방법을 지정합니다. 목록 19.12에서 구성 클래스의 정의를 찾을 수 있습니다.
+
+목록 19.12 구성 클래스
+```java
 @Configuration
 public class ProjectConfig {
 
@@ -417,31 +598,42 @@ public class ProjectConfig {
    
     return http.authorizeExchange()
                   .anyExchange().authenticated()
-               .and().oauth2ResourceServer()          ❶
-                  .jwt(jwtSpec -> {                   ❷
+               .and().oauth2ResourceServer() ❶
+                  .jwt(jwtSpec -> { ❷
                     jwtSpec.jwkSetUri(jwkEndpoint);
                   })
                .and().build();
-
     }
 }
-❶ Configures the resource server authentication method
-❷ Specifies the way the token is validated
-In the same way, we could’ve configured the public key instead of specifying an URI where the public key is exposed. The only change was to call the publicKey() method of the jwtSpec instance and provide a valid public key as a parameter. You can use any of the approaches we discussed in chapters 14 and 15, where we analyzed in detail approaches for the resource server to validate the access token.
-Next, we change the application.properties file to add the value for the URI where the key set is exposed, as well as change the server port to 9090. This way, we allow Keycloak to run on 8080. In the next code snippet, you find the contents of the application.properties file:
+
+```
+❶ 리소스 서버 인증 방식 설정
+
+❷ 토큰의 유효성을 검사하는 방법을 지정합니다.
+
+같은 방식으로 공개 키가 노출되는 URI를 지정하는 대신 공개 키를 구성할 수 있습니다. 유일한 변경 사항은 jwtSpec 인스턴스의 publicKey() 메서드를 호출하고 유효한 공개 키를 매개 변수로 제공하는 것입니다. 14장과 15장에서 논의한 접근 방식 중 하나를 사용할 수 있습니다. 여기에서 리소스 서버가 액세스 토큰의 유효성을 검사하는 방식을 자세히 분석했습니다.
+
+다음으로 application.properties 파일을 변경하여 키 세트가 노출된 URI 값을 추가하고 서버 포트를 9090으로 변경합니다. 이렇게 하면 Keycloak이 8080에서 실행될 수 있습니다. 다음 코드 스니펫에서, application.properties 파일의 내용을 찾습니다. 
+
+```yml
 server.port=9090
-jwk.endpoint=http://localhost:8080/auth/realms/master/protocol/
-➥ openid-connect/certs
-Let’s run and prove the app has the expected behavior that we want. We generate an access token using the locally installed Keycloak server:
-curl -XPOST 'http://localhost:8080/auth/realms/master/protocol/
-➥ openid-connect/token' \
+jwk.endpoint=http://localhost:8080/auth/realms/master/protocol/openid-connect/certs
+```
+
+앱을 실행하고 우리가 원하는 예상 동작이 있음을 증명해 봅시다. 로컬에 설치된 Keycloak 서버를 사용하여 액세스 토큰을 생성합니다.
+
+```
+curl -XPOST 'http://localhost:8080/auth/realms/master/protocol/openid-connect/token' \
 -H 'Content-Type: application/x-www-form-urlencoded' \
 --data-urlencode 'grant_type=password' \
 --data-urlencode 'username=bill' \
 --data-urlencode 'password=12345' \
 --data-urlencode 'client_id=fitnessapp' \
 --data-urlencode 'scope=fitnessapp'
-In the HTTP response body, we receive the access token as presented here:
+```
+HTTP 응답 본문에서 다음과 같이 액세스 토큰을 받습니다.
+
+```json
 {
     "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI...",
     "expires_in": 6000,
@@ -452,21 +644,31 @@ In the HTTP response body, we receive the access token as presented here:
     "session_state": "610f49d7-78d2-4532-8b13-285f64642caa",
     "scope": "fitnessapp"
 }
-Using the access token, we call the /hello endpoint of our application like this:
+```
+액세스 토큰을 사용하여 다음과 같이 애플리케이션의 /hello 엔드포인트를 호출합니다.
+
+```sh
 curl -H 'Authorization: Bearer
-➥ eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJMSE9zT0VRSmJuTmJVbjhQb
-➥ VpYQTlUVW9QNTZoWU90YzNWT2swa1V2ajVVIn...' \
+eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJMSE9zT0VRSmJuTmJVbjhQb
+VpYQTlUVW9QNTZoWU90YzNWT2swa1V2ajVVIn...' \
 'http://localhost:9090/hello'
-The response body is
+```
+응답은
+```
 Hello!
-Summary
-- Reactive applications have a different style for processing data and exchanging messages with other components. Reactive apps might be a better choice in some situations, like cases in which we can split the data into separate smaller segments for processing and exchanging.
-- As with any other application, you also need to protect reactive apps by using security configurations. Spring Security offers an excellent set of tools you can use to apply security configurations for reactive apps as well as for non-reactive ones.
-- To implement user management in reactive apps with Spring Security, we use the ReactiveUserDetailsService contract. This component has the same purpose as UserDetailsService has for non-reactive apps: it tells the app how to get the user details.
-- To implement the endpoint authorization rules for a reactive web application, you need to create an instance of type SecurityWebFilterChain and add it to the Spring context. You create the SecurityWebFilterChain instance by using the ServerHttpSecurity builder.
-- Generally, the names of the methods you use to define the authorization configurations are the same as for the methods you use for non-reactive apps. However, you find minor naming differences that are related to the reactive terminology. For example, instead of using authorizeRequests(), the name of its counterpart for reactive apps is authorizeExchange().
-- Spring Security also provides a way to define authorization rules at the method level called reactive method security, and it offers great flexibility in applying the authorization rules at any layer of a reactive app. It is similar to what we call global method security for non-reactive apps.
-- Reactive method security isn’t, however, an implementation as mature as gobal method security for non-reactive apps. You can already use the @PreAuthorize and @PostAuthorize annotations, but the functionality for @PreFilter and @PostFilter still awaits development.
-- Copy
-- Add Highlight
-- Add Note
+```
+## 요약
+
+- 반응형 응용 프로그램은 데이터를 처리하고 다른 구성 요소와 메시지를 교환하는 스타일이 다릅니다. 반응형 앱은 처리 및 교환을 위해 데이터를 별도의 작은 세그먼트로 분할할 수 있는 경우와 같은 일부 상황에서 더 나은 선택일 수 있습니다.
+
+- 다른 애플리케이션과 마찬가지로 보안 구성을 사용하여 반응형 앱도 보호해야 합니다. Spring Security는 반응형 앱과 명령형 앱에 보안 구성을 적용하는 데 사용할 수 있는 훌륭한 도구 세트를 제공합니다.
+
+- Spring Security를 ​​사용하여 반응형 앱에서 사용자 관리를 구현하기 위해 ReactiveUserDetailsService 계약을 사용합니다. 이 구성 요소는 명령형 앱에 대한 UserDetailsService와 동일한 목적을 가지고 있습니다. 앱에 사용자 세부 정보를 가져오는 방법을 알려줍니다.
+
+- 반응형 웹 애플리케이션에 대한 엔드포인트 권한 부여 규칙을 구현하려면 SecurityWebFilterChain 유형의 인스턴스를 생성하고 이를 Spring 컨텍스트에 추가해야 합니다. ServerHttpSecurity 빌더를 사용하여 SecurityWebFilterChain 인스턴스를 작성합니다.
+
+- 일반적으로 권한 구성을 정의하는 데 사용하는 메서드의 이름은 명령형 앱에 사용하는 메서드와 동일합니다. 그러나 반응 용어와 관련된 사소한 명명 차이점을 찾을 수 있습니다. 예를 들어, AuthorizeRequests()를 사용하는 대신 반응형 앱에 대한 해당 이름은 authorizeExchange()입니다.
+
+- Spring Security는 또한 Reactive 메서드 보안이라는 메서드 수준에서 권한 부여 규칙을 정의하는 방법을 제공하며 반응 앱의 모든 계층에서 권한 부여 규칙을 적용하는 데 큰 유연성을 제공합니다. 명령형 앱에 대한 전역 메서드 보안이라고 하는 것과 유사합니다.
+
+- 그러나 반응형 메서드 보안은 명령형 앱에 대한 고발 메서드 보안만큼 성숙한 구현이 아닙니다. @PreAuthorize 및 @PostAuthorize 주석을 이미 사용할 수 있지만 @PreFilter 및 @PostFilter에 대한 기능은 여전히 ​​개발을 기다리고 있습니다.

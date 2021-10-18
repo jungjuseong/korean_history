@@ -1,44 +1,66 @@
+# 20 스프링 시큐리티 테스팅
 
- 
-20 Spring Security testing
-This chapter covers
-- Testing integration with Spring Security configurations for endpoints
-- Defining mock users for tests
-- Testing integration with Spring Security for method-level security
-- Testing reactive Spring implementations
-The legend says that writing unit and integration tests started with a short verse:
-“99 little bugs in the code,
-99 little bugs.
-Track one down, patch it around,
-There’s 113 little bugs in the code.”
---Anonymous
-With time, software became more complex, and teams became larger. Knowing all the functionalities implemented over time by others became impossible. Developers needed a way to make sure they didn’t break existing functionalities while correcting bugs or implementing new features.
-While developing applications, we continuously write tests to validate that the functionalities we implement work as desired. The main reason why we write unit and integration tests is to make sure we don’t break existing functionalities when changing code for fixing a bug or for implementing new features. This is also called regression testing.
-Nowadays, when a developer finishes making a change, they upload the changes to a server used by the team to manage code versioning. This action automatically triggers a continuous integration tool that runs all existing tests. If any of the changes break an existing functionality, the tests fail, and the continuous integration tool notifies the team (figure 20.1). This way, it’s less likely to deliver changes that affect existing features.
+이 장에서는 다음을 다룹니다.
+
+- 엔드포인트에 대한 Spring Security 구성과의 통합 테스트
+- 테스트를 위한 모의 사용자 정의
+- 메소드 레벨 보안을 위한 Spring Security와의 통합 테스트
+- 반응형 Spring 구현 테스트
+
+전설에 따르면 쓰기 단위 및 통합 테스트는 짧은 구절로 시작되었습니다.
+
+"코드에 있는 99개의 작은 버그,
+99개의 작은 버그.
+하나를 추적하고 주변을 패치하고,
+코드에는 113개의 작은 버그가 있습니다."
+
+-- 익명
+
+시간이 지남에 따라 소프트웨어는 더 복잡해지고 팀은 더 커졌습니다. 시간이 지나면서 다른 사람들이 구현한 모든 기능을 아는 것은 불가능해졌습니다. 개발자는 버그를 수정하거나 새로운 기능을 구현하는 동안 기존 기능이 손상되지 않도록 하는 방법이 필요했습니다.
+
+애플리케이션을 개발하는 동안 우리는 구현한 기능이 원하는 대로 작동하는지 검증하기 위해 지속적으로 테스트를 작성합니다. 우리가 단위 및 통합 테스트를 작성하는 주된 이유는 버그를 수정하거나 새로운 기능을 구현하기 위해 코드를 변경할 때 기존 기능이 손상되지 않도록 하기 위해서입니다. 이를 회귀 테스트라고도 합니다.
+
+요즘은 개발자가 변경 작업을 마치면 팀에서 코드 버전 관리를 관리하는 데 사용하는 서버에 변경 사항을 업로드합니다. 이 작업은 모든 기존 테스트를 실행하는 지속적 통합 도구를 자동으로 트리거합니다. 변경 사항이 기존 기능을 손상시키는 경우 테스트가 실패하고 지속적인 통합 도구가 팀에 알립니다(그림 20.1). 이렇게 하면 기존 기능에 영향을 주는 변경 사항을 전달할 가능성이 줄어듭니다.
  
-Figure 20.1 Testing is part of the development process. Anytime a developer uploads code, the tests run. If any test fails, a continuous integration tool notifies the developer.
-NOTE By using Jenkins in this figure, I say neither that this is the only continuous integration tool used or that it’s the best one. You have many alternatives to choose from like Bamboo, GitLab CI, CircleCI, and so on.
-When testing applications, you need to remember it’s not only your application code that you need to test. You need to also make sure you test the integrations with the
-frameworks and libraries you use, as well (figure 20.2). Sometime in the future, you may upgrade that framework or library to a new version. When changing the version of a dependency, you want to make sure your app still integrates well with the new version of that dependency. If your app doesn’t integrate in the same way, you want to easily find where you need to make changes to correct the integration problems.
+그림 20.1 테스트는 개발 프로세스의 일부입니다. 개발자가 코드를 업로드할 때마다 테스트가 실행됩니다. 테스트가 실패하면 지속적 통합 도구가 개발자에게 알립니다.
+
+> **참고** 이 그림에서 Jenkins를 사용하여 이것이 유일하게 사용된 지속적 통합 도구이거나 최고의 도구라고 말하지 않습니다. Bamboo, GitLab CI, CircleCI 등과 같이 선택할 수 있는 많은 대안이 있습니다.
+
+애플리케이션을 테스트할 때 테스트해야 하는 것은 애플리케이션 코드만이 아니라는 점을 기억해야 합니다. 또한 다음과의 통합을 테스트해야 합니다.
+사용하는 프레임워크 및 라이브러리도 포함됩니다(그림 20.2). 미래에 해당 프레임워크나 라이브러리를 새 버전으로 업그레이드할 수 있습니다. 종속성 버전을 변경할 때 앱이 해당 종속성의 새 버전과 여전히 잘 통합되는지 확인하고 싶습니다. 앱이 동일한 방식으로 통합되지 않는 경우 통합 문제를 수정하기 위해 변경해야 할 부분을 쉽게 찾고 싶습니다.
  
-Figure 20.2 The functionality of an application relies on many dependencies. When you upgrade or change a dependency, you might affect existing functionality. Having integration tests with dependencies helps you to discover quickly if a change in a dependency affects the existing functionality of your application.
-So that’s why you need to know what we’ll cover in this chapter--how to test your app’s integration with Spring Security. Spring Security, like the Spring framework ecosystem in general, evolves quickly. You probably upgrade your app to new versions, and you certainly want to be aware if upgrading to a specific version develops vulnerabilities, errors, or incompatibilities in your application. Remember what we discussed right from the first chapter: you need to consider security from the first design for the app, and you need to take it seriously. Implementing tests for any of your security configurations should be a mandatory task and should be defined as part of your definition of “done.” You shouldn’t consider a task finished if security tests aren’t ready.
-In this chapter, we’ll discuss several practices for testing an app’s integration with Spring Security. We’ll go back to some of the examples we worked on in previous chapters, and you’ll learn how to write integration tests for implemented functionality. Testing, in general, is an epic story. But learning this subject in detail brings many benefits.
-In this chapter, we’ll focus on testing integration between an application and Spring Security. Before starting our examples, I’d like to recommend a few resources that helped me understand this subject deeply. If you need to understand the subject more in detail, or even as a refresher, you can read these books. I am positive you’ll find these great!
+그림 20.2 응용 프로그램의 기능은 많은 종속성에 의존합니다. 종속성을 업그레이드하거나 변경하면 기존 기능에 영향을 미칠 수 있습니다. 종속성이 있는 통합 테스트를 사용하면 종속성 변경이 애플리케이션의 기존 기능에 영향을 미치는지 빠르게 발견하는 데 도움이 됩니다.
+
+그렇기 때문에 이 장에서 다룰 내용, 즉 앱과 Spring Security의 통합을 테스트하는 방법을 알아야 합니다. 일반적으로 Spring 프레임워크 생태계와 마찬가지로 Spring Security는 빠르게 진화합니다. 앱을 새 버전으로 업그레이드하고 특정 버전으로 업그레이드하면 애플리케이션에 취약점, 오류 또는 비호환성이 발생하는지 확실히 알고 싶을 것입니다. 첫 번째 장에서 바로 논의한 내용을 기억하십시오. 앱의 첫 번째 디자인부터 보안을 고려해야 하며 심각하게 받아들여야 합니다. 보안 구성에 대한 테스트 구현은 필수 작업이어야 하며 "완료" 정의의 일부로 정의되어야 합니다. 보안 테스트가 준비되지 않은 경우 작업이 완료된 것으로 간주해서는 안 됩니다.
+
+이 장에서는 앱과 Spring Security의 통합을 테스트하기 위한 몇 가지 사례를 논의할 것입니다. 이전 장에서 작업한 몇 가지 예제로 돌아가서 구현된 기능에 대한 통합 테스트를 작성하는 방법을 배우게 됩니다. 일반적으로 테스트는 장대한 이야기입니다. 그러나 이 주제를 자세히 배우면 많은 이점이 있습니다.
+이 장에서는 애플리케이션과 Spring Security 간의 통합 테스트에 중점을 둘 것입니다. 예제를 시작하기 전에 이 주제를 깊이 이해하는 데 도움이 되는 몇 가지 리소스를 추천하고 싶습니다. 주제를 더 자세히 이해해야 하거나 복습을 위해 이 책을 읽을 수 있습니다. 나는 당신이 이것들을 훌륭하게 찾을 것이라고 확신합니다!
+
 - JUnit in Action, 3rd ed. by Cătălin Tudose et al. (Manning, 2020)
 - Unit Testing Principles, Practices, and Patterns by Vladimir Khorikov (Manning, 2020)
 - Testing Java Microservices by Alex Soto Bueno et al. (Manning, 2018)
+
 구현한 보안 코드의 테스트의 시작은 인증 설정 테스트로 시작한다. 20.1절에서는 인증을 스킵하고 엔드포인트 레벨에서 인증 설정을 테스트하기 위한 모형 사용자를 정의하는 방법을 배울 것이다. 20.2절은 여러분이 구현한 특정한 인증 객체를 사용할 필요가 있는 경우에서 보안 컨텍스트 전체를 설정하는 방법을 다룰 것이다. 마지막으로 20.4절에서는 앞 절에 배운 인증 설정 테스트를 메소드 보안에 적용해 볼 것이다.
+
 인증 테스트를 다루었다면 20.5절은 인증 흐름도를 테스트하는 방법을 다룬다. 그리고 CSRF와 CORS와 같은 또 다른 보안 설정을 테스트하는 방법을 다룬다. 끝으로 스프링 시큐리티와 리액티브 앱의 통합 테스트를 다룬다.
-20.1 Using mock users for tests
-모의 사용자로 인증 설정을 테스트 한다. 이 방식이가장 단순하며 자주 사용되는 방법이다. 모의 사용자를 사용할 때 테스트는 인증 절차를 생략한다. 모의 사용자는 테스트할때만 유효하며 이 사용자에 대해서 특정 시나리오를 검증하기 위해 필요한 특성을 설정할 수 있다. 예를 들어 사용자에게 ADMIN, MANAGER 등과 같은 역할을 부여하거나 다른 권한들을 사용하여 앱이 이러한 조건에서 예상대로 행동하는지를 검증한다.
+
+## 20.1 Using mock users for tests
+
+모의 사용자로 인증 설정을 테스트 한다. 이 방식이 가장 단순하며 자주 사용되는 방법이다. 모의 사용자를 사용할 때 테스트는 인증 절차를 생략한다. 모의 사용자는 테스트할때만 유효하며 이 사용자에 대해서 특정 시나리오를 검증하기 위해 필요한 특성을 설정할 수 있다. 예를 들어 사용자에게 ADMIN, MANAGER 등과 같은 역할을 부여하거나 다른 권한들을 사용하여 앱이 이러한 조건에서 예상대로 행동하는지를 검증한다.
  
-Figure 20.3 We skip the shaded components in the Spring Security authentication flow when executing a test. The test directly uses a mock SecurityContext, which contains the mock user you define to call the tested functionality.
-NOTE It’s important to know which components from the framework are involved in an integration test. This way, you know which part of the integration you cover with the test. For example, a mock user can only be used to cover authorization. (In section 20.5, you’ll learn how to deal with authentication.) I sometimes see developers getting confused on this aspect. They thought they were also covering, for example, a custom implementation of an AuthenticationProvider when working with a mock user, which is not the case. Make sure you correctly understand what you’re testing.
-To prove how to write such a test, let’s go back to the simplest example we worked on in this book, the project ssia-ch2-ex1. This project exposes an endpoint for the path /hello with only the default Spring Security configuration. What do we expect to happen?
-- When calling the endpoint without a user, the HTTP response status should be 401 Unauthorized.
-- When calling the endpoint having an authenticated user, the HTTP response status should be 200 OK, and the response body should be Hello!.
-Let’s test these two scenarios! We need a couple of dependencies in the pom.xml file to write the tests. The next code snippet shows you the classes we use throughout the examples in this chapter. You should make sure you have these in your pom.xml file before starting to write the tests. Here are the dependencies:
+그림 20.3 테스트를 실행할 때 Spring Security 인증 흐름에서 음영 처리된 구성 요소를 건너뜁니다. 테스트는 테스트된 기능을 호출하기 위해 정의한 모의 사용자가 포함된 모의 SecurityContext를 직접 사용합니다.
+
+> **참고** 프레임워크의 어떤 구성 요소가 통합 테스트와 관련되어 있는지 아는 것이 중요합니다. 이렇게 하면 테스트에서 다루는 통합 부분을 알 수 있습니다. 예를 들어, 모의 사용자는 승인을 커버하는 데만 사용할 수 있습니다. (섹션 20.5에서 인증을 처리하는 방법을 배우게 될 것입니다.) 저는 때때로 개발자들이 이 측면에서 혼란스러워하는 것을 봅니다. 그들은 예를 들어 모의 사용자와 작업할 때 AuthenticationProvider의 사용자 정의 구현을 다루고 있다고 생각했지만 그렇지 않습니다. 테스트 중인 내용을 올바르게 이해했는지 확인하세요.
+
+이러한 테스트를 작성하는 방법을 증명하기 위해 이 책에서 작업한 가장 간단한 예제인 ssia-ch2-ex1 프로젝트로 돌아가 보겠습니다. 이 프로젝트는 기본 Spring Security 구성만 사용하여 /hello 경로에 대한 엔드포인트를 노출합니다. 우리는 무슨 일이 일어날 것으로 예상합니까?
+
+- 사용자 없이 엔드포인트를 호출할 때 HTTP 응답 상태는 401 Unauthorized여야 합니다.
+
+- 인증된 사용자가 있는 엔드포인트를 호출할 때 HTTP 응답 상태는 200 OK여야 하고 응답 본문은 Hello!여야 합니다.
+  
+이 두 가지 시나리오를 테스트해 봅시다! 테스트를 작성하려면 pom.xml 파일에 몇 가지 종속성이 필요합니다. 다음 코드 조각은 이 장의 예제 전체에서 사용하는 클래스를 보여줍니다. 테스트 작성을 시작하기 전에 pom.xml 파일에 이러한 파일이 있는지 확인해야 합니다. 종속성은 다음과 같습니다.
+
+```xml
 <dependency>
    <groupId>org.springframework.boot</groupId>
    <artifactId>spring-boot-starter-test</artifactId>
@@ -55,29 +77,43 @@ Let’s test these two scenarios! We need a couple of dependencies in the pom.xm
    <artifactId>spring-security-test</artifactId>
    <scope>test</scope>
 </dependency>
-NOTE For the examples in this chapter, we use JUnit 5 for writing tests. But don’t be discouraged if you still work with JUnit 4. From the Spring Security integration point of view, the annotations and the rest of the classes you’ll learn work the same. Chapter 4 of JUnit in Action by Cătălin Tudose et al. (Manning, 2020), which is a dedicated discussion about migrating from JUnit 4 to JUnit 5, contains some interesting tables that show the correspondence between classes and annotations of versions 4 and 5. Here’s the link: https://livebook.manning.com/book/junit-in-action-third-edition/chapter-4.
-In the test folder of the Spring Boot Maven project, we add a class named MainTests. We write this class as part of the main package of the application. The name of the main package is com.laurentiuspilca.ssia. In listing 20.1, you can find the definition of the empty class for the tests. We use the @SpringBootTest annotation, which represents a convenient way to manage the Spring context for our test suite.
+```
+
+> **참고** 이 장의 예제에서는 테스트를 작성하기 위해 JUnit 5를 사용합니다. Spring Security 통합의 관점에서 볼 때 학습할 주석과 나머지 클래스는 동일하게 작동합니다. Cătălin Tudose et al.의 JUnit 실행 중 4장. JUnit 4에서 JUnit 5로의 마이그레이션에 대한 전용 토론인 (Manning, 2020)에는 버전 4와 5의 클래스와 주석 간의 대응 관계를 보여주는 몇 가지 흥미로운 표가 포함되어 있습니다. 링크는 https://livebook.manning입니다. com/book/junit-in-action-third-edition/chapter-4.
+
+Spring Boot Maven 프로젝트의 테스트 폴더에 MainTests라는 클래스를 추가합니다. 우리는 이 클래스를 응용 프로그램의 기본 패키지의 일부로 작성합니다. 기본 패키지의 이름은 com.laurentiuspilca.ssia입니다. 목록 20.1에서 테스트를 위한 빈 클래스의 정의를 찾을 수 있습니다. 테스트 스위트의 Spring 컨텍스트를 관리하는 편리한 방법을 나타내는 @SpringBootTest 주석을 사용합니다. 
+
 Listing 20.1 A class for writing the tests
+```java
 @SpringBootTest          ❶
 public class MainTests {
 }
+```
 ❶ Makes Spring Boot responsible for managing the Spring context for the tests
 스프링의 MockMvc를 사용하면 엔드포인트의 행동의 테스트를 편리하게 구현할 수 있다. 
+
 Listing 20.2 Adding MockMvc for implementing test scenarios
+```java
 @SpringBootTest
 @AutoConfigureMockMvc       ❶
 public class MainTests {
   @Autowired
   private MockMvc mvc;      ❷
 }
+```
 ❶ Enables Spring Boot to autoconfigure MockMvc. As a consequence, an object of type MockMvc is added to the Spring context.
+
 ❷ Injects the MockMvc object that we use to test the endpoint
 이제 엔드포인트 행동을 테스트할 수 있는 수단이 생겼으므로 첫번째 시나리오를 시작해보자. 사용자 인증없이 /hello 엔드포인트를 부르면 HTTP 응답 상태는 401 Unauthorized이어야 한다. 
+
 아래 그림에 이 테스트를 실행하는 컴포넌트들 간의 관계를 볼 수 있다. 테스트는 모의 SecurityContext를 사용하여 엔드포인트를 부른다. 우리는 이 SecurityContet에 뭔가를 추가하기로 했다. 이 테스트는 누군가 인증 없이 엔드포인트를 부르는 상황을 나타내는 사용자를 추가하지 않으면 앱이 401 Unauthorized 응답을 하는지를 확인해야한다. SecurityContext에 사용자를 추가하면, 앱이 호출을 수락하며 HTTP 응답은 200 OK이다.
  
 Figure 20.4 테스트를 실행할 때 인증은 건너뛴다. 테스트는 모의 SecurityContext를 사용해서 /hello 엔드포인트를 부른다. SecurityContext에 모의 사용자를 추가하여 행동을 검증하는 것이 인증 규칙에 따라 정확하다. 모의 사용자를 정의하지 않으면 앱은 호출을 인증하지 않지만 사용자를 추가하면 호출이 성공한다.
-The following listing presents this scenario’s implementation.
-Listing 20.3 Testing that you can’t call the endpoint without an authenticated user
+
+다음 목록은 이 시나리오의 구현을 나타냅니다.
+
+목록 20.3 인증된 사용자 없이 엔드포인트를 호출할 수 없는지 테스트
+```java
 @SpringBootTest
 @AutoConfigureMockMvc
 public class MainTests {
@@ -92,17 +128,28 @@ public class MainTests {
   }
 
 }
-❶ When performing a GET request for the /hello path, we expect to get back a response with the status Unauthorized.
-Mind that we statically import the methods get() and status(). You find the method get() and similar methods related to the requests we use in the examples of this chapter in this class:
+```
+❶ /hello 경로에 대해 GET 요청을 수행할 때 Unauthorized 상태의 응답을 받을 것으로 예상합니다.
+
+get() 및 status() 메서드를 정적으로 가져옵니다. 이 클래스의 이 장의 예제에서 사용하는 요청과 관련된 get() 메서드 및 유사한 메서드를 찾을 수 있습니다.
+
+```java
 org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-Also, you find the method status() and similar methods related to the result of the calls that we use in the next examples of this chapter in this class:
+```
+또한 이 클래스에서 이 장의 다음 예제에서 사용하는 호출 결과와 관련된 status() 메서드 및 유사한 메서드를 찾을 수 있습니다.
+```java
 org.springframework.test.web.servlet.result.MockMvcResultMatchers
+```
 이제 테스트를 실행하여 그 결과를 볼 수 있다. 성공하면 녹색으로 실패하면 빨강으로 표시할 것이다.
-NOTE In the projects provided with the book, above each method implementing a test, I also use the @DisplayName annotation. This annotation allows us to have a longer, more detailed description of the test scenario. To occupy less space and allow you to focus on the functionality of the tests we discuss, I took the @DisplayName annotation out of the listings in the book.
+
+> **참고** 제공된 프로젝트에서 테스트를 구현하는 각 메서드 위에 `@DisplayName` 주석도 사용합니다. 이 주석을 사용하면 테스트 시나리오에 대한 더 길고 자세한 설명을 얻을 수 있습니다. 공간을 덜 차지하고 우리가 논의하는 테스트의 기능에 집중할 수 있도록 책의 목록에서 `@DisplayName` 주석을 제거했습니다.
+
 두번째 시나리오는 모의 사용자가 필요하다. 승인된 사용자가 /hello를 부르는 것을 검증하기 위해서 @WithMockUser 주석을 사용한다. 테스트 메소드 위에 이 주석을 달면 SecurityContext에 UserDetails 인스턴스가 설정되도록 한다. 이것은 기본적으로 인증을 생략한다. 이제 엔드포인트를 부르면 @WithMockUser로 정의된 사용자가 인증된 것처럼 행동한다. 
+
 이 예제에서는 모의 사용자의 이름, 역할 또는 권한과 같은 정보에 대해서는 관심이 없다. 따라서 @WithMockUser 주석을 추가하면 모의 사용자의 속성에 디폴트 값이 적용된다. 
 
 Listing 20.4 Using @WithMockUser to define a mock authenticated user
+```java
 @SpringBootTest
 @AutoConfigureMockMvc
 public class MainTests {
@@ -121,10 +168,15 @@ public class MainTests {
   }
 
 }
+```
 ❶ Calls the method with a mock authenticated user
+
 ❷ In this case, when performing a GET request for the /hello path, we expect the response status to be OK.
+
 어떤 상황에서는 특정한 사용자 이름이나 역할을 검증해야 하나. 이번에는 인증된 사용자 이름에 따라 응답하는 테스트를 작성한다.(ssia-ch5-ex2)
+
 Listing 20.5 Configuring details for the mock user
+```java
 @SpringBootTest
 @AutoConfigureMockMvc
 public class MainTests {
@@ -139,12 +191,16 @@ public class MainTests {
          .andExpect(status().isOk());
     }
 }
+```
 ❶ Sets up a username for the mock user
 아래 그림은 주석을 사용한 테스트 환경 정의와 RequestPostProcessor를 사용할 때와의 차이를 보여준다. 프레임워크는 테스트 메소드를 수행하기 전에 @WithMockUser를 해석한다. RequestPostProcessor를 사용할 경우 프레임워크는 먼저 테스트 메소드를 호출한 다음 테스트 요청을 빌드한다.
+
 사용자 이름을 설정하듯이 권한과 역할도 설정할 수 있다. RequestPostProcessor로도 모의 사용자를 만들 수 있다. RequestPostProcessor에 with() 메소드를 제공할 수 있다. SecurityMockMvcRequestPostProcessors클래스는 수많은 RequestPostProcessor 구현체를 제공한다. SecurityMockMvcRequestPostProcessors 클래스의 user() 메소드가 RequestPostProcessor를 리턴한다.
  
 Figure 20.5 시큐리티 테스트 환경을 만들 때 주석을 사용할 때와 RequestPostProcessor를 사용할 때의 차이. 주석을 사용하면 프레임워크가 먼저 테스트 시큐리티 환경을 설정하다. RequestPostProcessor를 사용하면 테스트 요청을 만든 다음 테스트 환경과 같은 다른 제약을 정의하기 위해 변경된다. 프레임워크가 테스트 환경을 적용하는 부분을 음영 처리.
+
 Listing 20.6 Using a RequestPostProcessor to define a mock user
+```java
 @SpringBootTest
 @AutoConfigureMockMvc
 public class MainTests {
@@ -160,14 +216,22 @@ public class MainTests {
         .andExpect(status().isOk());
   }
 }
+```
 ❶ Calls the /hello endpoint using a mock user with the username Mary
+
 앱의 기능과 스프링 시큐리티 통합을 위해 우리가 작성하는 대부분의 테스트는 인증 설정을 위한 것이다. 아마도 왜 권한은 테스트 하지 않는지 의아할 것이다. 20.5절에서 권한 테스트를 다룬다. 하지만 일반적으로 인증과 권한은 별도로 테스트하는 것이 좋다. 일반적으로 앱에는 사용자를 인증하는 한가지 방법이 있지만 권한이 다르게 구성된 수십개의 엔드포인트를 노출할 수 있다. 따라서 몇가지 테스트를 통해 개별적으로 인증을 테스트 한 다음에 엔드포인트의 각 인증 설정에 대해 구현하는 것이다. 로직이 바뀌지 않는다면 테스트된 각 엔트 포인트에 매번 인증을 반복하는 것은 시간 낭비이다.
-20.2 Testing with users from a UserDetailsService
+
+
+# 20.2 Testing with users from a UserDetailsService
+
 여기서는 UserDetailsService로부터 테스트를 위한 사용자 정보를 얻는 것을 다룬다. 가짜인 모의 사용자와는 달리 UserDetailsService에서 사용자를 가져온다. 앱이 사용자 정보를 로드하는 데이터 소스와 통합 테스트를 하려면 이 방법을 사용한다.
  
 Figure 20.6 Instead of creating a mock user for the test when building the SecurityContext used by the test, we take the user details from a UserDetailsService. This way, you can test authorization using real users taken from a data source. During the test, the flow of execution skips the shaded components.
+
 To demonstrate this approach, let’s open project ssia-ch2-ex2 and implement the tests for the endpoint exposed at the /hello path. We use the UserDetailsService bean that the project already adds to the context. Note that, with this approach, we need to have a UserDetailsService bean in the context. To specify the user we authenticate from this UserDetailsService, we annotate the test method with @WithUserDetails. With the @WithUserDetails annotation, to find the user, you specify the username. The following listing presents the implementation of the test for the /hello endpoint using the @WithUserDetails annotation to define the authenticated user.
+
 Listing 20.7 Defining the authenticated user with the @WithUserDetails annotation
+```java
 @SpringBootTest
 @AutoConfigureMockMvc
 public class MainTests {
@@ -183,29 +247,43 @@ public class MainTests {
   }
         
 }
-❶ Loads the user John using the UserDetailsService for running the test scenario
-20.3 Using custom Authentication objects for testing
-Generally, when using a mock user for a test, you don’t care which class the frame-work uses to create the Authentication instances in the SecurityContext. But say you have some logic in the controller that depends on the type of the object. Can you somehow instruct the framework to create the Authentication object for the test using a specific type? The answer is yes, and this is what we discuss in this section.
-The logic behind this approach is simple. We define a factory class responsible for building the SecurityContext. This way, we have full control over how the SecurityContext for the test is built, including what’s inside it (figure 20.7). For example, we can choose to have a custom Authentication object.
+```
+❶ 테스트 시나리오를 실행하기 위해 UserDetailsService를 사용하여 사용자 John을 로드합니다.
+20.3 테스트를 위해 사용자 정의 인증 개체 사용
+
+일반적으로 테스트를 위해 모의 사용자를 사용할 때 프레임워크가 SecurityContext에서 인증 인스턴스를 생성하는 데 사용하는 클래스는 신경 쓰지 않습니다. 그러나 컨트롤러에 개체 유형에 따라 달라지는 일부 논리가 있다고 가정해 보겠습니다. 특정 유형을 사용하여 테스트용 인증 개체를 생성하도록 프레임워크에 지시할 수 있습니까? 대답은 예이며 이것이 이 섹션에서 논의하는 내용입니다.
+
+이 접근 방식의 논리는 간단합니다. SecurityContext 구축을 담당하는 팩토리 클래스를 정의합니다. 이런 식으로 내부 내용을 포함하여 테스트용 SecurityContext가 구축되는 방식을 완전히 제어할 수 있습니다(그림 20.7). 예를 들어 사용자 지정 인증 개체를 갖도록 선택할 수 있습니다.
  
-Figure 20.7 To obtain full control of how the SecurityContext for the test is defined, we build a factory class that instructs the test on how to build the SecurityContext. This way, we gain greater flexibility, and we can choose details like the kind of object to use as an Authentication object. In the figure, I shaded the components skipped from the flow during the test.
-Let’s open project ssia-ch2-ex5 and write a test in which we configure the mock SecurityContext and instruct the framework on how to create the Authentication object. An interesting aspect to remember about this example is that we use it to prove the implementation of a custom AuthenticationProvider. The custom AuthenticationProvider we implement in our case only authenticates a user named John. However, as in the other two previous approaches we discussed in sections 20.1 and 20.2, the current approach skips authentication. For this reason, you see at the end of the example that we can actually give any name to our mock user. We follow three steps to achieve this behavior (figure 20.8):
+그림 20.7 테스트를 위한 SecurityContext가 어떻게 정의되는지에 대한 완전한 제어를 얻기 위해, 우리는 SecurityContext를 구축하는 방법에 대해 테스트에 지시하는 팩토리 클래스를 구축합니다. 이렇게 하면 유연성이 향상되고 인증 개체로 사용할 개체의 종류와 같은 세부 정보를 선택할 수 있습니다. 그림에서 테스트 중 흐름에서 건너뛴 구성 요소를 음영 처리했습니다.
+
+ssia-ch2-ex5 프로젝트를 열고 모의 SecurityContext를 구성하고 프레임워크에 인증 개체를 생성하는 방법을 지시하는 테스트를 작성해 보겠습니다. 이 예제에서 기억해야 할 흥미로운 측면은 사용자 지정 AuthenticationProvider의 구현을 증명하는 데 사용한다는 것입니다. 우리가 구현한 사용자 정의 AuthenticationProvider는 John이라는 사용자만 인증합니다. 그러나 섹션 20.1 및 20.2에서 논의한 다른 두 가지 이전 접근 방식과 마찬가지로 현재 접근 방식은 인증을 건너뜁니다. 이러한 이유로 예제의 끝 부분에서 실제로 모의 사용자에게 어떤 이름이든 지정할 수 있음을 알 수 있습니다. 우리는 이 동작을 달성하기 위해 세 단계를 따릅니다(그림 20.8).
+
 1.	Write an annotation to use over the test similarly to the way we use @WithMockUser or @WithUserDetails.
 2.	Write a class that implements the WithSecurityContextFactory interface. This class implements the createSecurityContext() method that returns the mock SecurityContext the framework uses for the test.
 3.	Link the custom annotation created in step 1 with the factory class created in step 2 via the @WithSecurityContext annotation.
  
 Figure 20.8 To enable the test to use a custom SecurityContext, you need to follow the three steps illustrated in this figure.
-STEP 1: DEFINING A CUSTOM ANNOTATION
+
+#### STEP 1: DEFINING A CUSTOM ANNOTATION
+
 In listing 20.8, you find the definition of the custom annotation we define for the test, named @WithCustomUser. As properties of the annotation, you can define whatever details you need to create the mock Authentication object. I added only the username here for my demonstration. Also, don’t forget to use the annotation @Retention (RetentionPolicy.RUNTIME) to set the retention policy to runtime. Spring needs to read this annotation using Java reflection at runtime. To allow Spring to read this annotation, you need to change its retention policy to RetentionPolicy.RUNTIME.
+
 Listing 20.8 Defining the @WithCustomUser annotation
+```java
 @Retention(RetentionPolicy.RUNTIME)
 public @interface WithCustomUser {
 
   String username();
 }
-STEP 2: CREATING A FACTORY CLASS FOR THE MOCK SECURITYCONTEXT
+```
+
+#### STEP 2: CREATING A FACTORY CLASS FOR THE MOCK SECURITYCONTEXT
+
 The second step consists in implementing the code that builds the SecurityContext that the framework uses for the test’s execution. Here’s where we decide what kind of Authentication to use for the test. The following listing demonstrates the implementation of the factory class.
+
 Listing 20.9 The implementation of a factory for the SecurityContext
+```java
 public class CustomSecurityContextFactory                  ❶
   implements WithSecurityContextFactory<WithCustomUser> {
 
@@ -223,22 +301,35 @@ public class CustomSecurityContextFactory                  ❶
       return context;
     }
 }
+```
 ❶ Implements the WithSecurityContextFactory annotation and specifies the custom annotation we use for the tests
+
 ❷ Implements createSecurityContext() to define how to create the SecurityContext for the test
+
 ❸ Builds an empty security context
+
 ❹ Creates an Authentication instance
+
 ❺ Adds the mock Authentication to the SecurityContext
-STEP 3: LINKING THE CUSTOM ANNOTATION TO THE FACTORY CLASS
+
+#### STEP 3: LINKING THE CUSTOM ANNOTATION TO THE FACTORY CLASS
+
 Using the @WithSecurityContext annotation, we now link the custom annotation we created in step 1 to the factory class for the SecurityContext we implemented in step 2. The following listing presents the change to our @WithCustomUser annotation to link it to the SecurityContext factory class.
+
 Listing 20.10 Linking the custom annotation to the SecurityContext factory class
+```java
 @Retention(RetentionPolicy.RUNTIME)
 @WithSecurityContext(factory = CustomSecurityContextFactory.class)
 public @interface WithCustomUser {
 
     String username();
 }
+```
+
 With this setup complete, we can write a test to use the custom SecurityContext. The next listing defines the test.
+
 Listing 20.11 Writing a test that uses the custom SecurityContext
+```java
 @SpringBootTest
 @AutoConfigureMockMvc
 public class MainTests {
@@ -253,18 +344,27 @@ public class MainTests {
          .andExpect(status().isOk());
   }
 }
+```
 ❶ Executes the test with a user having the username “mary”
+
 Running the test, you observe a successful result. You might think, “Wait! In this example, we implemented a custom AuthenticationProvider that only authenticates a user named John. How could the test be successful with the username Mary?” As in the case of @WithMockUser and @WithUserDetails, with this method we skip the authentication logic. So you can use it only to test what’s related to authorization and onward.
-20.4 Testing method security
-In this section, we discuss testing method security. All the tests we wrote until now in this chapter refer to endpoints. But what if your application doesn’t have endpoints? In fact, if it’s not a web app, it doesn’t have endpoints at all! But you might have used Spring Security with global method security as we discussed in chapters 16 and 17. You still need to test your security configurations in such scenarios.
-Fortunately, you do this by using the same approaches we discussed in the previous sections. You can still use @WithMockUser, @WithUserDetails, or a custom annotation to define your own SecurityContext. But instead of using MockMvc, you directly inject from the context the bean defining the method you need to test.
-Let’s open project ssia-ch16-ex1 and implement the tests for the getName() method in the NameService class. We protected the getName() method using the @PreAuthorize annotation. In listing 20.12, you find the implementation of the test class with its three tests, and figure 20.9 represents graphically the three scenarios we test:
-1.	Calling the method without an authenticated user, the method should throw AuthenticationException.
-2.	Calling the method with an authenticated user that has an authority different than the expected one (write), the method should throw AccessDeniedException.
-3.	Calling the method with an authenticated user that has the expected authority returns the expected result.
+
+# 20.4 테스트 방법 보안
+
+이 섹션에서는 테스트 메서드 보안에 대해 설명합니다. 지금까지 이 장에서 작성한 모든 테스트는 끝점을 참조합니다. 하지만 애플리케이션에 엔드포인트가 없다면 어떻게 될까요? 사실, 웹 앱이 아니라면 엔드포인트가 전혀 없습니다! 그러나 16장과 17장에서 논의한 것처럼 전역 메서드 보안과 함께 Spring Security를 ​​사용했을 수 있습니다. 이러한 시나리오에서는 여전히 보안 구성을 테스트해야 합니다.
+다행히도 이전 섹션에서 논의한 것과 동일한 접근 방식을 사용하여 이 작업을 수행합니다. 여전히 @WithMockUser, @WithUserDetails 또는 사용자 정의 주석을 사용하여 고유한 SecurityContext를 정의할 수 있습니다. 그러나 MockMvc를 사용하는 대신 테스트해야 하는 메서드를 정의하는 빈 컨텍스트에서 직접 주입합니다.
+ssia-ch16-ex1 프로젝트를 열고 NameService 클래스의 getName() 메서드에 대한 테스트를 구현해 보겠습니다. @PreAuthorize 주석을 사용하여 getName() 메서드를 보호했습니다. 목록 20.12에서 세 가지 테스트가 있는 테스트 클래스의 구현을 찾을 수 있으며 그림 20.9는 우리가 테스트하는 세 가지 시나리오를 그래픽으로 나타냅니다.
+
+1. 인증된 사용자 없이 메서드를 호출하면 메서드에서 AuthenticationException을 throw해야 합니다.
+
+2. 예상한 것과 다른 권한(쓰기)을 가진 인증된 사용자로 메서드를 호출하면 메서드에서 AccessDeniedException을 throw해야 합니다.
+
+3. 예상 권한이 있는 인증된 사용자로 메서드를 호출하면 예상 결과가 반환됩니다.
  
-Figure 20.9 The tested scenarios. If the HTTP request is not authenticated, the expected result is an AuthenticationException. If the HTTP request is authenticated but the user doesn’t have the expected authority, the expected result is an AccessDeniedException. If the authenticated user has the expected authority, the call is successful.
-Listing 20.12 Implementation of the three test scenarios for the getName() method
+그림 20.9 테스트된 시나리오. HTTP 요청이 인증되지 않은 경우 예상 결과는 AuthenticationException입니다. HTTP 요청이 인증되었지만 사용자에게 예상되는 권한이 없는 경우 예상되는 결과는 AccessDeniedException입니다. 인증된 사용자에게 예상되는 권한이 있으면 호출이 성공한 것입니다.
+
+Listing 20.12 getName() 메서드에 대한 세 가지 테스트 시나리오 구현
+```java
 @SpringBootTest
 class MainTests {
 
@@ -292,14 +392,19 @@ class MainTests {
     assertEquals("Fantastico", result);
   }
 }
-We don’t configure MockMvc anymore because we don’t need to call an endpoint. Instead, we directly inject the NameService instance to call the tested method. We use the @WithMockUser annotation as we discussed in section 20.1. Similarly, you could have used the @WithUserDetails as we discussed in section 20.2 or designed a custom way to build the SecurityContext as discussed in section 20.3.
-20.5 Testing authentication
-In this section, we discuss testing authentication. Previously, in this chapter, you learned how to define mock users and test authorization configurations. But what about authentication? Can we also test the authentication logic? You need to do this if, for example, you have custom logic implemented for your authentication, and you want to make sure the entire flow works. When testing authentication, the test implementation requests work like normal client requests, as presented in figure 20.10.
+```
+끝점을 호출할 필요가 없기 때문에 더 이상 MockMvc를 구성하지 않습니다. 대신 테스트된 메서드를 호출하기 위해 NameService 인스턴스를 직접 주입합니다. 섹션 20.1에서 논의한 것처럼 @WithMockUser 주석을 사용합니다. 유사하게, 섹션 20.2에서 논의한 것처럼 @WithUserDetails를 사용하거나 섹션 20.3에서 논의된 대로 SecurityContext를 빌드하는 사용자 정의 방법을 설계할 수 있습니다.
+
+## 20.5 인증 테스트
+
+이 섹션에서는 인증 테스트에 대해 설명합니다. 이전에 이 장에서 모의 ​​사용자를 정의하고 인증 구성을 테스트하는 방법을 배웠습니다. 그러나 인증은 어떻습니까? 인증 로직도 테스트할 수 있습니까? 예를 들어 인증을 위해 구현된 사용자 지정 논리가 있고 전체 흐름이 작동하는지 확인하려는 경우 이 작업을 수행해야 합니다. 인증을 테스트할 때 테스트 구현 요청은 그림 20.10과 같이 일반 클라이언트 요청처럼 작동합니다.
  
-Figure 20.10 When testing authentication, the test acts as a client and goes through the full Spring Security flow discussed throughout the book. This way, you can also test, for example, your custom AuthenticationProvider objects.
-For example, going back to project ssia-ch2-ex5, can we prove that the custom authentication provider we implemented works correctly and secure it with tests? In this project, we implemented a custom AuthenticationProvider, and we want to make sure that we secure this custom authentication logic as well with tests. Yes, we can test the authentication logic as well.
-The logic we implement is straightforward. Only one set of credentials is accepted: the username "john" and the password "12345". We need to prove that, when using valid credentials, the call is successful, whereas when using some other credentials, the HTTP response status is 401 Unauthorized. Let’s again open project ssia-ch2-ex5 and implement a couple of tests to validate that authentication behaves correctly.
-Listing 20.13 Testing authentication with httpBasic() RequestPostProcessor
+그림 20.10 인증을 테스트할 때 테스트는 클라이언트 역할을 하며 책 전체에서 논의된 전체 Spring Security 흐름을 거칩니다. 이 방법으로 예를 들어 사용자 지정 AuthenticationProvider 개체를 테스트할 수도 있습니다.
+예를 들어 프로젝트 ssia-ch2-ex5로 돌아가서 구현한 사용자 지정 인증 공급자가 올바르게 작동하고 테스트를 통해 보안을 유지하는지 증명할 수 있습니까? 이 프로젝트에서 우리는 사용자 정의 AuthenticationProvider를 구현했으며 테스트와 함께 이 사용자 정의 인증 논리를 보호하고 싶습니다. 예, 인증 로직도 테스트할 수 있습니다.
+우리가 구현하는 논리는 간단합니다. 사용자 이름 "john"과 암호 "12345"의 한 가지 자격 증명 세트만 허용됩니다. 유효한 자격 증명을 사용할 때 호출이 성공하는 반면 다른 자격 증명을 사용할 때는 HTTP 응답 상태가 401 Unauthorized임을 증명해야 합니다. 다시 ssia-ch2-ex5 프로젝트를 열고 인증이 올바르게 작동하는지 확인하기 위해 몇 가지 테스트를 구현해 보겠습니다.
+
+Listing 20.13 httpBasic() RequestPostProcessor로 인증 테스트하기
+```java
 @SpringBootTest
 @AutoConfigureMockMvc
 public class AuthenticationTests {
@@ -323,14 +428,21 @@ public class AuthenticationTests {
          .andExpect(status().isUnauthorized());
   }
 }
-❶ Authenticates with the correct credentials
-❷ Authenticates with the wrong credentials
-Using the httpBasic() request postprocessor, we instruct the test to execute the authentication. This way, we validate the behavior of the endpoint when authenticating using either valid or invalid credentials. You can use the same approach to test the authentication with a form login. Let’s open project ssia-ch5-ex4, where we used form login for authentication, and write some tests to prove authentication works correctly. We test the app’s behavior in the following scenarios:
-- When authenticating with a wrong set of credentials
-- When authenticating with a valid set of credentials, but the user doesn’t have a valid authority according to the implementation we wrote in the AuthenticationSuccessHandler
-- When authenticating with a valid set of credentials and a user that has a valid authority according to the implementation we wrote in the AuthenticationSuccessHandler
-In listing 20.14, you find the implementation for the first scenario. If we authenticate using invalid credentials, the app doesn’t authenticate the user and adds the header “failed” to the HTTP response. We customized an app and added the “failed” header with an AuthenticationFailureHandler when discussing authentication back in chapter 5.
-Listing 20.14 Testing form login failed authentication
+```
+❶ 올바른 자격 증명으로 인증
+
+❷ 잘못된 자격 증명으로 인증
+
+httpBasic() 요청 후처리기를 사용하여 테스트에 인증을 실행하도록 지시합니다. 이러한 방식으로 유효하거나 유효하지 않은 자격 증명을 사용하여 인증할 때 엔드포인트의 동작을 검증합니다. 동일한 접근 방식을 사용하여 양식 로그인으로 인증을 테스트할 수 있습니다. 인증을 위해 양식 로그인을 사용한 프로젝트 ssia-ch5-ex4를 열고 인증이 올바르게 작동하는지 확인하는 몇 가지 테스트를 작성해 보겠습니다. 다음 시나리오에서 앱의 동작을 테스트합니다.
+
+- 잘못된 자격 증명으로 인증하는 경우
+- 유효한 자격 증명 집합으로 인증하지만 AuthenticationSuccessHandler에 작성한 구현에 따라 사용자에게 유효한 권한이 없는 경우
+- 우리가 AuthenticationSuccessHandler에 작성한 구현에 따라 유효한 자격 증명과 유효한 권한을 가진 사용자로 인증할 때
+
+목록 20.14에서 첫 번째 시나리오에 대한 구현을 찾을 수 있습니다. 잘못된 자격 증명을 사용하여 인증하는 경우 앱은 사용자를 인증하지 않고 HTTP 응답에 "실패" 헤더를 추가합니다. 5장에서 인증에 대해 논의할 때 앱을 사용자 정의하고 AuthenticationFailureHandler와 함께 "실패한" 헤더를 추가했습니다.
+
+목록 20.14 테스트 양식 로그인 인증 실패
+```java
 @SpringBootTest
 @AutoConfigureMockMvc
 public class MainTests {
@@ -346,9 +458,13 @@ public class MainTests {
           .andExpect(unauthenticated());
   }
 }
-❶ Authenticates using form login with an invalid set of credentials
-Back in chapter 5, we customized authentication logic using an Authentication-SuccessHandler. In our implementation, if the user has read authority, the app redirects them to the /home page. Otherwise, the app redirects the user to the /error page. The following listing presents the implementation of these two scenarios.
-Listing 20.15 Testing app behavior when authenticating users
+```
+❶ 잘못된 자격 증명 집합으로 양식 로그인을 사용하여 인증합니다.
+
+5장으로 돌아가서 Authentication-SuccessHandler를 사용하여 인증 논리를 사용자 정의했습니다. 우리 구현에서 사용자에게 읽기 권한이 있는 경우 앱은 사용자를 /home 페이지로 리디렉션합니다. 그렇지 않으면 앱이 사용자를 /error 페이지로 리디렉션합니다. 다음 목록은 이 두 시나리오의 구현을 보여줍니다.
+
+목록 20.15 사용자 인증 시 앱 동작 테스트
+```java
 @SpringBootTest
 @AutoConfigureMockMvc
 public class MainTests {
@@ -378,15 +494,24 @@ public class MainTests {
             .andExpect(authenticated());
     }
 }
-❶ When authenticating with a user that doesn’t have read authority, the app redirects the user to path /error.
-❷ When authenticating with a user that has read authority, the app redirects the user to path /home.
-20.6 Testing CSRF configurations
-In this section, we discuss testing the cross-site request forgery (CSRF) protection configuration for your application. When an app presents a CSRF vulnerability, an attacker can fool the user into taking actions they don’t want to take once they’re logged into the application. As we discussed in chapter 10, Spring Security uses CSRF tokens to mitigate these vulnerabilities. This way, for any mutating operation (POST, PUT, DELETE), the request needs to have a valid CSRF token in its headers. Of course, at some point, you need to test more than HTTP GET requests. Depending on how you implement your application, as we discussed in chapter 10, you might need to test CSRF protection. You need to make sure it works as expected and protects the endpoint that implements mutating actions.
-Fortunately, Spring Security provides an easy approach to test CSRF protection using a RequestPostProcessor. Let’s open the project ssia-ch10-ex1 and test that CSRF protection is enabled for an endpoint /hello when called with HTTP POST in the following scenarios:
-- If we don’t use a CSRF token, the HTTP response status is 403 Forbidden.
-- If we send a CSRF token, the HTTP response status is 200 OK.
-The following listing shows you the implementation of these two scenarios. Observe how we can send a CSRF token in the response simply by using the csrf() RequestPostProcessor.
-Listing 20.16 Implementing the CSRF protection test scenarios
+```
+❶ 읽기 권한이 없는 사용자로 인증 시 앱은 사용자를 경로/오류로 리디렉션합니다.
+
+❷ 읽기 권한이 있는 사용자로 인증 시 앱은 사용자를 경로 /home으로 리디렉션합니다.
+
+# 20.6 CSRF 구성 테스트
+
+이 섹션에서는 애플리케이션에 대한 CSRF(교차 사이트 요청 위조) 보호 구성 테스트에 대해 설명합니다. 앱이 CSRF 취약점을 제시하면 공격자는 사용자가 애플리케이션에 로그인한 후 원하지 않는 조치를 취하도록 속일 수 있습니다. 10장에서 논의한 것처럼 Spring Security는 CSRF 토큰을 사용하여 이러한 취약점을 완화합니다. 이렇게 하면 모든 변경 작업(POST, PUT, DELETE)에 대해 요청의 헤더에 유효한 CSRF 토큰이 있어야 합니다. 물론 어떤 시점에서는 HTTP GET 요청 이상을 테스트해야 합니다. 10장에서 논의한 것처럼 애플리케이션을 구현하는 방법에 따라 CSRF 보호를 테스트해야 할 수도 있습니다. 예상대로 작동하고 변형 작업을 구현하는 끝점을 보호하는지 확인해야 합니다.
+
+다행히 Spring Security는 RequestPostProcessor를 사용하여 CSRF 보호를 테스트하는 쉬운 접근 방식을 제공합니다. ssia-ch10-ex1 프로젝트를 열고 다음 시나리오에서 HTTP POST로 호출할 때 끝점 /hello에 대해 CSRF 보호가 활성화되었는지 테스트해 보겠습니다.
+
+- CSRF 토큰을 사용하지 않는 경우 HTTP 응답 상태는 403 Forbidden입니다.
+- CSRF 토큰을 보내면 HTTP 응답 상태는 200 OK입니다.
+-
+다음 목록은 이 두 시나리오의 구현을 보여줍니다. 단순히 csrf() RequestPostProcessor를 사용하여 응답에서 CSRF 토큰을 보내는 방법을 관찰하십시오.
+목록 20.16 CSRF 보호 테스트 시나리오 구현
+
+```java
 @SpringBootTest
 @AutoConfigureMockMvc
 public class MainTests {
@@ -406,12 +531,19 @@ public class MainTests {
           .andExpect(status().isOk());
   }
 }
-❶ When calling the endpoint without a CSRF token, the HTTP response status is 403 Forbidden.
-❷ When calling the endpoint with a CSRF token, the HTTP response status is 200 OK.
-20.7 Testing CORS configurations
-In this section, we discuss testing cross-origin resource sharing (CORS) configurations. As you learned in chapter 10, if a browser loads a web app from one origin (say, example.com), the browser won’t allow the app to use an HTTP response that comes from a different origin (say, example.org). We use CORS policies to relax these restrictions. This way, we can configure our application to work with multiple origins. Of course, as for any other security configurations, you need to also test the CORS policies. In chapter 10, you learned that CORS is about specific headers on the response whose values define whether the HTTP response is accepted. Two of these headers related to CORS specifications are Access-Control-Allow-Origin and Access-Control-Allow-Methods. We used these headers in chapter 10 to configure multiple origins for our app.
-All we need to do when writing tests for the CORS policies is to make sure that these headers (and maybe other CORS-related headers, depending on the complexity of your configurations) exist and have the correct values. For this validation, we can act precisely as the browser does when making a preflight request. We make a request using the HTTP OPTIONS method, requesting the value for the CORS headers. Let’s open project ssia-ch10-ex4 and write a test to validate the values for the CORS headers. The following listing shows the definition of the test.
+```
+❶ CSRF 토큰 없이 엔드포인트 호출 시 HTTP 응답 상태는 403 Forbidden입니다.
+
+❷ CSRF 토큰으로 엔드포인트를 호출할 때 HTTP 응답 상태는 200 OK입니다.
+
+## 20.7 CORS 구성 테스트
+
+이 섹션에서는 CORS(Cross-Origin Resource Sharing) 구성 테스트에 대해 설명합니다. 10장에서 배웠듯이 브라우저가 한 출처(예: example.com)에서 웹 앱을 로드하면 브라우저는 앱이 다른 출처(예: example.org)에서 오는 HTTP 응답을 사용하는 것을 허용하지 않습니다. ). 우리는 이러한 제한을 완화하기 위해 CORS 정책을 사용합니다. 이런 식으로 여러 출처에서 작동하도록 애플리케이션을 구성할 수 있습니다. 물론 다른 보안 구성과 마찬가지로 CORS 정책도 테스트해야 합니다. 10장에서 CORS는 HTTP 응답이 허용되는지 여부를 정의하는 값을 가진 응답의 특정 헤더에 관한 것임을 배웠습니다. CORS 사양과 관련된 이러한 헤더 중 두 가지는 Access-Control-Allow-Origin 및 Access-Control-Allow-Methods입니다. 10장에서 이 헤더를 사용하여 앱에 대한 다중 출처를 구성했습니다.
+
+CORS 정책에 대한 테스트를 작성할 때 해야 할 일은 이러한 헤더(구성의 복잡성에 따라 다른 CORS 관련 헤더)가 존재하고 올바른 값을 갖는지 확인하는 것입니다. 이 검증을 위해 우리는 실행 전 요청을 할 때 브라우저가 하는 것처럼 정확하게 행동할 수 있습니다. CORS 헤더 값을 요청하는 HTTP OPTIONS 메서드를 사용하여 요청합니다. ssia-ch10-ex4 프로젝트를 열고 CORS 헤더 값을 검증하는 테스트를 작성해 보겠습니다. 다음 목록은 테스트의 정의를 보여줍니다.
+
 Listing 20.17 Test implementation for CORS policies
+```java
 @SpringBootTest
 @AutoConfigureMockMvc
 public class MainTests {
@@ -433,14 +565,21 @@ public class MainTests {
   }
 
 }
-❶ Performs an HTTP OPTIONS request on the endpoint requesting the value for the CORS headers
-❷ Validates the values for the headers according to the configuration we made in the app
-20.8 Testing reactive Spring Security implementations
-In this section, we discuss testing the integration of Spring Security with functionalities developed within a reactive app. You won’t be surprised to find out that Spring Security provides support for testing security configurations also for reactive apps. As in the case of non-reactive applications, security for reactive apps is a crucial aspect. So testing their security configurations is also essential. To show you how to implement tests for your security configurations, we go back to the examples we worked on in chapter 19. With Spring Security for reactive applications, you need to know two approaches for writing your tests:
-- Using mock users with @WithMockUser annotations
-- Using a WebTestClientConfigurer
-Using the @WithMockUser annotation is straightforward because it works the same as for non-reactive apps, as we discussed in section 20.1. The definition of the test is different, however, because being a reactive app, we can’t use MockMvc anymore. But this change isn’t related to Spring Security. We can use something similar when testing reactive apps, a tool named WebTestClient. In the next listing, you find the implementation of a simple test making use of a mock user to verify the behavior of a reactive endpoint.
-Listing 20.18 Using the @WithMockUser when testing reactive implementations
+```
+❶ 끝점에서 CORS 헤더 값을 요청하는 HTTP OPTIONS 요청을 수행합니다.
+
+❷ 앱에서 만든 구성에 따라 헤더 값의 유효성을 검사합니다.
+20.8 반응형 Spring Security 구현 테스트
+
+이 섹션에서는 반응형 앱 내에서 개발된 기능과 Spring Security의 통합 테스트에 대해 논의합니다. Spring Security가 반응형 앱에 대한 보안 구성 테스트도 지원한다는 사실에 놀라지 않을 것입니다. 비반응형 애플리케이션의 경우와 마찬가지로 사후반응형 애플리케이션의 보안은 중요한 측면입니다. 따라서 보안 구성을 테스트하는 것도 필수적입니다. 보안 구성에 대한 테스트를 구현하는 방법을 보여주기 위해 19장에서 작업한 예제로 돌아갑니다. 반응형 애플리케이션을 위한 Spring Security를 ​​사용하면 테스트를 작성하기 위한 두 가지 접근 방식을 알아야 합니다.
+
+- @WithMockUser 주석으로 모의 사용자 사용
+- WebTestClientConfigurer 사용
+
+@WithMockUser 주석을 사용하는 것은 20.1절에서 논의한 것처럼 반응하지 않는 앱과 동일하게 작동하기 때문에 간단합니다. 테스트의 정의는 다르지만 반응형 앱이기 때문에 더 이상 MockMvc를 사용할 수 없습니다. 그러나 이 변경은 Spring Security와 관련이 없습니다. WebTestClient라는 도구인 반응형 앱을 테스트할 때 비슷한 것을 사용할 수 있습니다. 다음 목록에서는 모의 사용자를 사용하여 반응 엔드포인트의 동작을 확인하는 간단한 테스트 구현을 찾습니다.
+
+목록 20.18 반응적 구현을 ​​테스트할 때 @WithMockUser 사용하기
+```java
 @SpringBootTest
 @AutoConfigureWebTestClient            ❶
 class MainTests {
@@ -457,13 +596,20 @@ class MainTests {
             .expectStatus().isOk();
   }
 }
-❶ Requests Spring Boot to autoconfigure the WebTestClient we use for the tests
-❷ Injects the WebTestClient instance configured by Spring Boot from the Spring context
-❸ Uses the @WithMockUser annotation to define a mock user for the test
-❹ Makes the exchange and validates the result
-As you observe, using the @WithMockUser annotation is pretty much the same as for non-reactive apps. The framework creates a SecurityContext with the mock user. The application skips the authentication process and uses the mock user from the test’s SecurityContext to validate the authorization rules.
-The second approach you can use is a WebTestClientConfigurer. This approach is similar to using the RequestPostProcessor in the case of a non-reactive app. In the case of a reactive app, for the WebTestClient we use, we set a WebTestClientConfigurer, which helps mutate the test context. For example, we can define the mock user or send a CSRF token to test CSRF protection as we did for non-reactive apps in section 20.6. The following listing shows you how to use a WebTestClientConfigurer.
-Listing 20.19 Using a WebTestClientConfigurer to define a mock user
+```
+❶ 테스트에 사용하는 WebTestClient를 자동 구성하기 위해 Spring Boot를 요청합니다.
+
+❷ Spring 컨텍스트에서 Spring Boot로 구성된 WebTestClient 인스턴스를 주입합니다.
+
+❸ @WithMockUser 주석을 사용하여 테스트를 위한 모의 사용자 정의
+
+❹ 교환 및 결과 검증
+
+관찰한 바와 같이 @WithMockUser 주석을 사용하는 것은 반응이 없는 앱의 경우와 거의 동일합니다. 프레임워크는 모의 사용자와 함께 SecurityContext를 생성합니다. 애플리케이션은 인증 프로세스를 건너뛰고 테스트의 SecurityContext에서 모의 ​​사용자를 사용하여 권한 부여 규칙을 검증합니다.
+사용할 수 있는 두 번째 접근 방식은 WebTestClientConfigurer입니다. 이 접근 방식은 반응하지 않는 앱의 경우 RequestPostProcessor를 사용하는 것과 유사합니다. 반응형 앱의 경우 우리가 사용하는 WebTestClient에 대해 테스트 컨텍스트를 변경하는 데 도움이 되는 WebTestClientConfigurer를 설정합니다. 예를 들어, 섹션 20.6에서 반응하지 않는 앱에 대해 했던 것처럼 모의 사용자를 정의하거나 CSRF 토큰을 보내 CSRF 보호를 테스트할 수 있습니다. 다음 목록은 WebTestClientConfigurer를 사용하는 방법을 보여줍니다.
+
+Listing 20.19 WebTestClientConfigurer를 사용하여 모의 사용자 정의하기
+```java
 @SpringBootTest
 @AutoConfigureWebTestClient
 class MainTests {
@@ -482,31 +628,45 @@ class MainTests {
            .expectStatus().isOk();
     }
 }
+```
 ❶ Before executing the GET request, mutates the call to use a mock user
 Assuming you’re testing CSRF protection on a POST call, you write something similar to this:
+```java
 client.mutateWith(csrf())
          .post()
          .uri("/hello")
            .exchange()
            .expectStatus().isOk();
-Mocking dependencies
-Often our functionalities rely on external dependencies. Security-related implementations also rely sometimes on external dependencies. Some examples are databases we use to store user credentials, authentication keys, or tokens. External applications also represent dependencies as in the case of an OAuth 2 system where the resource server needs to call the token introspection endpoint of an authorization server to get details about an opaque token. When we deal with such cases, we usually create mocks for dependencies. For example, instead of finding the user from a database, you mock the repository and make its methods return what you consider appropriate for the test scenarios you implement.
-In the projects we worked on in this book, you find some examples where we mocked dependencies. For this, you might be interested in taking a look at the following:
-- In project ssia-ch6-ex1, we mocked the repository to enable testing the authentication flow. This way, we don’t need to rely on a real database to get the users, but we can still manage to test the authentication flow with all its components integrated.
-- In project ssia-ch11-ex1-s2, we mocked the proxy to test the two authentication steps without needing to rely on the application implemented in project ssia-ch11-ex1-s1.
-- In project ssia-ch14-ex1-rs, we used a tool named WireMockServer to mock the authorization server’s token introspection endpoints.
-Different testing frameworks offer us different solutions for creating mocks or stubs to fake the dependencies on which our functionalities rely. Even if this is not directly related to Spring Security, I wanted to make you aware of the subject and its importance. Here are a few resources where you can continue studying this subject:
-- Chapter 8 of JUnit in Action by Cătălin Tudose et al. (Manning, 2020):
+```
+
+### Mocking dependencies
+
+종종 우리의 기능은 외부 의존성에 의존합니다. 보안 관련 구현은 때때로 외부 종속성에 의존합니다. 몇 가지 예는 사용자 자격 증명, 인증 키 또는 토큰을 저장하는 데 사용하는 데이터베이스입니다. 외부 응용 프로그램은 리소스 서버가 불투명 토큰에 대한 세부 정보를 얻기 위해 권한 부여 서버의 토큰 내부 검사 끝점을 호출해야 하는 OAuth 2 시스템의 경우와 같이 종속성을 나타냅니다. 이러한 경우를 처리할 때 일반적으로 종속성에 대한 모의 객체를 생성합니다. 예를 들어, 데이터베이스에서 사용자를 찾는 대신 저장소를 흉내내고 해당 메서드가 구현하는 테스트 시나리오에 적절하다고 생각하는 것을 반환하도록 합니다.
+
+이 책에서 작업한 프로젝트에서 종속성을 흉내낸 몇 가지 예를 찾을 수 있습니다. 이를 위해 다음을 살펴보는 데 관심이 있을 수 있습니다.
+
+- 프로젝트 ssia-ch6-ex1에서 인증 흐름을 테스트할 수 있도록 저장소를 흉내냈습니다. 이렇게 하면 사용자를 확보하기 위해 실제 데이터베이스에 의존할 필요가 없지만 모든 구성 요소가 통합된 인증 흐름을 테스트할 수 있습니다.
+
+- 프로젝트 ssia-ch11-ex1-s2에서 프록시를 조롱하여 프로젝트 ssia-ch11-ex1-s1에 구현된 애플리케이션에 의존할 필요 없이 두 가지 인증 단계를 테스트했습니다.
+
+- ssia-ch14-ex1-rs 프로젝트에서 WireMockServer라는 도구를 사용하여 인증 서버의 토큰 내부 검사 끝점을 흉내냈습니다.
+  
+다양한 테스트 프레임워크는 우리의 기능이 의존하는 종속성을 가짜로 만들기 위해 모의 또는 스텁을 생성하기 위한 다양한 솔루션을 제공합니다. 스프링 시큐리티와 직접적인 관련이 없더라도 그 주제와 중요성을 알리고 싶었다. 다음은 이 주제를 계속 공부할 수 있는 몇 가지 리소스입니다.
+
+- Cătălin Tudose 외의 JUnit 실행 중 8장. (매닝, 2020):
 https://livebook.manning.com/book/junit-in-action-third-edition/chapter-8
-- Chapters 5 and 9 of Unit Testing Principles, Practices, and Patterns by Vladimir Khorikov (Manning, 2020):
+- Vladimir Khorikov의 Unit Testing Principles, Practices, and Patterns의 5장과 9장(Manning, 2020):
+  
 https://livebook.manning.com/book/unit-testing/chapter-5
 https://livebook.manning.com/book/unit-testing/chapter-9
-Summary
-- Writing tests is a best practice. You write tests to make sure your new implementations or fixes don’t break existing functionalities.
-- You need to not only test your code, but also test integration with libraries and frameworks you use.
-- Spring Security offers excellent support for implementing tests for your security configurations.
-- You can test authorization directly by using mock users. You write separate tests for authorization without authentication because, generally, you need fewer authentication tests than authorization tests.
-- It saves execution time to test authentication in separate tests, which are fewer in number, and then test the authorization configuration for your endpoints and methods.
-- To test security configurations for endpoints in non-reactive apps, Spring Security offers excellent support for writing your tests with MockMvc.
-- To test security configurations for endpoints in reactive apps, Spring Security offers excellent support for writing your tests with WebTestClient.
-- You can write tests directly for methods for which you wrote security configurations using method security.
+
+## 요약
+
+- 테스트를 작성하는 것이 가장 좋습니다. 새로운 구현이나 수정이 기존 기능을 손상시키지 않는지 확인하기 위해 테스트를 작성합니다.
+- 코드를 테스트할 뿐만 아니라 사용하는 라이브러리 및 프레임워크와의 통합도 테스트해야 합니다.
+- Spring Security는 보안 구성에 대한 테스트 구현을 위한 탁월한 지원을 제공합니다.
+- 모의 사용자를 이용하여 직접 인증을 테스트할 수 있습니다. 일반적으로 권한 부여 테스트보다 인증 테스트가 더 적기 때문에 인증 없이 권한 부여에 대한 별도의 테스트를 작성합니다.
+- 더 적은 수의 별도 테스트에서 인증을 테스트한 다음 엔드포인트 및 방법에 대한 권한 구성을 테스트하는 실행 시간을 절약합니다.
+- 비반응형 앱에서 엔드포인트에 대한 보안 구성을 테스트하기 위해 Spring Security는 MockMvc로 테스트를 작성하기 위한 탁월한 지원을 제공합니다.
+- 반응형 앱에서 엔드포인트에 대한 보안 구성을 테스트하기 위해 Spring Security는 WebTestClient를 사용하여 테스트를 작성하는 데 탁월한 지원을 제공합니다.
+- 메소드 보안을 사용하여 보안 구성을 작성한 메소드에 대한 테스트를 직접 작성할 수 있습니다.

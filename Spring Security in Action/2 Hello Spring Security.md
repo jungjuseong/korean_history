@@ -45,6 +45,7 @@ https://livebook.manning.com/book/spring-in-practice/chapter-3/
 이 프로젝트는 Spring Security로 애플리케이션을 개발할 때 첫 번째 단계를 배우기에 충분합니다. 인증 및 권한 부여를 위한 Spring Security 아키텍처의 기본 사항을 제공합니다.
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH02_F01_Spilca.png)
+
 그림 2.1 첫 번째 애플리케이션은 HTTP Basic을 사용하여 엔드포인트에 대해 사용자를 인증하고 권한을 부여합니다. 애플리케이션은 정의된 경로(/hello)에서 REST 엔드포인트를 노출합니다. 성공적인 호출의 경우 응답은 HTTP 200 상태 메시지와 본문을 반환합니다. 이 예제는 기본적으로 Spring Security로 구성된 인증 및 권한 부여가 작동하는 방식을 보여줍니다.
 
 빈 프로젝트를 만들고 이름을 ssia-ch2-ex1로 지정하여 Spring Security 학습을 시작합니다. (책과 함께 제공된 프로젝트에서 동일한 이름을 가진 이 예제도 찾을 수 있습니다.) 첫 번째 프로젝트에 대해 작성해야 하는 유일한 종속성은 spring-boot-starter-web 및 spring-boot-starter-security입니다. 목록 2.1에 나와 있습니다. 프로젝트를 생성한 후에는 이러한 종속성을 pom.xml 파일에 추가해야 합니다. 이 프로젝트에서 작업하는 주요 목적은 Spring Security로 구성된 기본 애플리케이션의 동작을 보는 것입니다. 또한 이 기본 구성의 일부인 구성 요소와 그 용도를 이해하고 싶습니다.
@@ -693,13 +694,13 @@ public class ProjectConfig extends WebSecurityConfigurerAdapter {
 
 You can now call the endpoint, which is accessible by the only user recognized, as defined by the authentication logic--John, with the password 12345:
 
-```bsh
+```sh
 curl -u john:12345 http://localhost:8080/hello
 ```
 The response body is
-
+```
 `Hello!`
-
+```
 In chapter 5, you’ll learn more details about the AuthenticationProvider and how to override its behavior in the authentication process. In that chapter, we’ll also discuss the Authentication interface and its implementations, such as the UserPasswordAuthenticationToken.
 
 ### 2.3.5 USING MULTIPLE CONFIGURATION CLASSES IN YOUR PROJECT

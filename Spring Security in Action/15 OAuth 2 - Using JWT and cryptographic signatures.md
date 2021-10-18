@@ -7,7 +7,7 @@
 - 대칭 및 비대칭 키로 토큰 서명
 - JWT에 사용자 정의 세부 정보 추가
   
-이 장에서는 토큰 구현을 위해 JSON 웹 토큰(JWT)을 사용하는 방법에 대해 설명합니다. 14장에서 리소스 서버가 권한 부여 서버에서 발행한 토큰의 유효성을 검사해야 한다는 것을 배웠습니다. 그리고 이렇게 하는 세 가지 방법을 알려 드렸습니다.
+이 장에서는 토큰 구현을 위해 JSON 웹 토큰(JWT)을 사용하는 방법에 대해 설명합니다. 14장에서 리소스 서버가 권한 부여 서버에서 발행한 토큰의 유효성을 검사해야 한다는 것과 세 가지 방법을 다루었습니다.
 
 - 14.2에서 구현한 리소스 서버와 권한 부여 서버 간의 직접 호출 사용
 
@@ -15,7 +15,9 @@
 
 - 이 장에서 논의할 암호화 서명 사용
 
-토큰의 유효성을 검사하기 위해 암호화 서명을 사용하면 권한 서버를 직접 호출하거나 공유 데이터베이스가 필요하지 않고 리소스 서버가 토큰의 유효성을 검사할 수 있다는 이점이 있습니다. 토큰 유효성 검사를 구현하는 이 접근 방식은 OAuth 2로 인증 및 권한 부여를 구현하는 시스템에서 일반적으로 사용됩니다. 이러한 이유로 토큰 유효성 검사를 구현하는 이 방법을 알아야 합니다. 14장에서 다른 두 가지 방법에 대해 했던 것처럼 이 방법에 대한 예를 작성할 것입니다.
+토큰의 유효성을 검사하기 위해 암호화 서명을 사용하면 권한 서버를 직접 호출하거나 공유 데이터베이스가 필요하지 않고 리소스 서버가 토큰의 유효성을 검사할 수 있다는 이점이 있습니다. 토큰 유효성 검사를 구현하는 이 접근 방식은 OAuth 2로 인증 및 권한 부여를 구현하는 시스템에서 일반적으로 사용됩니다. 
+
+이러한 이유로 토큰 유효성 검사를 구현하는 이 방법을 알아야 합니다. 14장에서 다른 두 가지 방법에 대해 했던 것처럼 이 방법에 대한 예를 작성할 것입니다.
 
 ## 15.1 JWT를 사용하여 대칭 키로 서명된 토큰 사용
 
@@ -31,7 +33,7 @@ JWT는 토큰 구현입니다. 토큰은 헤더, 본문 및 서명의 세 부분
  
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH15_F01_Spilca.png)
 
-그림 15.1 JWT는 헤더, 본문 및 서명의 세 부분으로 구성됩니다. 헤더와 본문에는 JSON으로 표시되는 세부 정보가 포함됩니다. 이러한 부분은 Base64로 인코딩된 다음 서명됩니다. 토큰은 점으로 구분된 이 세 부분으로 구성된 문자열입니다.
+**그림 15.1** JWT는 헤더, 본문 및 서명의 세 부분으로 구성됩니다. 헤더와 본문에는 JSON으로 표시되는 세부 정보가 포함됩니다. 이러한 부분은 Base64로 인코딩된 다음 서명됩니다. 토큰은 점으로 구분된 이 세 부분으로 구성된 문자열입니다.
 
 JWT가 서명되면 JWS(JSON Web Token Signed)라고도 합니다. 일반적으로 토큰 서명에 암호화 알고리즘을 적용하면 충분하지만 때로는 암호화하도록 선택할 수도 있습니다. 토큰이 서명되면 키나 암호 없이도 내용을 볼 수 있습니다. 그러나 해커는 토큰의 내용을 보았더라도 토큰의 내용을 변경할 수 없습니다. 그렇게 하면 서명이 무효화되기 때문입니다(그림 15.2). 서명이 유효하려면
 
@@ -40,13 +42,13 @@ JWT가 서명되면 JWS(JSON Web Token Signed)라고도 합니다. 일반적으�
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH15_F02_Spilca.png)
 
-그림 15.2 해커가 토큰을 가로채 내용을 변경합니다. 토큰의 서명이 더 이상 콘텐츠와 일치하지 않기 때문에 리소스 서버가 호출을 거부합니다.
+**그림 15.2** 해커가 토큰을 가로채 내용을 변경합니다. 토큰의 서명이 더 이상 콘텐츠와 일치하지 않기 때문에 리소스 서버가 호출을 거부합니다.
 
 토큰이 암호화되면 JWE(JSON Web Token Encrypted)라고도 합니다. 유효한 키가 없으면 암호화된 토큰의 내용을 볼 수 없습니다.
 
-## 15.1.2 JWTS 발행을 위한 인증 서버 구현
+### 15.1.2 JWTS 발행을 위한 인증 서버 구현
 
-인증을 위해 JWT를 클라이언트에 발행하는 인증 서버를 구현합니다. 14장에서 토큰을 관리하는 구성 요소가 TokenStore라는 것을 배웠습니다. 여기서는 Spring Security에서 제공하는 TokenStore의 다른 구현을 사용하는 것입니다. 우리가 사용하는 구현의 이름은 JwtTokenStore이며 JWT를 관리합니다. 
+인증을 위해 JWT를 클라이언트에 발행하는 인증 서버를 구현합니다. 14장에서 토큰을 관리하는 구성 요소가 TokenStore라는 것을 배웠습니다. 여기서는 Spring Security에서 제공하는 TokenStore의 또 다른 구현인 JwtTokenStore를 사용하여 JWT를 관리합니다. 
 
 또한 인증 서버도 테스트합니다. 나중에 15.1.3에서 리소스 서버를 구현하고 JWT를 사용하는 완전한 시스템을 갖게 됩니다. 다음 두 가지 방법으로 JWT를 사용하여 토큰 유효성 검사를 구현할 수 있습니다.
 
@@ -54,13 +56,13 @@ JWT가 서명되면 JWS(JSON Web Token Signed)라고도 합니다. 일반적으�
 
 - 하나의 키를 사용하여 토큰에 서명하고 다른 키를 사용하여 서명을 확인하는 경우 비대칭 키 쌍을 사용한다고 합니다.
 
-이 예에서는 대칭 키로 서명을 구현합니다. 이 접근 방식은 권한 부여 서버와 리소스 서버가 모두 동일한 키를 알고 사용함을 의미합니다. 인증 서버는 키로 토큰에 서명하고 리소스 서버는 동일한 키를 사용하여 서명을 확인합니다(그림 15.3).
+이 예에서는 대칭 키로 서명을 구현합니다. 이 방식은 권한 부여 서버와 리소스 서버가 모두 동일한 키를 알고 사용함을 의미합니다. 인증 서버는 키로 토큰에 서명하고 리소스 서버는 동일한 키를 사용하여 서명을 확인합니다(그림 15.3).
  
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH15_F03_Spilca.png)
  
 그림 15.3 대칭 키 사용. 인증 서버와 리소스 서버는 모두 동일한 키를 공유합니다. 인증 서버는 키를 사용하여 토큰에 서명하고 리소스 서버는 키를 사용하여 서명을 확인합니다.
 
-프로젝트를 만들고 필요한 종속성을 추가해 보겠습니다. 이 경우 프로젝트 이름은 ssia-ch15-ex1-as입니다. 다음 코드 조각은 추가해야 하는 종속성을 나타냅니다. 이것은 13장과 14장에서 인증 서버에 사용한 것과 동일합니다.
+프로젝트를 만들고 필요한 종속성을 추가해 보겠습니다. 이 경우 프로젝트 이름은 ssia-ch15-ex1-as입니다. 다음 코드는 추가해야 하는 종속성을 나타냅니다. 이것은 13장과 14장에서 인증 서버에 사용한 것과 동일합니다.
 ```xml
 <dependency>
   <groupId>org.springframework.boot</groupId>
@@ -75,9 +77,9 @@ JWT가 서명되면 JWS(JSON Web Token Signed)라고도 합니다. 일반적으�
   <artifactId>spring-cloud-starter-oauth2</artifactId>
 </dependency>
 ```
-Jdbc-TokenStore에 대해 14장에서 했던 것과 같은 방식으로 JwtTokenStore를 구성합니다. 또한 JwtAccessTokenConverter 유형의 개체를 정의해야 합니다. JwtAccessTokenConverter를 사용하여 인증 서버가 토큰의 유효성을 검사하는 방법을 구성합니다. 여기서는 대칭 키를 사용합니다. 다음 목록은 구성 클래스에서 JwtTokenStore를 구성하는 방법을 보여줍니다.
+14장에서 JdbcTokenStore에 대해 했던 것과 같은 방식으로 JwtTokenStore를 구성합니다. 또한 JwtAccessTokenConverter 유형의 개체를 정의해야 합니다. JwtAccessTokenConverter를 사용하여 인증 서버가 토큰의 유효성을 검사하는 방법을 구성합니다. 여기서는 대칭 키를 사용합니다. 다음 목록은 구성 클래스에서 JwtTokenStore를 구성하는 방법을 보여줍니다.
 
-**Listing 15.1** Configuring the JwtTokenStore
+**Listing 15.1** JwtTokenStore 설정
 ```java
 @Configuration
 @EnableAuthorizationServer
@@ -91,15 +93,14 @@ public class AuthServerConfig
   private AuthenticationManager authenticationManager;
 
   @Override
-  public void configure(
-    ClientDetailsServiceConfigurer clients) 
+  public void configure(ClientDetailsServiceConfigurer clients) 
     throws Exception {
       clients.inMemory()
-             .withClient("client")
-             .secret("secret")
-             .authorizedGrantTypes("password", "refresh_token")
-             .scopes("read");
-    }
+        .withClient("client")
+        .secret("secret")
+        .authorizedGrantTypes("password", "refresh_token")
+        .scopes("read");
+  }
 
   @Override
   public void configure(
@@ -107,16 +108,12 @@ public class AuthServerConfig
       endpoints
         .authenticationManager(authenticationManager)
         .tokenStore(tokenStore()) ❷
-        .accessTokenConverter( ❷
-           jwtAccessTokenConverter()); ❷
+        .accessTokenConverter(jwtAccessTokenConverter()); ❷
   }
-
   @Bean
   public TokenStore tokenStore() {
-    return new JwtTokenStore( ❸
-      jwtAccessTokenConverter()); ❸
+    return new JwtTokenStore(jwtAccessTokenConverter()); ❸
   }
-
   @Bean
   public JwtAccessTokenConverter jwtAccessTokenConverter() {
     var converter = new JwtAccessTokenConverter();
@@ -133,13 +130,15 @@ public class AuthServerConfig
 
 ❹ 액세스 토큰 변환기 개체의 대칭 키 값을 설정합니다.
 
-다음 코드 조각에서 볼 수 있듯이 이 예제의 대칭 키 값을 application.properties 파일에 저장했습니다. 그러나 서명 키는 민감한 데이터라는 사실을 잊지 마십시오. 실제 시나리오에서는 이를 비밀 금고에 저장해야 합니다.
+다음 코드에서 볼 수 있듯이 이 예제의 대칭 키 값을 application.properties 파일에 저장했습니다. 그러나 서명 키는 민감한 데이터라는 사실을 잊지 마십시오. 실제 시나리오에서는 이를 비밀 금고에 저장해야 합니다.
+
 ```yaml
 jwt.key=MjWP5L7CiD
 ```
-13장과 14장의 인증 서버에 대한 이전 예제에서 모든 인증 서버에 대해 UserDetailsServer 및 PasswordEncoder도 정의한다는 것을 기억하십시오. 목록 15.2는 권한 부여 서버에 대해 이러한 구성요소를 구성하는 방법을 알려줍니다. 설명을 짧게 유지하기 위해 이 장의 다음 모든 예에 대해 동일한 목록을 반복하지 않겠습니다.
 
-**Listing 15.2** Configuring user management for the authorization server
+13장과 14장의 인증 서버에 대한 이전 예제에서 모든 인증 서버에 대해 UserDetailsServer 및 PasswordEncoder도 정의한다는 것을 기억하십시오. 목록 15.2는 권한 부여 서버에 대해 이러한 구성요소를 구성합니다. 
+
+**Listing 15.2** 인증 서버를 위한 사용자 관리 설정
 ```java
 @Configuration
 public class WebSecurityConfig 
@@ -147,15 +146,12 @@ public class WebSecurityConfig
 
   @Bean
   public UserDetailsService uds() {
-    var uds = new InMemoryUserDetailsManager();
- 
+    var uds = new InMemoryUserDetailsManager(); 
     var u = User.withUsername("john")
                 .password("12345")
                 .authorities("read")
                 .build();
-
     uds.createUser(u);
-
     return uds;
   }
 
@@ -171,11 +167,13 @@ public class WebSecurityConfig
   }
 }
 ```
-이제 권한 부여 서버를 시작하고 /oauth/token 엔드포인트를 호출하여 액세스 토큰을 얻을 수 있습니다. 다음 코드 스니펫은 /oauth/token 엔드포인트를 호출하는 cURL 명령을 보여줍니다.
+이제 권한 부여 서버를 시작하고 /oauth/token 엔드포인트를 호출하여 액세스 토큰을 얻을 수 있습니다. 다음은 /oauth/token 엔드포인트를 호출하는 cURL 명령을 보여줍니다.
+
 ```bsh
-curl -v -XPOST -u 클라이언트:비밀 http://localhost:8080/oauth/token?grant_type=password&username=john&password=12345&scope=read
+curl -v -XPOST -u client:secret http://localhost:8080/oauth/token?grant_type=password&username=john&password=12345&scope=read
 ```
-응답 본문은
+응답 
+
 ```json
 {
   "access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXV...",
@@ -209,7 +207,8 @@ curl -v -XPOST -u 클라이언트:비밀 http://localhost:8080/oauth/token?grant
 
 ### 15.1.3 JWT를 사용하는 리소스 서버 구현
 
-이 섹션에서는 대칭 키를 사용하여 섹션 15.1.2에서 설정한 권한 부여 서버에서 발행한 토큰의 유효성을 검사하는 리소스 서버를 구현합니다. 이 섹션의 끝에서 대칭 키를 사용하여 서명된 JWT를 사용하는 완전한 OAuth 2 시스템을 작성하는 방법을 알게 될 것입니다. 다음 코드 조각이 제시하는 것처럼 새 프로젝트를 만들고 필요한 종속성을 pom.xml에 추가합니다. 이 프로젝트의 이름을 ssia-ch15-ex1-rs로 지정했습니다.
+대칭 키를 사용하여 15.1.2에서 설정한 권한 부여 서버에서 발행한 토큰의 유효성을 검사하는 리소스 서버를 구현합니다. 이 섹션의 끝에서 대칭 키를 사용하여 서명된 JWT를 사용하는 완전한 OAuth 2 시스템을 작성하는 방법을 알게 될 것입니다. 새 프로젝트를 만들고 필요한 종속성을 pom.xml에 추가합니다. 이 프로젝트의 이름을 ssia-ch15-ex1-rs로 지정했습니다.
+
 ```xml
 <dependency>
   <groupId>org.springframework.boot</groupId>
@@ -226,7 +225,7 @@ curl -v -XPOST -u 클라이언트:비밀 http://localhost:8080/oauth/token?grant
 ```
 13장과 14장에서 이미 사용한 것에 새로운 종속성을 추가하지 않았습니다. 보안을 위해 하나의 끝점이 필요하기 때문에 컨트롤러와 메서드를 정의하여 리소스 서버를 테스트하는 데 사용하는 간단한 끝점을 노출합니다. 다음 목록은 컨트롤러를 정의합니다.
 
-Listing 15.3 The HelloController class
+**Listing 15.3** The HelloController class
 ```java
 @RestController
 public class HelloController {
@@ -239,32 +238,31 @@ public class HelloController {
 ```
 이제 보호할 엔드포인트가 있으므로 TokenStore를 구성하는 구성 클래스를 선언할 수 있습니다. 인증 서버에 대해 수행하는 것처럼 리소스 서버에 대해 TokenStore를 구성합니다. 가장 중요한 측면은 키에 대해 동일한 값을 사용하는지 확인하는 것입니다. 리소스 서버는 토큰의 서명을 확인하기 위해 키가 필요합니다. 다음 목록은 리소스 서버 구성 클래스를 정의합니다.
 
-**Listing 15.4** The configuration class for the resource server
-@Configuration
+**Listing 15.4** 리소스 서버 설정 클래스
 ```java
+@Configuration
 @EnableResourceServer
 public class ResourceServerConfig 
   extends ResourceServerConfigurerAdapter {
 
-  @Value("${jwt.key}")                                       ❶
+  @Value("${jwt.key}") ❶
   private String jwtKey;
 
   @Override
   public void configure(ResourceServerSecurityConfigurer resources) {
-    resources.tokenStore(tokenStore());                      ❷
+    resources.tokenStore(tokenStore()); ❷
   }
 
   @Bean
   public TokenStore tokenStore() {
-    return new JwtTokenStore(                                ❸
-                 jwtAccessTokenConverter());
+    return new JwtTokenStore(jwtAccessTokenConverter()); ❸
   }
 
   @Bean
   public JwtAccessTokenConverter jwtAccessTokenConverter() {
-    var converter = new JwtAccessTokenConverter();           ❹
-    converter.setSigningKey(jwtKey);                         ❹
-    return converter;                                        ❹
+    var converter = new JwtAccessTokenConverter(); ❹
+    converter.setSigningKey(jwtKey); ❹
+    return converter; ❹
   }
 }
 ```
@@ -276,12 +274,13 @@ public class ResourceServerConfig
 
 ❹ 액세스 토큰 변환기를 만들고 토큰 서명을 확인하는 데 사용되는 대칭 키를 설정합니다.
 
-> 참고 application.properties 파일에서 키 값을 설정하는 것을 잊지 마십시오.
+> **참고** application.properties 파일에서 키 값을 설정하는 것을 잊지 마십시오.
 
 대칭 암호화 또는 서명에 사용되는 키는 임의의 바이트 문자열입니다. 무작위성을 위한 알고리즘을 사용하여 생성합니다. 이 예에서는 "abcde"와 같이 모든 문자열 값을 사용할 수 있습니다. 실제 시나리오에서는 길이가 바람직하게는 258바이트보다 긴 무작위로 생성된 값을 사용하는 것이 좋습니다. 자세한 내용은 David Wong의 Real-World Cryptography(Manning, 2020)를 권장합니다. David Wong의 책 8장에서 무작위성과 비밀에 대한 자세한 논의를 볼 수 있습니다.
+
 https://livebook.manning.com/book/real-world-cryptography/chapter-8/
 
-인증 서버와 리소스 서버를 모두 동일한 시스템에서 로컬로 실행하기 때문에 이 애플리케이션에 대해 다른 포트를 구성해야 합니다. 다음 코드 조각은 application.properties 파일의 내용을 나타냅니다.
+인증 서버와 리소스 서버를 모두 동일한 시스템에서 로컬로 실행하기 때문에 이 애플리케이션에 대해 다른 포트를 구성해야 합니다. 다음은 application.properties 파일의 내용을 나타냅니다.
 
 ```yaml
 server.port=9090
@@ -293,7 +292,7 @@ jwt.key=MjWP5L7CiD
 ```bsh
 curl -H "Authorization:Bearer eyJhbGciOiJIUzI1NiIs..." http://localhost:9090/hello
 ```
-
+ 
 응답 본문은
 ```
 Hello!

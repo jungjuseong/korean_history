@@ -1,18 +1,28 @@
+# 8 권한 설정: 제한 적용
 
-# 8 Configuring authorization: Applying restrictions
-This chapter covers
-- Selecting requests to apply restrictions using matcher methods
-- Learning best-case scenarios for each matcher method
-In chapter 7, you learned how to configure access based on authorities and roles. But we only applied the configurations for all of the endpoints. In this chapter, you’ll learn how to apply authorization constraints to a specific group of requests. In production applications, it’s less probable that you’ll apply the same rules for all requests. You have endpoints that only some specific users can call, while other endpoints might be accessible to everyone. Each application, depending on the business requirements, has its own custom authorization configuration. Let’s discuss the options you have to refer to different requests when you write access configurations.
-Even though we didn’t call attention to it, the first matcher method you used was the anyRequest() method. As you used it in the previous chapters, you know now that it refers to all requests, regardless of the path or HTTP method. It is the way you say “any request” or, sometimes, “any other request.”
-First, let’s talk about selecting requests by path; then we can also add the HTTP method to the scenario. To choose the requests to which we apply authorization configuration, we use matcher methods. Spring Security offers you three types of matcher methods:
-- MVC matchers--You use MVC expressions for paths to select endpoints.
-- Ant matchers--You use Ant expressions for paths to select endpoints.
-- regex matchers--You use regular expressions (regex) for paths to select endpoints.
-8.1 Using matcher methods to select endpoints
-In this section, you learn how to use matcher methods in general so that in sections 8.2 through 8.4, we can continue describing each of the three options you have: MVC, Ant, and regex. By the end of this chapter, you’ll be able to apply matcher methods in any authorization configurations you might need to write for your application’s requirements. Let’s start with a straightforward example.
-We create an application that exposes two endpoints: /hello and /ciao. We want to make sure that only users having the ADMIN role can call the /hello endpoint. Similarly, we want to make sure that only users having the MANAGER role can call the /ciao endpoint. You can find this example in the project ssia-ch8-ex1. The following listing provides the definition of the controller class.
+이 장에서는 다음을 다룹니다.
+
+- matcher 방식을 이용한 제한 적용 요청 선택
+- matcher 방법 별 최적의 시나리오 학습
+
+7장에서는 권한 및 역할에 따라 액세스를 구성하는 방법을 배웠습니다. 그러나 우리는 모든 엔드포인트에 대해서만 구성을 적용했습니다. 이 장에서는 특정 요청 그룹에 권한 제한을 적용하는 방법을 배웁니다. 프로덕션 애플리케이션에서는 모든 요청에 ​​대해 동일한 규칙을 적용할 가능성이 적습니다. 일부 특정 사용자만 호출할 수 있는 엔드포인트가 있고 모든 사람이 액세스할 수 있는 다른 엔드포인트가 있습니다. 비즈니스 요구 사항에 따라 각 애플리케이션에는 고유한 사용자 지정 권한 부여 구성이 있습니다. 액세스 구성을 작성할 때 다른 요청을 참조해야 하는 옵션에 대해 논의해 보겠습니다.
+
+주의를 기울이지 않았지만 첫 번째로 사용한 매처 메서드는 anyRequest() 메서드였습니다. 이전 장에서 사용한 것처럼 경로 또는 HTTP 메서드에 관계없이 모든 요청을 참조한다는 것을 알았습니다. "모든 요청" 또는 때로는 "다른 요청"이라고 말하는 방식입니다.
+
+먼저 경로별로 요청을 선택하는 방법에 대해 알아보겠습니다. 그런 다음 시나리오에 HTTP 메서드를 추가할 수도 있습니다. 인증 구성을 적용할 요청을 선택하기 위해 매처 메서드를 사용합니다. Spring Security는 세 가지 유형의 matcher 메소드를 제공합니다.
+
+- MVC 일치자--경로에 MVC 표현식을 사용하여 끝점을 선택합니다.
+- Ant matchers--엔드포인트를 선택하기 위한 경로에 Ant 표현식을 사용합니다.
+- regex matchers--경로에 대해 정규식(regex)을 사용하여 끝점을 선택합니다.
+
+## 8.1 매처 메서드를 사용하여 끝점 선택
+
+이 섹션에서는 일반적으로 매처 메서드를 사용하는 방법을 배우므로 섹션 8.2부터 8.4까지 MVC, Ant 및 regex의 세 가지 옵션 각각을 계속 설명할 수 있습니다. 이 장이 끝나면 애플리케이션의 요구 사항에 맞게 작성해야 할 수 있는 모든 권한 부여 구성에서 매처 메서드를 적용할 수 있습니다. 간단한 예부터 시작하겠습니다.
+
+/hello 및 /ciao의 두 끝점을 노출하는 애플리케이션을 만듭니다. ADMIN 역할을 가진 사용자만 /hello 엔드포인트를 호출할 수 있도록 하고 싶습니다. 마찬가지로 우리는 MANAGER 역할을 가진 사용자만 /ciao 엔드포인트를 호출할 수 있도록 하려고 합니다. 이 예제는 ssia-ch8-ex1 프로젝트에서 찾을 수 있습니다. 다음 목록은 컨트롤러 클래스의 정의를 제공합니다.
+
 Listing 8.1 The definition of the controller class
+```java
 @RestController
 public class HelloController {
 
@@ -26,8 +36,11 @@ public class HelloController {
     return "Ciao!";
   }
 }
+```
 In the configuration class, we declare an InMemoryUserDetailsManager as our UserDetailsService instance and add two users with different roles. The user John has the ADMIN role, while Jane has the MANAGER role. To specify that only users having the ADMIN role can call the endpoint /hello when authorizing requests, we use the mvcMatchers() method. The next listing presents the definition of the configuration class.
+
 Listing 8.2 The definition of the configuration class
+```java
 @Configuration
 public class ProjectConfig extends WebSecurityConfigurerAdapter {
 
@@ -66,6 +79,7 @@ public class ProjectConfig extends WebSecurityConfigurerAdapter {
   }
 
 }
+```
 ❶ Only calls the path /hello if the user has the ADMIN role
 ❷ Only calls the path /ciao if the user has the Manager role
 You can run and test this application. When you call the endpoint /hello with user John, you get a successful response. But if you call the same endpoint with user Jane, the response status returns an HTTP 403 Forbidden. Similarly, for the endpoint /ciao, you can only use Jane to get a successful result. For user John, the response status returns an HTTP 403 Forbidden. You can see the example calls using cURL in the next code snippets. To call the endpoint /hello for user John, use

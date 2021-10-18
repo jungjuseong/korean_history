@@ -1,6 +1,5 @@
+# 6 Hands-on: A small secured web application
 
- 
-6 Hands-on: A small secured web application
 This chapter covers
 - Applying authentication in a hands-on example
 - Defining the user with the UserDetails interface
@@ -8,9 +7,11 @@ This chapter covers
 - Using a provided implementation of PasswordEncoder
 - Defining your authentication logic by implementing an AuthenticationProvider
 - Setting the form-login authentication method
+
 We’ve come a long way in these first chapters and have already discussed plenty of details about authentication. But we have applied each of these new details individually. It is time to put together what we learned in a more complex project. This hands-on example helps you to have a better overview of how all the components we discussed so far work together in a real application.
 6.1 Project requirements and setup
 In this section, we implement a small web application where the user, after successful authentication, can see a list of products on the main page. You can find the complete implementation with the provided projects in ssia-ch6-ex1.
+
 For our project, a database stores the products and users for this application. The passwords for each user are hashed with either bcrypt or scrypt. I chose two hashing algorithms to give us a reason to customize the authentication logic in the example. A column in the users table stores the encryption type. A third table stores the users’ authorities.
 Figure 6.1 describes the authentication flow for this application. I have shaded the components that we’ll customize differently. For the others, we use the defaults provided by Spring Security. The request follows the standard authentication flow that we discussed in chapters 2 through 5. I represent the request in the diagram with arrows having a continuous line. The AuthenticationFilter intercepts the request and then delegates the authentication responsibility to the AuthenticationManager, which uses the AuthenticationProvider to authenticate the request. It returns the details of a successfully authenticated call so that the AuthenticationFilter can store these in the SecurityContext.
  

@@ -1,16 +1,22 @@
+# 4 비밀번호 다루기
 
- 
-# 4 Dealing with passwords
-This chapter covers
-- Implementing and working with the PasswordEncoder
-- Using the tools offered by the Spring Security Crypto module
-In chapter 3, we discussed managing users in an application implemented with Spring Security. But what about passwords? They’re certainly an essential piece in the authentication flow. In this chapter, you’ll learn how to manage passwords and secrets in an application implemented with Spring Security. We’ll discuss the PasswordEncoder contract and the tools offered by the Spring Security Crypto module (SSCM) for the management of passwords.
-4.1 Understanding the PasswordEncoder contract
-From chapter 3, you should now have a clear image of what the UserDetails interface is as well as multiple ways to use its implementation. But as you learned in chapter 2, different actors manage user representation during the authentication and authorization processes. You also learned that some of these have defaults, like UserDetailsService and PasswordEncoder. You now know that you can override the defaults. We continue with a deep understanding of these beans and ways to implement them, so in this section, we analyze the PasswordEncoder. Figure 4.1 reminds you of where the PasswordEncoder fits into the authentication process.
+이 장에서는 다음을 다룹니다.
+
+- PasswordEncoder 구현 및 작업
+- Spring Security Crypto 모듈에서 제공하는 도구 사용
+
+3장에서는 Spring Security로 구현된 애플리케이션에서 사용자 관리에 대해 논의했습니다. 그러나 암호는 어떻습니까? 그들은 확실히 인증 흐름에서 필수적인 부분입니다. 이 장에서는 Spring Security로 구현된 애플리케이션에서 암호와 비밀을 관리하는 방법을 배웁니다. PasswordEncoder 계약과 비밀번호 관리를 위해 SSCM(Spring Security Crypto module)에서 제공하는 도구에 대해 논의합니다.
+
+# 4.1 PasswordEncoder 계약 이해
+
+3장에서 이제 UserDetails 인터페이스가 무엇인지, 구현을 사용하는 다양한 방법에 대한 명확한 이미지를 갖게 되었습니다. 그러나 2장에서 배웠듯이 인증 및 권한 부여 프로세스 동안 다양한 행위자가 사용자 표현을 관리합니다. 또한 이들 중 일부에는 UserDetailsService 및 PasswordEncoder와 같은 기본값이 있다는 것도 배웠습니다. 이제 기본값을 재정의할 수 있다는 것을 알게 되었습니다. 우리는 이러한 빈과 이를 구현하는 방법에 대한 깊은 이해를 계속하므로 이 섹션에서는 PasswordEncoder를 분석합니다. 그림 4.1은 PasswordEncoder가 인증 프로세스에 적합한 위치를 보여줍니다.
  
-Figure 4.1 The Spring Security authentication process. The AuthenticationProvider uses the PasswordEncoder to validate the user’s password in the authentication process.
-Because, in general, a system doesn’t manage passwords in plain text, these usually undergo a sort of transformation that makes it more challenging to read and steal them. For this responsibility, Spring Security defines a separate contract. To explain it easily in this section, I provide plenty of code examples related to the PasswordEncoder implementation. We’ll start with understanding the contract, and then we’ll write our implementation within a project. Then in section 4.1.3, I’ll provide you with a list of the most well-known and widely used implementations of the PasswordEncoder provided by Spring Security.
-4.1.1 THE DEFINITION OF THE PASSWORDENCODER CONTRACT
+그림 4.1 Spring Security 인증 프로세스. AuthenticationProvider는 PasswordEncoder를 사용하여 인증 프로세스에서 사용자의 암호를 확인합니다.
+
+일반적으로 시스템은 암호를 일반 텍스트로 관리하지 않기 때문에 암호를 읽고 훔치기가 더 어려워지는 일종의 변형을 겪습니다. 이 책임을 위해 Spring Security는 별도의 계약을 정의합니다. 이 섹션에서 쉽게 설명하기 위해 PasswordEncoder 구현과 관련된 많은 코드 예제를 제공합니다. 계약을 이해하는 것으로 시작한 다음 프로젝트 내에서 구현을 작성합니다. 그런 다음 섹션 4.1.3에서 Spring Security에서 제공하는 가장 잘 알려지고 널리 사용되는 PasswordEncoder 구현 목록을 제공합니다.
+
+### 4.1.1 THE DEFINITION OF THE PASSWORDENCODER CONTRACT
+
 In this section, we discuss the definition of the PasswordEncoder contract. You implement this contract to tell Spring Security how to validate a user’s password. In the authentication process, the PasswordEncoder decides if a password is valid or not. Every system stores passwords encoded in some way. You preferably store them hashed so that there’s no chance someone can read the passwords. The PasswordEncoder can also encode passwords. The methods encode() and matches(), which the contract declares, are actually the definition of its responsibility. Both of these are parts of the same contract because these are strongly linked, one to the other. The way the application encodes a password is related to the way the password is validated. Let’s first review the content of the PasswordEncoder interface:
 public interface PasswordEncoder {
 

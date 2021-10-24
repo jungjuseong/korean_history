@@ -21,7 +21,7 @@
 
 - **클라이언트** -- 백엔드를 사용하는 애플리케이션입니다. Angular, ReactJS 또는 Vue.js와 같은 프레임워크를 사용하여 개발된 모바일 앱 또는 웹 애플리케이션의 프론트엔드일 수 있습니다. 우리는 시스템의 클라이언트 부분을 구현하지 않지만 실제 응용 프로그램에 존재한다는 것을 명심하십시오. 클라이언트를 사용하여 끝점을 호출하는 대신 cURL을 사용합니다.
 
-- **인증 서버** --이것은 사용자 자격 증명 데이터베이스가 있는 응용 프로그램입니다. 이 응용 프로그램의 목적은 자격 증명(사용자 이름 및 암호)을 기반으로 사용자를 인증하고 SMS를 통해 일회용 암호(OTP)를 보내는 것입니다. 이 예에서는 실제로 SMS를 보내지 않기 때문에 데이터베이스에서 OTP 값을 직접 읽습니다.
+- **인증 서버** --이것은 사용자 자격 증명 데이터베이스가 있는 응용 프로그램입니다. 목적은 자격 증명(사용자 이름 및 암호)을 기반으로 사용자를 인증하고 SMS를 통해 일회용 암호(OTP)를 보내는 것입니다. 이 예에서는 실제로 SMS를 보내지 않기 때문에 데이터베이스에서 OTP 값을 직접 읽습니다.
   
 이 장에서는 SMS를 보내지 않고 이 전체 응용 프로그램을 구현합니다. 나중에 AWS SNS(https://aws.amazon.com/sns/), Twillio(https://www .twilio.com/sms).
 
@@ -118,21 +118,21 @@ https://livebook.manning.com/book/api-security-in-action/chapter-6/
 
 ### 11.2.2 JSON 웹 토큰이란 무엇입니까?
 
-토큰 구체인 JSON 웹 토큰(JWT)에 대해 설명합니다. 이 토큰 구현에는 오늘날의 응용 프로그램에서 매우 일반적으로 사용되는 이점이 있습니다. 이것이 이 섹션에서 논의하는 이유이며 이 장의 실습 예제에 적용하기로 선택한 이유이기도 합니다. OAuth 2에 대해 논의할 12~15장에서도 찾을 수 있습니다.
+토큰 구현체인 JSON 웹 토큰(JWT)에 대해 설명합니다. 오늘날의 응용 프로그램에서 매우 일반적으로 사용되는 이점이 있습니다. OAuth 2에 대해 논의할 12~15장에서도 찾을 수 있습니다.
 
-섹션 11.2.1에서 토큰은 서버가 나중에 식별할 수 있는 모든 것(UUID, 액세스 카드 및 박물관에서 티켓을 구입할 때 받는 스티커)이라는 것을 이미 배웠습니다. JWT가 어떻게 생겼는지, 왜 JWT가 특별한지 알아봅시다. 구현 자체의 이름에서 JWT에 대해 많은 것을 이해하는 것은 쉽습니다.
+11.2.1에서 토큰은 서버가 나중에 식별할 수 있는 모든 것(UUID, 액세스 카드 및 박물관에서 티켓을 구입할 때 받는 스티커)이라는 것을 이미 배웠습니다. JWT가 어떻게 생겼는지, 왜 JWT가 특별한지 알아봅시다. 구현 자체의 이름에서 JWT에 대해 많은 것을 이해하는 것은 쉽습니다.
 
 - JSON -- JSON을 사용하여 포함된 데이터의 형식을 지정합니다.
 - 웹--웹 요청에 사용하도록 설계되었습니다.
 - 토큰--토큰 구현입니다.
 
 JWT에는 세 부분이 있으며 각 부분은 점(마침표)으로 구분됩니다. 다음 코드 스니펫에서 예를 찾을 수 있습니다.
-                    ↓                               ↓
-```
+
+```json
 eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImRhbmllbGxlIn0.wg6LFProg7s_KvFxvnYGiZF-Mj4rr-0nJA1tVGZNn8U
 ```
 처음 두 부분은 헤더와 본문입니다. 헤더(토큰의 시작부터 첫 번째 점까지)와 본문(첫 번째 점과 두 번째 점 사이)은 JSON으로 형식이 지정된 다음 Base64로 인코딩됩니다. 헤더와 본문을 사용하여 토큰에 세부 정보를 저장합니다. 다음 코드 스니펫은 헤더와 본문이 Base64로 인코딩되기 전의 모습을 보여줍니다.
-```
+```json
 {
   "alg": "HS256" ❶
 }
@@ -152,7 +152,7 @@ eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImRhbmllbGxlIn0.wg6LFProg7s_KvFxvnYGiZF-Mj4
 
 토큰의 마지막 부분(두 번째 점부터 끝까지)은 디지털 서명이지만 이 부분은 누락될 수 있습니다. 일반적으로 헤더와 본문에 서명하는 것을 선호하기 때문에 토큰 내용에 서명할 때 나중에 서명을 사용하여 내용이 변경되지 않았는지 확인할 수 있습니다. 서명이 없으면 네트워크에서 토큰을 전송하고 내용을 변경할 때 누군가가 토큰을 가로채지 않았는지 확신할 수 없습니다.
 
-요약하자면 JWT는 토큰 구현입니다. 이는 인증 중에 데이터를 쉽게 전송하고 무결성을 검증하기 위해 데이터에 서명하는 이점을 추가합니다(그림 11.8). Prabath Siriwardena와 Nuwan Dias(Manning, 2020)의 7장과 Microservices Security in Action의 부록 H에서 JWT에 대한 훌륭한 토론을 찾을 수 있습니다.
+JWT는 토큰 구현입니다. 이는 인증 중에 데이터를 쉽게 전송하고 무결성을 검증하기 위해 데이터에 서명하는 이점을 추가합니다(그림 11.8). Prabath Siriwardena와 Nuwan Dias(Manning, 2020)의 7장과 Microservices Security in Action의 부록 H에서 JWT에 대한 훌륭한 토론을 찾을 수 있습니다.
 
 https://livebook.manning.com/book/microservices-security-in-action/chapter-7/
 https://livebook.manning.com/book/microservices-security-in-action/h-json-web-token-jwt-/
@@ -167,19 +167,26 @@ https://github.com/jwtk/jjwt#overview
 
 ## 11.3 인증 서버 구현
 
-이 섹션에서는 실습 예제의 구현을 시작합니다. 첫 번째 종속성은 인증 서버입니다. Spring Security 사용에 중점을 둔 애플리케이션이 아니더라도 최종 결과를 위해서는 필요합니다. 이 실습에서 필수적인 것에 집중할 수 있도록 구현의 일부를 가져옵니다. 나는 예제 전체에서 이것들을 언급하고 연습으로 구현하도록 남겨둡니다.
+실습 예제의 구현을 시작합니다. 첫 번째 종속성은 인증 서버입니다. Spring Security 사용에 중점을 둔 애플리케이션이 아니더라도 최종 결과를 위해서는 필요합니다. 이 실습에서 필수적인 것에 집중할 수 있도록 구현의 일부를 가져옵니다. 예제 전체에서 이것들을 언급하고 연습으로 구현하도록 남겨둡니다.
+
 이 시나리오에서 인증 서버는 요청 인증 이벤트 중에 생성된 OTP와 사용자 자격 증명을 저장하는 데이터베이스에 연결합니다. 3개의 엔드포인트를 노출하려면 이 애플리케이션이 필요합니다(그림 11.9).
+
 - /user/add--나중에 구현 테스트에 사용할 사용자를 추가합니다.
+  
 - /user/auth--자격 증명으로 사용자를 인증하고 OTP가 포함된 SMS를 보냅니다. 우리는 SMS를 보내는 부분을 제거하지만 이것은 연습으로 할 수 있습니다.
+  
 - /otp/check--OTP 값이 인증 서버가 특정 사용자에 대해 이전에 생성한 값인지 확인합니다.
+
 REST 끝점을 만드는 방법에 대한 복습을 위해 Craig Walls의 Spring in Action, 6th ed.의 6장을 읽을 것을 권장합니다.
+
 https://livebook.manning.com/book/spring-in-action-sixth-edition/chapter-6/
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH11_F09_Spilca.png)
 
 그림 11.9 인증 서버를 위한 클래스 디자인. 컨트롤러는 서비스 클래스에 정의된 로직을 호출하는 REST 엔드포인트를 노출합니다. 두 개의 저장소는 데이터베이스에 대한 액세스 계층입니다. 또한 SMS를 통해 보낼 OTP를 생성하는 코드를 분리하는 유틸리티 클래스를 작성합니다.
-새 프로젝트를 만들고 다음 코드 스니펫에 표시된 대로 필요한 종속성을 추가합니다. ssia-ch11-ex1-s1 프로젝트에서 구현된 이 앱을 찾을 수 있습니다.
-```
+
+새 프로젝트를 만들고 다음 코드에 표시된 대로 필요한 종속성을 추가합니다. `ssia-ch11-ex1-s1` 프로젝트에서 구현된 이 앱을 찾을 수 있습니다.
+```xml
 <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-web</artifactId>
@@ -204,7 +211,9 @@ We also need to make sure we create the database for the application. Because we
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH11_F10_Spilca.png)
 
 Figure 11.10 The app database has two tables. In one of the tables, the app stores user credentials, while in the second one, the app stores the generated OTP codes.
+
 I use a database named spring and add the scripts to create the two tables required in a schema.sql file. Remember to place the schema.sql file in the resources folder of your project as this is where Spring Boot picks it up to execute the scripts. In the next code snippet, you find the content of my schema.sql file. (If you don’t like the approach with the schema.sql file, you can create the database structure manually anytime or use any other method you prefer.)
+
 ```sql
 CREATE TABLE IF NOT EXISTS `spring`.`user` (
     `username` VARCHAR(45) NULL,

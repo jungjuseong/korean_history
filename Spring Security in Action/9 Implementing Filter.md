@@ -316,6 +316,7 @@ But remember what we discussed in section 9.1. When adding a filter at a specifi
 NOTE I do advise you not to add multiple filters at the same position in the chain. When you add more filters in the same location, the order in which they are used is not defined. It makes sense to have a definite order in which filters are called. Having a known order makes your application easier to understand and maintain.
 In listing 9.8, you can find the definition of the configuration class that adds the filter. Observe that we don’t call the httpBasic() method from the HttpSecurity class here because we don’t want the BasicAuthenticationFilter instance to be added to the filter chain.
 Listing 9.8 Adding the filter in the configuration class
+```java
 @Configuration
 public class ProjectConfig extends WebSecurityConfigurerAdapter {
 
@@ -330,24 +331,40 @@ public class ProjectConfig extends WebSecurityConfigurerAdapter {
            .anyRequest().permitAll();
   }
 }
+```
 ❶ Injects the instance of the filter from the Spring context
+
 ❷ Adds the filter at the position of the basic authentication filter in the filter chain
+
 To test the application, we also need an endpoint. For that, we define a controller, as given in listing 9.4. You should add a value for the static key on the server in the application.properties file, as shown in this code snippet:
+```yaml
 authorization.key=SD9cICjl1e
-NOTE Storing passwords, keys, or any other data that is not meant to be seen by everybody in the properties file is never a good idea for a production application. In our examples, we use this approach for simplicity and to allow you to focus on the Spring Security configurations we make. But in real-world scenarios, make sure to use a secrets vault to store such kinds of details.
+```
+
+> **NOTE** Storing passwords, keys, or any other data that is not meant to be seen by everybody in the properties file is never a good idea for a production application. In our examples, we use this approach for simplicity and to allow you to focus on the Spring Security configurations we make. But in real-world scenarios, make sure to use a secrets vault to store such kinds of details.
+
 We can now test the application. We expect that the app allows requests having the correct value for the Authorization header and rejects others, returning an HTTP 401 Unauthorized status on the response. The next code snippets present the curl calls used to test the application. If you use the same value you set on the server side for the Authorization header, the call is successful, and you’ll see the response body, Hello! The call
+```sh
 curl -H "Authorization:SD9cICjl1e" http:/ /localhost:8080/hello
+```
 returns this response body:
+```
 Hello!
+```
 With the following call, if the Authorization header is missing or is incorrect, the response status is HTTP 401 Unauthorized:
+```sh
 curl -v http://localhost:8080/hello
 The response status is
 ...
 < HTTP/1.1 401
 ...
+```
 In this case, because we don’t configure a UserDetailsService, Spring Boot automatically configures one, as you learned in chapter 2. But in our scenario, you don’t need a UserDetailsService at all because the concept of the user doesn’t exist. We only validate that the user requesting to call an endpoint on the server knows a given value. Application scenarios are not usually this simple and often require a UserDetailsService. But, if you anticipate or have such a case where this component is not needed, you can disable autoconfiguration. To disable the configuration of the default UserDetailsService, you can use the exclude attribute of the @SpringBootApplication annotation on the main class like this:
+
+```java
 @SpringBootApplication(exclude = 
   {UserDetailsServiceAutoConfiguration.class })
+```
 
 ## 9.5 Filter implementations provided by Spring Security
 
@@ -362,7 +379,7 @@ To make it crystal clear how to use such a class, let’s write an example. The 
 In listing 9.9, you find the change I made for the AuthenticationLoggingFilter class. Instead of implementing the Filter interface directly, as was the case in the example in section 9.3, now it extends the OncePerRequestFilter class. The method we override here is doFilterInternal().
 
 Listing 9.9 Extending the OncePerRequestFilter class
-```
+```java
 public class AuthenticationLoggingFilter 
   extends OncePerRequestFilter {             ❶
 

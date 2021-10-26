@@ -1,38 +1,51 @@
+# 10 Applying CSRF protection and CORS
 
- 
-
- 
-10 Applying CSRF protection and CORS
 This chapter covers
+
 - Implementing cross-site request forgery protection
 - Customizing CSRF protection
 - Applying cross-origin resource sharing configurations
+
 You have learned about the filter chain and its purpose in the Spring Security architecture. We worked on several examples in chapter 9, where we customized the filter chain. But Spring Security also adds its own filters to the chain. In this chapter, we’ll discuss the filter that applies CSRF protection and the one related to CORS configurations. You’ll learn to customize these filters to make a perfect fit for your scenarios.
-10.1 Applying cross-site request forgery (CSRF) protection in applications
+
+## 10.1 Applying cross-site request forgery (CSRF) protection in applications
+
 You have probably observed that in most of the examples up to now, we only implemented our endpoints with HTTP GET. Moreover, when we needed to configure HTTP POST, we also had to add a supplementary instruction to the configuration to disable CSRF protection. The reason why you can’t directly call an endpoint with HTTP POST is because of CSRF protection, which is enabled by default in Spring Security.
 In this section, we discuss CSRF protection and when to use it in your applications. CSRF is a widespread type of attack, and applications vulnerable to CSRF can force users to execute unwanted actions on a web application after authentication. You don’t want the applications you develop to be CSRF vulnerable and allow attackers to trick your users into making unwanted actions.
+
 Because it’s essential to understand how to mitigate these vulnerabilities, we start by reviewing what CSRF is and how it works. We then discuss the CSRF token mechanism that Spring Security uses to mitigate CSRF vulnerabilities. We continue with obtaining a token and use it to call an endpoint with the HTTP POST method. We prove this with a small application using REST endpoints. Once you learn how Spring Security implements its CSRF token mechanism, we discuss how to use it in a real-world application scenario. Finally, you learn possible customizations of the CSRF token mechanism in Spring Security.
-10.1.1 HOW CSRF PROTECTION WORKS IN SPRING SECURITY
+
+### 10.1.1 HOW CSRF PROTECTION WORKS IN SPRING SECURITY
+
 In this section, we discuss how Spring Security implements CSRF protection. It is important to first understand the underlying mechanism of CSRF protection. I encounter many situations in which misunderstanding the way CSRF protection works leads developers to misuse it, either disabling it in scenarios where it should be enabled or the other way around. Like any other feature in a framework, you have to use it correctly to bring value to your applications.
+
 As an example, consider this scenario (figure 10.1): you are at work, where you use a web tool to store and manage your files. With this tool, in a web interface you can add new files, add new versions for your records, and even delete them. You receive an email asking you to open a page for a specific reason. You open the page, but the page is blank or it redirects you to a known website. You go back to your work but observe that all your files are gone!
  
 Figure 10.1 After the user logs into their account, they access a page containing forgery code. This code impersonates the user and can execute unwanted actions on behalf of the user.
 What happened? You were logged into the application so you could manage your files. When you add, change, or delete a file, the web page you interact with calls some endpoints from the server to execute these operations. When you opened the foreign page by clicking the unknown link in the email, that page called the server and executed actions on your behalf (it deleted your files). It could do that because you logged in previously, so the server trusted that the actions came from you. You might think that someone couldn’t trick you so easily into clicking a link from a foreign email or message, but trust me, this happens to a lot of people. Most web app users aren’t aware of security risks. So it’s wiser if you, who know all the tricks to protect your users, build secure apps rather than rely on your apps’ users to protect themselves.
 CSRF attacks assume that a user is logged into a web application. They’re tricked by the attacker into opening a page that contains scripts that execute actions in the same application the user was working on. Because the user has already logged in (as we’ve assumed from the beginning), the forgery code can now impersonate the user and do actions on their behalf.
+
 How do we protect our users from such scenarios? What CSRF protection wants to ensure is that only the frontend of web applications can perform mutating operations (by convention, HTTP methods other than GET, HEAD, TRACE, or OPTIONS). Then, a foreign page, like the one in our example, can’t act on behalf of the user.
+
 How can we achieve this? What you know for sure is that before being able to do any action that could change data, a user must send a request using HTTP GET to see the web page at least once. When this happens, the application generates a unique token. The application now accepts only requests for mutating operations (POST, PUT, DELETE, and so forth) that contain this unique value in the header. The application considers that knowing the value of the token is proof that it is the app itself making the mutating request and not another system. Any page containing mutating calls, like POST, PUT, DELETE, and so on, should receive through the response the CSRF token, and the page must use this token when making mutating calls.
 The starting point of CSRF protection is a filter in the filter chain called CsrfFilter. The CsrfFilter intercepts requests and allows all those that use these HTTP methods: GET, HEAD, TRACE, and OPTIONS. For all other requests, the filter expects to receive a header containing a token. If this header does not exist or contains an incorrect token value, the application rejects the request and sets the status of the response to HTTP 403 Forbidden.
+
 What is this token, and where does it come from? These tokens are nothing more than string values. You have to add the token in the header of the request when you use any method other than GET, HEAD, TRACE, or OPTIONS. If you don’t add the header containing the token, the application doesn’t accept the request, as presented in figure 10.2.
  
 Figure 10.2 To make a POST request, the client needs to add a header containing the CSRF token. The application generates a CSRF token when the page is loaded (via a GET request), and the token is added to all requests that can be made from the loaded page. This way, only the loaded page can make mutable requests.
+
 The CsrfFilter (figure 10.3) uses a component named CsrfTokenRepository to manage the CSRF token values that generate new tokens, store tokens, and eventually invalidate these. By default, the CsrfTokenRepository stores the token on the HTTP session and generates the tokens as random universally unique identifiers (UUIDs). In most cases, this is enough, but as you’ll learn in section 10.1.3, you can use your own implementation of CsrfTokenRepository if the default one doesn’t apply to the requirements you need to implement.
  
 Figure 10.3 The CsrfFilter is one of the filters in the filter chain. It receives the request and eventually forwards it to the next filter in the chain. To manage CSRF tokens, CsrfFilter uses a CsrfTokenRepository.
+
 In this section, I explained how CSRF protection works in Spring Security with plenty of text and figures. But I want to enforce your understanding with a small code example as well. You’ll find this code as part of the project named ssia-ch10-ex1. Let’s create an application that exposes two endpoints. We can call one of these with HTTP GET and the other with HTTP POST. As you know by now, you are not able to call endpoints with POST directly without disabling CSRF protection. In this example, you learn how to call the POST endpoint without disabling CSRF protection. You need to obtain the CSRF token so that you can use it in the header of the call, which you do with HTTP POST.
+
 As you learn with this example, the CsrfFilter adds the generated CSRF token to the attribute of the HTTP request named _csrf (figure 10.4). If we know this, we know that after the CsrfFilter, we can find this attribute and take the value of the token from it. For this small application, we choose to add a custom filter after the CsrfFilter, as you learned in chapter 9. You use this custom filter to print in the console of the application the CSRF token that the app generates when we call the endpoint using HTTP GET. We can then copy the value of the token from the console and use it to make the mutating call with HTTP POST. In the following listing, you can find the definition of the controller class with the two endpoints that we use for a test.
  
 Figure 10.4 Adding the CsrfTokenLogger (shaded) after the CsrfFilter. This way, the CsrfTokenLogger can obtain the value of the token from the _csrf attribute of the request where the CsrfFilter stores it. The CsrfTokenLogger prints the CSRF token in the application console, where we can access it and use it to call an endpoint with the HTTP POST method.
+
 Listing 10.1 The controller class with two endpoints
+```java
 @RestController
 public class HelloController {
 
@@ -46,8 +59,11 @@ public class HelloController {
     return "Post Hello!";
   }
 }
+```
 Listing 10.2 defines the custom filter we use to print the value of the CSRF token in the console. I named the custom filter CsrfTokenLogger. When called, the filter obtains the value of the CSRF token from the _csrf request attribute and prints it in the console. The name of the request attribute, _csrf, is where the CsrfFilter sets the value of the generated CSRF token as an instance of the class CsrfToken. This instance of CsrfToken contains the string value of the CSRF token. You can obtain it by calling the getToken() method.
+
 Listing 10.2 The definition of the custom filter class
+```java
 public class CsrfTokenLogger implements Filter {
 
   private Logger logger =
@@ -68,9 +84,12 @@ public class CsrfTokenLogger implements Filter {
       filterChain.doFilter(request, response);
   }
 }
+```
 ❶ Takes the value of the token from the _csrf request attribute and prints it in the console
 In the configuration class, we add the custom filter. The next listing presents the configuration class. Observe that I don’t disable CSRF protection in the listing.
+
 Listing 10.3 Adding the custom filter in the configuration class
+```java
 @Configuration
 public class ProjectConfig extends WebSecurityConfigurerAdapter {
 
@@ -84,34 +103,52 @@ public class ProjectConfig extends WebSecurityConfigurerAdapter {
             .anyRequest().permitAll();
   }
 }
+```
 We can now test the endpoints. We begin by calling the endpoint with HTTP GET. Because the default implementation of the CsrfTokenRepository interface uses the HTTP session to store the token value on the server side, we also need to remember the session ID. For this reason, I add the -v flag to the call so that I can see more details from the response, including the session ID. Calling the endpoint
+```sh
 curl -v http://localhost:8080/hello
 returns this (truncated) response:
 ...
 < Set-Cookie: JSESSIONID=21ADA55E10D70BA81C338FFBB06B0206;
 ...
 Get Hello!
+```
 Following the request in the application console, you can find a log line that contains the CSRF token:
+```sh
 INFO 21412 --- [nio-8080-exec-1] c.l.ssia.filters.CsrfTokenLogger : CSRF token c5f0b3fa-2cae-4ca8-b1e6-6d09894603df
-NOTE You might ask yourself, how do clients get the CSRF token? They can neither guess it nor read it in the server logs. I designed this example such that it’s easier for you to understand how CSRF protection implementation works. As you’ll find in section 10.1.2, the backend application has the responsibility to add the value of the CSRF token in the HTTP response to be used by the client.
+```
+
+> NOTE You might ask yourself, how do clients get the CSRF token? They can neither guess it nor read it in the server logs. I designed this example such that it’s easier for you to understand how CSRF protection implementation works. As you’ll find in section 10.1.2, the backend application has the responsibility to add the value of the CSRF token in the HTTP response to be used by the client.
 If you call the endpoint using the HTTP POST method without providing the CSRF token, the response status is 403 Forbidden, as this command line shows:
+```sh
 curl -XPOST http://localhost:8080/hello
+```
 The response body is
+```json
 {
     "status":403,
     "error":"Forbidden",
     "message":"Forbidden",
     "path":"/hello"
 }
+```
 But if you provide the correct value for the CSRF token, the call is successful. You also need to specify the session ID (JSESSIONID) because the default implementation of CsrfTokenRepository stores the value of the CSRF token on the session:
+```sh
 curl -X POST   http://localhost:8080/hello 
 -H 'Cookie: JSESSIONID=21ADA55E10D70BA81C338FFBB06B0206'   
 -H 'X-CSRF-TOKEN: 1127bfda-57b1-43f0-bce5-bacd7d94694e'
+```
 The response body is
+```
 Post Hello!
-10.1.2 USING CSRF PROTECTION IN PRACTICAL SCENARIOS
+```
+
+### 10.1.2 USING CSRF PROTECTION IN PRACTICAL SCENARIOS
+
 In this section, we discuss applying CSRF protection in practical situations. Now that you know how CSRF protection works in Spring Security, you need to know where you should use it in the real world. Which kinds of applications need to use CSRF protection?
+
 You use CSRF protection for web apps running in a browser, where you should expect that mutating operations can be done by the browser that loads the displayed content of the app. The most basic example I can provide here is a simple web application developed on the standard Spring MVC flow. We already made such an application when discussing form login in chapter 5, and that web app actually used CSRF protection. Did you notice that the login operation in that application used HTTP POST? Then why didn’t we need to do anything explicitly about CSRF in that case? The reason why we didn’t observe this was because we didn’t develop any mutating operation within it ourselves.
+
 For the default login, Spring Security correctly applies CSRF protection for us. The framework takes care of adding the CSRF token to the login request. Let’s now develop a similar application to look closer at how CSRF protection works. As figure 10.5 shows, in this section we
 - Build an example of a web application with the login form
 - Look at how the default implementation of the login uses CSRF tokens
@@ -119,6 +156,7 @@ For the default login, Spring Security correctly applies CSRF protection for us.
  
 Figure 10.5 The plan. In this section, we start by building and analyzing a simple app to understand how Spring Security applies CSRF protection, and then we write our own POST call.
 In this example application, you’ll notice that the HTTP POST call won’t work until we correctly use the CSRF tokens, and you’ll learn how to apply the CSRF tokens in a form on such a web page. To implement this application, we start by creating a new Spring Boot project. You can find this example in the project ssia-ch10-ex2. The next code snippet presents the needed dependencies:
+```xml
 <dependency>
    <groupId>org.springframework.boot</groupId>
    <artifactId>spring-boot-starter-security</artifactId>
@@ -131,12 +169,15 @@ In this example application, you’ll notice that the HTTP POST call won’t wor
    <groupId>org.springframework.boot</groupId>
    <artifactId>spring-boot-starter-web</artifactId>
 </dependency>
+```
 Then we need, of course, to configure the form login and at least one user. The following listing presents the configuration class, which defines the UserDetailsService, adds a user, and configures the formLogin method.
+
 Listing 10.4 The definition of the configuration class
+```java
 public class ProjectConfig 
   extends WebSecurityConfigurerAdapter {
 
-  @Bean                                                ❶
+  @Bean ❶
   public UserDetailsService uds() {
     var uds = new InMemoryUserDetailsManager();
 
@@ -149,12 +190,12 @@ public class ProjectConfig
     return uds;
   }
 
-  @Bean                                               ❷
+  @Bean ❷
   public PasswordEncoder passwordEncoder() {
     return NoOpPasswordEncoder.getInstance();
   }
 
-  @Override                                           ❸
+  @Override ❸
   protected void configure(HttpSecurity http) throws Exception {
     http.authorizeRequests()
           .anyRequest().authenticated();
@@ -163,11 +204,17 @@ public class ProjectConfig
         .defaultSuccessUrl("/main", true);
   }
 }
+```
 ❶ Adds a UserDetailsService bean managing one user to test the application
+
 ❷ Adds a PasswordEncoder
+
 ❸ Overrides configure() to set the form login authentication method and specifies that only authenticated users can access any of the endpoints
+
 We add a controller class for the main page in a package named controllers and in a main.html file in the resources/templates folder of the Maven project. The main.html file can remain empty for the moment because on first execution of the application, we only focus on how the login page uses the CSRF tokens. The following listing presents the MainController class, which serves the main page.
+
 Listing 10.5 The definition of the MainController class
+```java
 @Controller
 public class MainController {
 
@@ -176,11 +223,15 @@ public class MainController {
     return "main.html";
   }
 }
+```
 After running the application, you can access the default login page. If you inspect the form using the inspect element function of your browser, you can observe that the default implementation of the login form sends the CSRF token. This is why your login works with CSRF protection enabled even if it uses an HTTP POST request! Figure 10.6 shows how the login form sends the CSRF token through hidden input.
  
 Figure 10.6 The default form login uses a hidden input to send the CSRF token in the request. This is why the login request that uses an HTTP POST method works with CSRF protection enabled.
+
 But what about developing our own endpoints that use POST, PUT, or DELETE as HTTP methods? For these, we have to take care of sending the value of the CSRF token if CSRF protection is enabled. To test this, let’s add an endpoint using HTTP POST to our application. We call this endpoint from the main page, and we create a second controller for this, called ProductController. Within this controller, we define an endpoint, /product/add, that uses HTTP POST. Further, we use a form on the main page to call this endpoint. The next listing defines the ProductController class.
+
 Listing 10.6 The definition of the ProductController class
+```java
 @Controller
 @RequestMapping("/product")
 public class ProductController {
@@ -194,13 +245,17 @@ public class ProductController {
     return "main.html";
   }
 }
+```
 The endpoint receives a request parameter and prints it in the application console. The following listing shows the definition of the form defined in the main.html file.
+
 Listing 10.7 The definition of the form in the main.html page
+```html
 <form action="/product/add" method="post">
    <span>Name:</span>
    <span><input type="text" name="name" /></span>
    <span><button type="submit">Add</button></span>
 </form>
+```
 Now you can rerun the application and test the form. What you’ll observe is that when submitting the request, a default error page is displayed, which confirms an HTTP 403 Forbidden status on the response from the server (figure 10.7). The reason for the HTTP 403 Forbidden status is the absence of the CSRF token.
  
 Figure 10.7 Without sending the CSRF token, the server won’t accept the request done with the HTTP POST method. The application redirects the user to a default error page, which confirms that the status on the response is HTTP 403 Forbidden.

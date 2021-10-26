@@ -597,7 +597,8 @@ Listing 6.21 The definition of the main page
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH06_F04_Spilca.png)
 
 그림 6.4 애플리케이션의 로그인 양식
-참고 실제 응용 프로그램에서는 사용자가 "12345"와 같은 간단한 암호를 정의하도록 허용해서는 안 됩니다. 너무 단순한 암호는 추측하기 쉽고 보안 위험을 나타냅니다. Wikipedia는 https://en.wikipedia.org/wiki/Password_strength에서 암호에 대한 유익한 기사를 제공합니다. 강력한 암호를 설정하는 규칙뿐만 아니라 암호 강도를 계산하는 방법도 설명합니다.
+
+> **참고** 실제 응용 프로그램에서는 사용자가 "12345"와 같은 간단한 암호를 정의하도록 허용해서는 안 됩니다. 너무 단순한 암호는 추측하기 쉽고 보안 위험을 나타냅니다. Wikipedia는 https://en.wikipedia.org/wiki/Password_strength에서 암호에 대한 유익한 기사를 제공합니다. 강력한 암호를 설정하는 규칙뿐만 아니라 암호 강도를 계산하는 방법도 설명합니다.
 
 로그인하면 애플리케이션이 기본 페이지로 리디렉션합니다(그림 6.5). 여기에서 보안 컨텍스트에서 가져온 사용자 이름이 데이터베이스의 제품 목록과 함께 페이지에 나타납니다.
 
@@ -608,10 +609,13 @@ Listing 6.21 The definition of the main page
 여기에서 로그아웃 링크를 클릭하면 애플리케이션이 표준 로그아웃 확인 페이지로 리디렉션합니다(그림 6.6). 이것은 formLogin 인증 방법을 사용하기 때문에 Spring Security에서 미리 정의합니다.
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH06_F06_Spilca.png)
+
 그림 6.6 표준 로그아웃 확인 페이지
+
 로그아웃을 클릭한 후 초콜릿을 더 주문하려면 로그인 페이지로 다시 리디렉션됩니다(그림 6.7).
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH06_F07_Spilca.png)
+
 그림 6.7 애플리케이션에서 로그아웃하면 로그인 페이지가 나타납니다.
 
 축하합니다! 첫 번째 실습 예제를 구현했고 이 책에서 이미 논의한 몇 가지 필수 사항을 정리했습니다. 이 예제에서는 Spring Security로 인증을 관리하는 작은 웹 애플리케이션을 개발했습니다. 폼 로그인 인증 방식을 사용하고 사용자 정보를 데이터베이스에 저장했습니다. 또한 사용자 지정 인증 논리를 구현했습니다.

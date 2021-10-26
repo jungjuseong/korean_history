@@ -1071,7 +1071,8 @@ curl -H "Authorization:eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImRhbmllbGxlIn0.wg6L
 The response body is
 Test
 Awesome! You finished the second hands-on chapter! You managed to write a whole backend system and secure its resources by writing custom authentication and authorization. And you even used JWTs for this, which takes you a significant step forward and prepares you for what’s coming in the next chapters--the OAuth 2 flow.
-Summary
+
+## Summary
 - When implementing custom authentication and authorization, always rely on the contracts offered by Spring Security. These are the AuthenticationProvider, AuthenticationManager, UserDetailsService, and so forth. This approach helps you implement an easier-to-understand architecture and makes your application less error prone.
 - A token is an identifier for the user. It can have any implementation as long as the server recognizes it after it’s generated. Examples of tokens from real-world scenarios are an access card, a ticket, or the sticker you receive at the entrance of a museum.
 - While an application can use a simple universally unique identifier (UUID) as a token implementation, you more often find tokens implemented as JSON Web Tokens (JWTs). JWTs have multiple benefits: they can store data exchanged on the request, and you can sign them to ensure they weren’t changed while transferred.
@@ -1080,6 +1081,3 @@ Summary
 - We prefer to decouple responsibilities in a system to make it easier to maintain and scale. For this reason, for the hands-on example, we separated the authentication in a different app, which we called the authentication server. The backend application serving the client, which we called the business logic server, uses the separate authentication server when it needs to authenticate a client.
 - Multi-factor authentication (MFA) is an authentication strategy in which, to access a resource, the user is asked to authenticate multiple times and in different ways. In our example, the user has to use their username and password and then prove that they have access to a specific phone number by validating an OTP received through an SMS message. This way, the user’s resources are better protected against credentials theft.
 - In many cases, you find more than one good solution for solving a problem. Always consider all possible solutions and, if time allows, implement proof-of-concepts for all options to understand which better fits your scenario.
-- Copy
-- Add Highlight
-- Add Note

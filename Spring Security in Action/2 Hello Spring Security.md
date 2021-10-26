@@ -46,12 +46,12 @@ https://livebook.manning.com/book/spring-in-practice/chapter-3/
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH02_F01_Spilca.png)
 
-그림 2.1 첫 번째 애플리케이션은 HTTP Basic을 사용하여 엔드포인트에 대해 사용자를 인증하고 권한을 부여합니다. 애플리케이션은 정의된 경로(/hello)에서 REST 엔드포인트를 노출합니다. 성공적인 호출의 경우 응답은 HTTP 200 상태 메시지와 본문을 반환합니다. 이 예제는 기본적으로 Spring Security로 구성된 인증 및 권한 부여가 작동하는 방식을 보여줍니다.
+**그림 2.1** 첫 번째 애플리케이션은 HTTP Basic을 사용하여 엔드포인트에 대해 사용자를 인증하고 권한을 부여합니다. 애플리케이션은 정의된 경로(/hello)에서 REST 엔드포인트를 노출합니다. 성공적인 호출의 경우 응답은 HTTP 200 상태 메시지와 본문을 반환합니다. 이 예제는 기본적으로 Spring Security로 구성된 인증 및 권한 부여가 작동하는 방식을 보여줍니다.
 
 빈 프로젝트를 만들고 이름을 ssia-ch2-ex1로 지정하여 Spring Security 학습을 시작합니다. (책과 함께 제공된 프로젝트에서 동일한 이름을 가진 이 예제도 찾을 수 있습니다.) 첫 번째 프로젝트에 대해 작성해야 하는 유일한 종속성은 spring-boot-starter-web 및 spring-boot-starter-security입니다. 목록 2.1에 나와 있습니다. 프로젝트를 생성한 후에는 이러한 종속성을 pom.xml 파일에 추가해야 합니다. 이 프로젝트에서 작업하는 주요 목적은 Spring Security로 구성된 기본 애플리케이션의 동작을 보는 것입니다. 또한 이 기본 구성의 일부인 구성 요소와 그 용도를 이해하고 싶습니다.
 
 Listing 2.1 Spring Security dependencies for our first web app
-```
+```xml
 <dependency>
    <groupId>org.springframework.boot</groupId>
    <artifactId>spring-boot-starter-web</artifactId>
@@ -735,9 +735,9 @@ public class UserManagementConfig {
 }
 ```
 
-In this case, the UserManagementConfig class only contains the two beans that are responsible for user management: UserDetailsService and PasswordEncoder. We’ll configure the two objects as beans because this class can’t extend WebSecurityConfigurerAdapter. The next listing shows this definition.
+이 경우 UserManagementConfig 클래스에는 사용자 관리를 담당하는 두 개의 빈(UserDetailsService 및 PasswordEncoder)만 포함됩니다. 이 클래스는 WebSecurityConfigurerAdapter를 확장할 수 없기 때문에 두 개체를 bean으로 구성합니다. 다음 목록은 이 정의를 보여줍니다.
 
-Listing 2.18 Defining the configuration class for authorization management
+Listing 2.18 권한 관리를 위한 구성 클래스 정의하기
 ```java
 @Configuration
 public class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
@@ -750,16 +750,22 @@ public class WebAuthorizationConfig extends WebSecurityConfigurerAdapter {
 }
 ```
 
-Here the `WebAuthorizationConfig` class needs to extend `WebSecurityConfigurerAdapter` and override the `configure(HttpSecurity http)` method.
+여기서 `WebAuthorizationConfig` 클래스는 `WebSecurityConfigurerAdapter`를 확장하고 `configure(HttpSecurity http)` 메소드를 재정의해야 합니다.
 
-> **NOTE** You can’t have both classes extending WebSecurityConfigurerAdapter in this case. If you do so, the dependency injection fails. You might solve the dependency injection by setting the priority for injection using the @Order annotation. But, functionally, this won’t work, as the configurations exclude each other instead of merging.
+> **참고** 이 경우 WebSecurityConfigurerAdapter를 확장하는 두 클래스를 모두 가질 수는 없습니다. 그렇게 하면 종속성 주입이 실패합니다. @Order 주석을 사용하여 주입 우선 순위를 설정하여 종속성 주입을 해결할 수 있습니다. 그러나 기능적으로는 구성이 병합하는 대신 서로를 제외하므로 작동하지 않습니다.
 
 ## Summary
 
 - Spring Boot는 애플리케이션의 종속성에 Spring Security를 ​​추가할 때 몇 가지 기본 구성을 제공합니다.
+
 - 인증 및 권한 부여를 위한 기본 구성 요소인 UserDetailsService, PasswordEncoder 및 AuthenticationProvider를 구현합니다.
+
 - User 클래스로 사용자를 정의할 수 있습니다. 사용자는 최소한 사용자 이름, 암호 및 권한이 있어야 합니다. 권한은 사용자가 애플리케이션 컨텍스트에서 수행할 수 있도록 허용하는 작업입니다.
+
 - Spring Security가 제공하는 UserDetailsService의 간단한 구현은 InMemoryUserDetailsManager입니다. 이러한 UserDetailsService 인스턴스에 사용자를 추가하여 애플리케이션의 메모리에서 사용자를 관리할 수 있습니다.
+
 - NoOpPasswordEncoder는 암호를 일반 텍스트로 사용하는 PasswordEncoder 계약의 구현입니다. 이 구현은 학습 예제 및 (아마도) 개념 증명에 적합하지만 프로덕션 준비 응용 프로그램에는 적합하지 않습니다.
+
 - AuthenticationProvider 계약을 사용하여 애플리케이션에서 사용자 정의 인증 로직을 구현할 수 있습니다.
+
 - 구성을 작성하는 방법은 여러 가지가 있지만 단일 애플리케이션에서는 한 가지 방법을 선택하고 고수해야 합니다. 이것은 코드를 더 깔끔하고 이해하기 쉽게 만드는 데 도움이 됩니다.

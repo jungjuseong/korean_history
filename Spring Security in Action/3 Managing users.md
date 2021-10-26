@@ -771,25 +771,25 @@ spring.ldap.embedded.base-dn=dc=springframework,dc=org
 spring.ldap.embedded.port=33389
 ```
 
-application.properties 파일에서 다음 코드 스니펫에 표시된 대로 임베디드 LDAP 서버에 대한 구성도 추가해야 합니다. 앱이 내장된 LDAP 서버를 부팅하는 데 필요한 값에는 LDIF 파일의 위치, LDAP 서버용 포트, 기본 DN(도메인 구성 요소) 레이블 값이 포함됩니다. 인증을 위한 LDAP 서버가 있으면 다음을 구성할 수 있습니다. 그것을 사용하는 응용 프로그램. 다음 목록은 앱이 LDAP 서버를 통해 사용자를 인증할 수 있도록 LdapUserDetailsManager를 구성하는 방법을 보여줍니다.
+application.properties 파일에서 다음 코드에 표시된 대로 임베디드 LDAP 서버에 대한 구성도 추가해야 합니다. 앱이 내장된 LDAP 서버를 부팅하는 데 필요한 값에는 LDIF 파일의 위치, LDAP 서버용 포트, 기본 DN(도메인 구성 요소) 레이블 값이 포함됩니다. 인증을 위한 LDAP 서버가 있으면 다음을 구성할 수 있습니다. 그것을 사용하는 응용 프로그램. 다음 목록은 앱이 LDAP 서버를 통해 사용자를 인증할 수 있도록 LdapUserDetailsManager를 구성하는 방법을 보여줍니다.
 
 Listing 3.23 구성 파일의 LdapUserDetailsManager 정의 
 ```java
 @Configuration
 public class ProjectConfig extends WebSecurityConfigurerAdapter {
 
-  @Bean                                                       ❶
+  @Bean ❶
   public UserDetailsService userDetailsService() {
-    var cs = new DefaultSpringSecurityContextSource(          ❷
+    var cs = new DefaultSpringSecurityContextSource( ❷
       "ldap://127.0.0.1:33389/dc=springframework,dc=org");
     cs.afterPropertiesSet();
 
-    var manager = new LdapUserDetailsManager(cs);             ❸
+    var manager = new LdapUserDetailsManager(cs); ❸
 
-    manager.setUsernameMapper(                                ❹
+    manager.setUsernameMapper( ❹
       new DefaultLdapUsernameToDnMapper("ou=groups", "uid"));
 
-    manager.setGroupSearchBase("ou=groups");                  ❺
+    manager.setGroupSearchBase("ou=groups"); ❺
     
     return manager;    
   }
@@ -810,7 +810,7 @@ public class ProjectConfig extends WebSecurityConfigurerAdapter {
 
 ❺ 앱이 사용자를 검색하는 데 필요한 그룹 검색 기반을 설정합니다.
 
-보안 구성을 테스트하기 위해 간단한 끝점도 만들어 보겠습니다. 다음 코드 스니펫에 표시된 대로 컨트롤러 클래스를 추가했습니다.
+보안 구성을 테스트하기 위해 간단한 끝점도 만들어 보겠습니다. 다음 코드 에 표시된 대로 컨트롤러 클래스를 추가했습니다.
 
 ```java
 @RestController
@@ -822,7 +822,7 @@ public class HelloController {
   }
 }
 ```
-Now start the app and call the /hello endpoint. You need to authenticate with user John if you want the app to allow you to call the endpoint. The next code snippet shows you the result of calling the endpoint with cURL:
+이제 앱을 시작하고 /hello 엔드포인트를 호출합니다. 앱에서 엔드포인트를 호출할 수 있도록 하려면 사용자 John으로 인증해야 합니다. 다음 코드는 cURL을 사용하여 엔드포인트를 호출한 결과를 보여줍니다.
 ```sh
 curl -u john:12345 http://localhost:8080/hello
 ```
@@ -840,4 +840,4 @@ Hello!
 
 - Spring Security는 UserDetailsManager 계약의 몇 가지 구현을 제공합니다. 이 중에는 InMemoryUserDetailsManager, JdbcUser-DetailsManager 및 LdapUserDetailsManager가 있습니다.
 
-- JdbcUserDetailsManager는 JDBC를 직접 사용하는 장점이 있으며 다른 프레임워크에 응용 프로그램을 잠그지 않습니다.
+- JdbcUserDetailsManager는 JDBC를 직접 사용하는 장점이 있으며 다른 프레임워크에 응용 프로그램을 종속되게 하지 않습니다.

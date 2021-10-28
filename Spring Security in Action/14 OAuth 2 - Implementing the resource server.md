@@ -84,11 +84,11 @@ public class ResourceServerConfig {
 
 유효한 액세스 토큰을 제공하더라도 요청은 여전히 ​​작동하지 않습니다. 리소스 서버는 이것이 유효한 토큰인지, 인증 서버가 실제로 토큰을 발행했는지 확인할 수 없습니다. 리소스 서버가 액세스 토큰의 유효성을 검사하는 데 필요한 옵션을 구현하지 않았기 때문입니다. 이 접근 방식을 취하고 다음 두 섹션에서 옵션에 대해 논의하겠습니다. 15장에서는 추가 옵션을 제공합니다.
 
-> **참고** 이전 참고에서 언급했듯이 리소스 서버 구현도 변경되었습니다. Spring Security OAuth 프로젝트의 일부인 @EnableResourceServer 주석은 최근에 더 이상 사용되지 않는 것으로 표시되었습니다. Spring Security 마이그레이션 가이드(https://github.com/spring-projects/spring-security/wiki/OAuth-2.0-Migration-Guide)에서 Spring Security에서 직접 구성 방법을 사용하도록 초대합니다. 현재 대부분의 앱에서 여전히 Spring Security OAuth 프로젝트를 사용하고 있습니다. 이러한 이유로 이 장에서 예제로 제시하는 두 가지 접근 방식을 모두 이해하는 것이 중요합니다.
+> **참고** Spring Security OAuth 프로젝트의 일부인 @EnableResourceServer 주석은 최근에 더 이상 사용되지 않는 것으로 표시되었습니다. Spring Security 마이그레이션 가이드(https://github.com/spring-projects/spring-security/wiki/OAuth-2.0-Migration-Guide)에서 Spring Security에서 직접 구성 방법을 사용하도록 초대합니다. 현재 대부분의 앱에서 여전히 Spring Security OAuth 프로젝트를 사용하고 있습니다. 이러한 이유로 이 장에서 예제로 제시하는 두 가지 접근 방식을 모두 이해하는 것이 중요합니다.
 
 ## 14.2 원격으로 토큰 확인하기
 
-리소스 서버가 인증 서버를 직접 호출하도록 허용하여 토큰 유효성 검사를 구현합니다. 이 접근 방식은 유효한 액세스 토큰을 사용하여 리소스 서버에 액세스할 수 있도록 구현할 수 있는 가장 간단한 방법입니다. 시스템의 토큰이 일반인 경우 이 접근 방식을 선택합니다(예: Spring Security가 있는 인증 서버의 기본 구현에서와 같이 단순한 UUID). 먼저 이 접근 방식을 논의한 다음 예제를 통해 구현합니다. 토큰을 검증하는 이 메커니즘은 간단합니다(그림 14.6).
+리소스 서버가 인증 서버를 직접 호출하도록 허용하여 토큰 유효성 검사를 구현합니다. 이 접근 방식은 유효한 액세스 토큰을 사용하여 리소스 서버에 액세스할 수 있도록 구현할 수 있는 가장 간단한 방법입니다. 시스템의 토큰이 일반인 경우 이 접근 방식을 선택합니다(예: Spring Security가 있는 인증 서버의 기본 구현에서와 같이 단순한 UUID). 먼저 이 접근 방식을 논의한 다음 예제를 통해 구현합니다. 이 메커니즘은 간단합니다(그림 14.6).
 
 1. 권한 부여 서버가 끝점을 노출합니다. 유효한 토큰의 경우 이전에 발행된 사용자에게 부여된 권한을 반환합니다. 이 끝점을 `check_token` 끝점이라고 합시다.
 
@@ -115,7 +115,7 @@ ssia-ch14-ex1-rs 프로젝트에서 리소스 서버 구현을 계속합시다. 
 
 기본적으로 권한 부여 서버는 리소스 서버가 토큰의 유효성을 검사하는 데 사용할 수 있는 엔드포인트 `/oauth/check_token`을 구현합니다. 그러나 현재 권한 부여 서버는 해당 끝점에 대한 모든 요청을 암시적으로 거부합니다. /oauth/check_token 엔드포인트를 사용하기 전에 리소스 서버가 이를 호출할 수 있는지 확인해야 합니다.
 
-인증된 요청이 `/oauth/check_token` 끝점을 호출할 수 있도록 하려면 권한 부여 서버의 AuthServerConfig 클래스에서 `configure(AuthorizationServerSecurityConfigurer c)` 메서드를 재정의합니다. configure() 메서드를 재정의하면 `/oauth/check_token` 끝점을 호출할 수 있는 조건을 설정할 수 있습니다. 다음 목록은 이 작업을 수행하는 방법을 보여줍니다.
+인증된 요청이 `/oauth/check_token` 끝점을 호출할 수 있도록 하려면 권한 부여 서버의 AuthServerConfig 클래스에서 `configure(AuthorizationServerSecurityConfigurer c)` 메서드를 재정의합니다. configure() 메서드를 재정의하면 `/oauth/check_token` 끝점을 호출할 수 있는 조건을 설정할 수 있습니다.
 
 **Listing 14.3** Enabling authenticated access to the check_token endpoint
 ```java
@@ -147,8 +147,7 @@ public class AuthServerConfig
     
   public void configure(
     AuthorizationServerSecurityConfigurer security) {
-      security.checkTokenAccess
-                ("isAuthenticated()");        ❶
+      security.checkTokenAccess("isAuthenticated()"); ❶
   }
 }
 ```
@@ -230,12 +229,12 @@ check_token 끝점에서 반환되는 응답을 관찰합니다. 액세스 토�
 이제 cURL을 사용하여 엔드포인트를 호출하면 리소스 서버가 이를 사용하여 토큰을 확인할 수 있어야 합니다. 인증 서버의 끝점과 리소스 서버가 끝점에 액세스하는 데 사용하는 자격 증명을 구성해야 합니다. application.properties 파일에서 이 모든 작업을 수행할 수 있습니다. 다음 코드는 세부 정보를 제공합니다.
 ```
 server.port=9090
-security.oauth2.resource.token-info-uri=http:/./localhost:8080/oauth/check_token
+security.oauth2.resource.token-info-uri=http://localhost:8080/oauth/check_token
 security.oauth2.client.client-id=resourceserver
 security.oauth2.client.client-secret=resourceserversecret
 ```
 
-그런데 저와 같은 시스템에서 두 응용 프로그램을 모두 실행할 계획이라면 server.port 속성을 사용하여 다른 포트를 설정하는 것을 잊지 마십시오. 인증 서버를 실행하기 위해 포트 8080(기본값)을 사용하고 리소스 서버를 위해 포트 9090을 사용합니다.
+인증 서버를 실행하기 위해 포트 8080(기본값)을 사용하고 리소스 서버를 위해 포트 9090을 사용합니다.
 
 /hello 엔드포인트를 호출하여 두 애플리케이션을 모두 실행하고 전체 설정을 테스트할 수 있습니다. 요청의 Authorization 헤더에 액세스 토큰을 설정해야 하고 해당 값에 단어 bearer를 접두사로 붙여야 합니다. 이 단어의 경우 대소문자를 구분하지 않습니다. 즉, "Bearer" 또는 "BEARER"도 쓸 수 있습니다.
 
@@ -250,7 +249,7 @@ The response body is
 토큰 없이 또는 잘못된 토큰을 사용하여 끝점을 호출한 경우 HTTP 응답에서 결과는 401 Unauthorized 상태가 되었을 것입니다. 다음 코드 조각은 응답을 제공합니다.
 
 ```bsh
-curl -v "http:/./localhost:9090/hello"
+curl -v "http://localhost:9090/hello"
 ```
 
 The (truncated) response is
@@ -265,9 +264,10 @@ The (truncated) response is
     required to access this resource"
 }
 ```
+
 ### Spring Security OAuth 없이 토큰 자체 검사 사용
 
-요즘 공통적인 관심사는 Spring Security OAuth 없이 이전 예제와 같이 리소스 서버를 구현하는 방법입니다. Spring Security OAuth가 더 이상 사용되지 않는다고 말하지만 기존 프로젝트에서 이러한 클래스를 찾을 수 있는 좋은 기회가 있기 때문에 여전히 이해해야 한다고 생각합니다. 이 측면을 명확히 하기 위해 Spring Security OAuth 없이 동일한 것을 구현하는 방법과 관련된 비교를 추가합니다. 이 사이드바에서는 Spring Security OAuth를 사용하지 않고 Spring Security 구성으로 직접 토큰 검사를 사용하여 리소스 서버를 구현하는 방법에 대해 설명합니다. 다행히 생각보다 쉽습니다.
+요즘 공통적인 관심사는 Spring Security OAuth 없이 이전 예제와 같이 리소스 서버를 구현하는 방법입니다. Spring Security OAuth가 더 이상 사용되지 않는다고 말하지만 기존 프로젝트에서 이러한 클래스를 찾을 수 있는 좋은 기회가 있기 때문에 여전히 이해해야 한다고 생각합니다. 이 측면을 명확히 하기 위해 Spring Security OAuth 없이 동일한 것을 구현하는 방법과 관련된 비교를 추가합니다. 이 사이드바에서는 Spring Security OAuth를 사용하지 않고 Spring Security 구성으로 직접 토큰 검사를 사용하여 리소스 서버를 구현하는 방법에 대해 설명합니다.
 
 이전 장에서 httpBasic(), formLogin() 및 기타 인증 방법에 대해 논의했습니다. 이러한 메서드를 호출할 때 필터 체인에 새 필터를 추가하기만 하면 앱에서 다른 인증 메커니즘을 사용할 수 있다는 것을 배웠습니다. 최신 버전에서 Spring Security는 리소스 서버 인증 방법을 활성화하는 oauth2ResourceServer() 메서드도 제공합니다.
 
@@ -591,17 +591,17 @@ Hello!
 표 14.1 리소스 서버가 토큰을 검증하기 위해 제시된 접근 방식을 구현할 때의 장단점
 접근 장점 단점
 
-인증 서버 직접 호출 구현하기 쉽습니다.
-모든 토큰 구현에 적용할 수 있습니다. 이는 권한 부여 서버와 리소스 서버 간의 직접적인 종속성을 의미합니다.
+- 인증 서버 직접 호출 구현하기 쉽습니다.
+- 모든 토큰 구현에 적용할 수 있습니다. 이는 권한 부여 서버와 리소스 서버 간의 직접적인 종속성을 의미합니다.
 
-권한 부여 서버에 불필요한 스트레스를 유발할 수 있습니다.
-공유 데이터베이스 사용(블랙보드) 권한 부여 서버와 리소스 서버 간의 직접 통신이 필요하지 않습니다.
+- 권한 부여 서버에 불필요한 스트레스를 유발할 수 있습니다.
+- 공유 데이터베이스 사용(블랙보드) 권한 부여 서버와 리소스 서버 간의 직접 통신이 필요하지 않습니다.
 
-모든 토큰 구현에 적용할 수 있습니다.
-토큰을 유지하면 권한 부여 서버가 다시 시작된 후 또는 권한 부여 서버가 다운된 경우 권한 부여가 작동할 수 있습니다. 인증 서버를 직접 호출하는 것보다 구현하기가 더 어렵습니다.
+- 모든 토큰 구현에 적용할 수 있습니다.
+- 토큰을 유지하면 권한 부여 서버가 다시 시작된 후 또는 권한 부여 서버가 다운된 경우 권한 부여가 작동할 수 있습니다. 인증 서버를 직접 호출하는 것보다 구현하기가 더 어렵습니다.
 
-시스템에 하나 이상의 구성요소인 공유 데이터베이스가 필요합니다.
-공유 데이터베이스는 병목 현상이 되어 시스템 성능에 영향을 줄 수 있습니다.
+- 시스템에 하나 이상의 구성요소인 공유 데이터베이스가 필요합니다.
+- 공유 데이터베이스는 병목 현상이 되어 시스템 성능에 영향을 줄 수 있습니다.
 
 ## 요약
 

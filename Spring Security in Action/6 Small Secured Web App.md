@@ -81,14 +81,14 @@ CREATE TABLE IF NOT EXISTS `spring`.`authority` (
   `user` INT NOT NULL,
   PRIMARY KEY (`id`));
 ```
-The third table is named product. It stores the data that’s displayed after the user successfully logs in. The fields of this table are
+세 번째 테이블의 이름은 product입니다. 사용자가 성공적으로 로그인한 후 표시되는 데이터를 저장합니다. 이 테이블의 필드는
 
-- id--Represents the primary key of the table that’s defined as auto-increment
-- name--Represents the name of the product, which is a string
-- price--Represents the price of the product, which is a double
-- currency--Represents the currency (for example, USD, EUR, and so on), which is a string
+- id - 자동 증분으로 정의된 테이블의 기본 키를 나타냅니다.
+- name - 제품의 이름을 나타냅니다.
+- 가격 - 제품의 가격을 나타내며 두 배입니다.
+- 통화 - 문자열인 통화(예: USD, EUR 등)를 나타냅니다.
 
-Listing 6.3 provides the definition of the product table. You can run this script manually or add it to the schema.sql file to let Spring Boot run it when the project starts.
+목록 6.3은 제품 테이블의 정의를 제공합니다. 이 스크립트를 수동으로 실행하거나 schema.sql 파일에 추가하여 프로젝트가 시작될 때 Spring Boot가 실행하도록 할 수 있습니다.
 
 Listing 6.3 Script for creating the product table
 ```sql
@@ -99,28 +99,21 @@ CREATE TABLE IF NOT EXISTS `spring`.`product` (
   `currency` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`));
 ```
-> NOTE It is advisable to have a many-to-many relationship between the authorities and the users. To keep the example simpler from the point of view of the persistence layer and focus on the essential aspects of Spring Security, I decided to make this one-to-many.
+> **참고** 기관과 사용자는 다대다 관계를 유지하는 것이 좋습니다. 지속성 계층의 관점에서 예제를 더 단순하게 유지하고 Spring Security의 필수 측면에 집중하기 위해 이것을 일대다로 만들기로 결정했습니다.
 
-Let’s add some data that we can use to test our application. You can run these INSERT queries manually or add them to the data.sql file in the resources folder of your project to allow Spring Boot to run them when you start the application:
+애플리케이션을 테스트하는 데 사용할 수 있는 데이터를 추가해 보겠습니다. 이러한 INSERT 쿼리를 수동으로 실행하거나 프로젝트의 리소스 폴더에 있는 data.sql 파일에 추가하여 애플리케이션을 시작할 때 Spring Boot가 쿼리를 실행할 수 있도록 할 수 있습니다.
+
 ```sql
-INSERT IGNORE INTO `spring`.`user` (`id`, `username`, `password`, `algorithm`) VALUES ('1', 'john', '$2a$10$xn3LI/AjqicFYZFruSwve.681477XaVNaUQbr1gioaWPn4t1KsnmG', 'BCRYPT');
+INSERT IGNORE INTO user (`id`, `username`, `password`, `algorithm`) VALUES ('1', 'john', '$2a$10$xn3LI/AjqicFYZFruSwve.681477XaVNaUQbr1gioaWPn4t1KsnmG', 'BCRYPT');
   
-INSERT IGNORE INTO `spring`.`authority` (`id`, `name`, `user`) VALUES ('1', 'READ', '1');
-INSERT IGNORE INTO `spring`.`authority` (`id`, `name`, `user`) VALUES ('2', 'WRITE', '1');
+INSERT IGNORE INTO authority (`id`, `name`, `user`) VALUES ('1', 'READ', '1');
+INSERT IGNORE INTO authority (`id`, `name`, `user`) VALUES ('2', 'WRITE', '1');
 
-INSERT IGNORE INTO `spring`.`product` (`id`, `name`, `price`, `currency`) VALUES ('1', 'Chocolate', '10', 'USD');
+INSERT IGNORE INTO product (`id`, `name`, `price`, `currency`) VALUES ('1', 'Chocolate', '10', 'USD');
 ```
-In this code snippet, for user John, the password is hashed using bcrypt. The raw password is 12345.
+이 코드 조각에서 사용자 John의 경우 암호는 bcrypt를 사용하여 해시됩니다. 원시 암호는 12345입니다.
 
-> NOTE It’s common to use the schema.sql and data.sql files in examples. In a real application, you can choose a solution that allows you to also version the SQL scripts. You’ll find this often done using a dependency like Flyway (https://flywaydb.org/) or Liquibase (https://www.liquibase.org/).
-
-Now that we have a database and some test data, let’s start with the implementation. We create a new project, and add the following dependencies, which are presented in listing 6.4:
-
-- spring-boot-starter-data-jpa--Connects to the database using Spring Data
-- spring-boot-starter-security--Lists the Spring Security dependencies
-- spring-boot-starter-thymeleaf--Adds Thymeleaf as a template engine to simplify the definition of the web page
-- spring-boot-starter-web--Lists the standard web dependencies
-- mysql-connector-java--Implements the MySQL JDBC driver
+> 참고 예시에서는 schema.sql 및 data.sql 파일을 사용하는 것이 일반적입니다. 실제 응용 프로그램에서는 SQL 스크립트의 버전도 지정할 수 있는 솔루션을 선택할 수 있습니다. Flyway(https://flywaydb.org/) 또는 Liquibase(https://www.liquibase.org/)와 같은 종속성을 사용하여 이 작업을 수행하는 경우가 많습니다.
 
 Listing 6.4 Dependencies needed for the development of the example project
 ```xml
@@ -157,19 +150,24 @@ spring.datasource.initialization-mode=always
 
 ## 6.2 사용자 관리 구현
 
-이 섹션에서는 응용 프로그램의 사용자 관리 부분을 구현하는 방법에 대해 설명합니다. Spring Security와 관련된 사용자 관리의 대표적인 컴포넌트는 UserDetailsService이다. Spring Security에 사용자의 세부 정보를 검색하는 방법을 지시하려면 최소한 이 계약을 구현해야 합니다.
+응용 프로그램의 사용자 관리 부분을 구현하는 방법에 대해 설명합니다. 사용자 관리의 대표적인 컴포넌트는 UserDetailsService이며 사용자 세부 정보를 검색하는 방법을 지시하려면 최소한 이 계약을 구현해야 합니다.
 
-이제 프로젝트가 준비되고 데이터베이스 연결이 구성되었으므로 애플리케이션 보안과 관련된 구현에 대해 생각할 때입니다. 사용자 관리를 처리하는 애플리케이션의 이 부분을 빌드하기 위해 수행해야 하는 단계는 다음과 같습니다.
+애플리케이션 보안과 관련된 구현에 대해 생각할 때입니다. 사용자 관리를 처리하는 애플리케이션의 이 부분을 빌드하기 위해 수행해야 하는 단계는 다음과 같습니다.
 
 1. 두 해싱 알고리즘에 대한 암호 인코더 개체를 정의합니다.
+
 2. 인증 프로세스에 필요한 세부 정보를 저장하는 사용자 및 권한 테이블을 나타내도록 JPA 엔터티를 정의합니다.
+
 3. Spring Data에 대한 JpaRepository 계약을 선언합니다. 이 예에서는 사용자를 직접 참조하기만 하면 되므로 UserRepository라는 리포지토리를 선언합니다.
+
 4. 사용자 JPA 엔터티에 대해 UserDetails 계약을 구현하는 데코레이터를 만듭니다. 여기에서는 섹션 3.2.5에서 논의된 책임을 분리하는 접근 방식을 사용합니다.
+
 5. UserDetailsService 계약을 구현합니다. 이를 위해 JpaUserDetailsService라는 클래스를 생성합니다. 이 클래스는 3단계에서 만든 UserRepository를 사용하여 데이터베이스에서 사용자에 대한 세부 정보를 얻습니다. JpaUserDetailsService가 사용자를 찾으면 4단계에서 정의한 데코레이터의 구현으로 사용자를 반환합니다.
 
 먼저 사용자와 비밀번호 관리를 고려합니다. 우리는 앱이 비밀번호를 해시하기 위해 사용하는 알고리즘이 bcrypt와 scrypt라는 것을 예제의 요구 사항에서 알고 있습니다. 다음 목록과 같이 구성 클래스를 생성하고 이 두 암호 인코더를 빈으로 선언하는 것으로 시작할 수 있습니다.
 
 Listing 6.5 Registering a bean for each PasswordEncoder
+
 ```java
 @Configuration
 public class ProjectConfig {
@@ -532,6 +530,7 @@ public class ProductService {
 }
 ```
 In the end, a MainPageController defines the path for the page and fills the Model object with what the page will display.
+
 Listing 6.20 The definition of the controller class
 ```java
 @Controller
@@ -592,7 +591,7 @@ Listing 6.21 The definition of the main page
 
 ## 6.5 애플리케이션 실행 및 테스트
 
-이 책의 첫 번째 실습 프로젝트에 대한 코드 작성을 완료했습니다. 이제 사양에 따라 작동하는지 확인할 때입니다. 이제 애플리케이션을 실행하고 로그인을 시도해 보겠습니다. 애플리케이션을 실행한 후 http://localhost :8080 주소를 입력하여 브라우저에서 액세스할 수 있습니다. 표준 로그인 양식은 그림 6.4와 같이 나타납니다. 내가 데이터베이스에 저장한 사용자(그리고 이 장의 시작 부분에 제공된 스크립트에 있는 사용자)는 bcrypt를 사용하여 해시된 암호 12345를 가진 John입니다. 이 자격 증명을 사용하여 로그인할 수 있습니다.
+이 책의 첫 번째 실습 프로젝트에 대한 코드 작성을 완료했습니다. 이제 사양에 따라 작동하는지 확인할 때입니다. 이제 애플리케이션을 실행하고 로그인을 시도해 보겠습니다. 애플리케이션을 실행한 후 http://localhost:8080 주소를 입력하여 브라우저에서 액세스할 수 있습니다. 표준 로그인 양식은 그림 6.4와 같이 나타납니다. 내가 데이터베이스에 저장한 사용자(그리고 이 장의 시작 부분에 제공된 스크립트에 있는 사용자)는 bcrypt를 사용하여 해시된 암호 12345를 가진 John입니다. 이 자격 증명을 사용하여 로그인할 수 있습니다.
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH06_F04_Spilca.png)
 

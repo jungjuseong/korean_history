@@ -1073,6 +1073,7 @@ Test
 Awesome! You finished the second hands-on chapter! You managed to write a whole backend system and secure its resources by writing custom authentication and authorization. And you even used JWTs for this, which takes you a significant step forward and prepares you for what’s coming in the next chapters--the OAuth 2 flow.
 
 ## Summary
+
 - When implementing custom authentication and authorization, always rely on the contracts offered by Spring Security. These are the AuthenticationProvider, AuthenticationManager, UserDetailsService, and so forth. This approach helps you implement an easier-to-understand architecture and makes your application less error prone.
 - A token is an identifier for the user. It can have any implementation as long as the server recognizes it after it’s generated. Examples of tokens from real-world scenarios are an access card, a ticket, or the sticker you receive at the entrance of a museum.
 - While an application can use a simple universally unique identifier (UUID) as a token implementation, you more often find tokens implemented as JSON Web Tokens (JWTs). JWTs have multiple benefits: they can store data exchanged on the request, and you can sign them to ensure they weren’t changed while transferred.

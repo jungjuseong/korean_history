@@ -349,7 +349,7 @@ public JwtDecoder jwtDecoder() {
 
 ## 15.2 JWT에서 비대칭 키로 서명된 토큰 사용하기
 
-인증 서버와 리소스 서버가 비대칭 키 쌍을 사용하여 토큰에 서명하고 유효성을 검사하는 OAuth 2 인증의 예를 구현합니다. 때때로 15.1절에서 구현한 것처럼 인증 서버와 리소스 서버가 공유하는 키만 갖는 것은 불가능합니다. 종종 이 시나리오는 권한 부여 서버와 리소스 서버가 동일한 조직에서 개발되지 않은 경우에 발생합니다. 이 경우 권한 부여 서버가 리소스 서버를 "신뢰"하지 않으므로 권한 부여 서버가 리소스 서버와 키를 공유하는 것을 원하지 않는다고 말합니다. 그리고 대칭 키를 사용하면 리소스 서버가 너무 많은 권한을 갖게 됩니다. 즉, 토큰의 유효성을 검사할 뿐만 아니라 서명할 수도 있습니다(그림 15.4).
+인증 서버와 리소스 서버가 비대칭 키 쌍을 사용하여 토큰에 서명하고 유효성을 검사하는 OAuth 2 인증의 예를 구현합니다. 15.1처럼 인증 서버와 리소스 서버가 공유하는 키만 갖는 것은 불가능한 경우가 대부분입니다. 이 시나리오는 권한 부여 서버와 리소스 서버가 동일한 조직에서 개발되지 않은 경우에 발생합니다. 이 경우 권한 부여 서버가 리소스 서버를 "신뢰"하지 않으므로 권한 부여 서버가 리소스 서버와 키를 공유하는 것을 원하지 않는다고 말합니다. 그리고 대칭 키를 사용하면 리소스 서버가 너무 많은 권한을 갖게 됩니다. 즉, 토큰의 유효성을 검사할 뿐만 아니라 서명할 수도 있습니다(그림 15.4).
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH15_F04_Spilca.png)
 
@@ -388,12 +388,13 @@ keytool -genkeypair -alias ssia -keyalg RSA -keypass ssia123 -keystore ssia.jks 
 
 #### 공개키 생성
 
-To get the public key for the previously generated private key, you can run the keytool command:
+방금 생성한 개인키에 대한 공개키는 다음과 같이 만든다.
 
 ```bsh
 keytool -list -rfc --keystore ssia.jks | openssl x509 -inform pem -pubkey
 ```
-공개 키를 생성할 때 사용한 암호를 입력하라는 메시지가 표시됩니다. 제 경우에는 ssia123입니다. 그런 다음 출력에서 공개 키와 인증서를 찾아야 합니다. (이 예에서는 키 값만 필요합니다.) 이 키는 다음 코드 조각과 유사해야 합니다.
+
+공개 키를 생성할 때 사용한 암호를 입력하라는 메시지가 표시됩니다. 제 경우에는 ssia123입니다. 그런 다음 출력에서 공개 키와 인증서를 찾아야 합니다. (이 예에서는 키 값만 필요합니다.) 이 키는 다음 코드과 유사해야 합니다.
 ```
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAijLqDcBHwtnsBw+WFSzG
@@ -406,7 +407,7 @@ DwIDAQAB
 -----END PUBLIC KEY-----
 ```
 
-그게 다야! JWT에 서명하는 데 사용할 수 있는 개인 키와 서명을 확인하는 데 사용할 수 있는 공개 키가 있습니다. 이제 권한 부여 및 리소스 서버에서 구성하기만 하면 됩니다.
+JWT에 서명하는 데 사용할 수 있는 개인 키와 서명을 확인하는 데 사용할 수 있는 공개 키가 있습니다. 이제 권한 부여 및 리소스 서버에서 구성하기만 하면 됩니다.
 
 ### 15.2.2 개인 키를 사용하는 인증 서버 구현
 
@@ -429,14 +430,14 @@ alias=ssia
 public class AuthServerConfig
   extends AuthorizationServerConfigurerAdapter {
 
-  @Value("${password}")                             ❶
-  private String password;                          ❶
-                                                    ❶
-  @Value("${privateKey}")                           ❶
-  private String privateKey;                        ❶
-                                                    ❶
-  @Value("${alias}")                                ❶
-  private String alias;                             ❶
+  @Value("${password}") ❶
+  private String password; 
+ 
+  @Value("${privateKey}")
+  private String privateKey;
+                                                   
+  @Value("${alias}")
+  private String alias;
 
   @Autowired
   private AuthenticationManager authenticationManager;
@@ -447,13 +448,13 @@ public class AuthServerConfig
   public JwtAccessTokenConverter jwtAccessTokenConverter() {
     var converter = new JwtAccessTokenConverter();
 
-    KeyStoreKeyFactory keyStoreKeyFactory =         ❷
-       new KeyStoreKeyFactory(                      ❷
-           new ClassPathResource(privateKey),       ❷
-                     password.toCharArray()         ❷
-       );                                           ❷
+    KeyStoreKeyFactory keyStoreKeyFactory = 
+       new KeyStoreKeyFactory(
+           new ClassPathResource(privateKey),
+                     password.toCharArray()
+       ); ❷ 
 
-    converter.setKeyPair(                           ❸
+    converter.setKeyPair( ❸
        keyStoreKeyFactory.getKeyPair(alias));
 
     return converter;
@@ -466,7 +467,7 @@ public class AuthServerConfig
 
 ❸ KeyStoreKeyFactory 객체를 사용하여 키 쌍을 검색하고 키 쌍을 JwtAccessTokenConverter 객체로 설정합니다.
 
-이제 권한 부여 서버를 시작하고 /oauth/token 엔드포인트를 호출하여 새 액세스 토큰을 생성할 수 있습니다. 물론 생성된 일반 JWT만 볼 수 있지만 서명을 확인하려면 쌍에서 공개 키를 사용해야 한다는 차이점이 있습니다. 그건 그렇고, 토큰은 암호화되지 않고 서명만 된다는 것을 잊지 마십시오. 다음 코드는 /oauth/token 엔드포인트를 호출하는 방법을 보여줍니다.
+이제 권한 부여 서버를 시작하고 `/oauth/token` 엔드포인트를 호출하여 새 액세스 토큰을 생성할 수 있습니다. 물론 생성된 일반 JWT만 볼 수 있지만 서명을 확인하려면 쌍에서 공개 키를 사용해야 한다는 차이점이 있습니다. 토큰은 암호화되지 않고 서명만 된다는 것을 잊지 마십시오. 다음 코드는 `/oauth/token` 엔드포인트를 호출하는 방법을 보여줍니다.
 
 ```bsh
 curl -v -XPOST -u client:secret "http://localhost:8080/oauth/token?grant_type=password&username=john&password=12345&scope=read"
@@ -486,7 +487,7 @@ The response body is
 
 ### 15.2.3 공개 키를 사용하는 리소스 서버 구현
 
-공개 키를 사용하여 토큰의 서명을 확인하는 리소스 서버를 구현합니다. 이 섹션을 마치면 OAuth 2를 통한 인증을 구현하고 공개-개인 키 쌍을 사용하여 토큰을 보호하는 전체 시스템을 갖게 됩니다. 인증 서버는 개인 키를 사용하여 토큰에 서명하고 리소스 서버는 공개 키를 사용하여 서명을 확인합니다. 우리는 토큰에 서명할 때만 키를 사용하고 암호화하지 않습니다. 이 리소스 서버를 구현하기 위해 작업하는 프로젝트의 이름을 ssia-ch15-ex2-rs로 지정했습니다. 이 장의 이전 섹션에 있는 예제와 동일한 종속성을 pom.xml에서 사용합니다.
+리소스 서버는 공개 키로 토큰의 서명을 확인합니다. OAuth 2를 통한 인증을 구현하고 공개-개인 키 쌍을 사용하여 토큰을 보호하는 전체 시스템을 만듭니다. 인증 서버는 개인 키를 사용하여 토큰에 서명하고 리소스 서버는 공개 키를 사용하여 서명을 확인합니다. 토큰에 서명할 때만 키를 사용하고 암호화하지 않습니다. 이 리소스 서버를 구현하기 위해 작업하는 프로젝트의 이름을 ssia-ch15-ex2-rs로 지정했습니다. 이전 섹션에 있는 예제와 동일한 종속성을 pom.xml에서 사용합니다.
 
 리소스 서버는 토큰 서명의 유효성을 검사하기 위해 쌍의 공개 키가 있어야 하므로 이 키를 application.properties 파일에 추가해 보겠습니다. 섹션 15.2.1에서 공개 키를 생성하는 방법을 배웠습니다. 다음 코드은 내 application.properites 파일의 내용을 보여줍니다.
 
@@ -494,7 +495,7 @@ The response body is
 server.port=9090
 publicKey=-----BEGIN PUBLIC KEY-----MIIBIjANBghk...-----END PUBLIC KEY-----
 ```
-더 나은 가독성을 위해 공개 키를 축약했습니다. 다음 목록은 리소스 서버의 구성 클래스에서 이 키를 구성하는 방법을 보여줍니다.
+다음 목록은 리소스 서버의 구성 클래스에서 이 키를 구성하는 방법을 보여줍니다.
 
 **목록 15.6** 리소스 서버 및 공개 키에 대한 구성 클래스
 ```java
@@ -596,7 +597,6 @@ extends WebSecurityConfigurerAdapter {
 ### 15.2.4 엔드포인트를 사용하여 공개 키 노출
 
 공개 키를 리소스 서버에 알리는 방법에 대해 설명합니다. 권한 부여 서버는 공개 키를 노출합니다. 15.2에서 구현한 시스템에서 개인-공개 키 쌍을 사용하여 토큰에 서명하고 유효성을 검사합니다. 리소스 서버 측에서 공개 키를 구성했습니다. 리소스 서버는 공개 키를 사용하여 JWT의 유효성을 검사합니다. 그러나 키 쌍을 변경하려는 경우 어떻게 됩니까? 동일한 키 쌍을 영원히 유지하지 않는 것이 좋은 방법이며 이것이 이 섹션에서 구현하는 방법입니다. 시간이 지남에 따라 키를 회전해야 합니다! 이렇게 하면 시스템이 키 도난에 덜 취약해집니다(그림 15.7).
- 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617297731/files/OEBPS/Images/CH15_F07_Spilca.png)
 
 그림 15.7 키가 주기적으로 변경되면 시스템은 키 도난에 덜 취약합니다. 그러나 키가 두 애플리케이션 모두에 구성되어 있으면 키를 회전하기가 더 어렵습니다.
@@ -607,7 +607,7 @@ extends WebSecurityConfigurerAdapter {
 
 그림 15.8 두 키 모두 인증 서버에서 구성됩니다. 공개 키를 가져오기 위해 리소스 서버는 권한 부여 서버에서 끝점을 호출합니다. 이 접근 방식을 사용하면 키를 한 곳에서만 구성하면 되므로 키를 더 쉽게 회전할 수 있습니다.
 
-우리는 Spring Security로 이 구성을 구현하는 방법을 증명하기 위해 별도의 애플리케이션에서 작업합니다. 프로젝트 ssia-ch15-ex3-as에서 이 예제에 대한 권한 부여 서버를, 프로젝트 ssia-ch15-ex3-rs에서 이 예제의 리소스 서버를 찾을 수 있습니다.
+프로젝트 ssia-ch15-ex3-as에서 이 예제에 대한 권한 부여 서버를, 프로젝트 ssia-ch15-ex3-rs에서 이 예제의 리소스 서버를 찾을 수 있습니다.
 
 인증 서버의 경우 15.2.3에서 개발한 프로젝트와 동일한 설정을 유지합니다. 공개 키를 노출하는 엔드포인트에 액세스할 수 있도록 하기만 하면 됩니다. 예, Spring Boot는 이미 그러한 끝점을 구성하지만 단지 그 뿐입니다. 기본적으로 모든 요청이 거부됩니다. 끝점의 구성을 재정의하고 클라이언트 자격 증명을 가진 모든 사람이 액세스할 수 있도록 해야 합니다. 목록 15.7에서 인증 서버의 구성 클래스에 대해 변경해야 할 사항을 찾을 수 있습니다. 이러한 구성을 통해 유효한 클라이언트 자격 증명을 가진 사람은 누구나 엔드포인트를 호출하여 공개 키를 얻을 수 있습니다.
 
@@ -630,21 +630,22 @@ public class AuthServerConfig
              .secret("secret")
              .authorizedGrantTypes("password", "refresh_token")
              .scopes("read")
-               .and()                              ❶
-             .withClient("resourceserver")         ❶
-             .secret("resourceserversecret");      ❶
+               .and() ❶
+             .withClient("resourceserver") ❶
+             .secret("resourceserversecret"); ❶
     }
 
     @Override
     public void configure(
       AuthorizationServerSecurityConfigurer security) {
-        security.tokenKeyAccess
-                  ("isAuthenticated()");           ❷
+        security.tokenKeyAccess("isAuthenticated()"); ❷
     }
 }
 ```
 ❶ 리소스 서버가 엔드포인트를 호출하는 데 사용하는 클라이언트 자격 증명을 추가하여 공개 키를 노출합니다.
+
 ❷ 유효한 클라이언트 자격 증명으로 인증된 모든 요청에 대해 공개 키에 대한 끝점을 노출하도록 권한 부여 서버를 구성합니다.
+
 권한 부여 서버를 시작하고 /oauth/token_key 엔드포인트를 호출하여 구성을 올바르게 구현했는지 확인할 수 있습니다.
 
 ```json
@@ -657,7 +658,7 @@ The response body is
   "value":"-----BEGIN PUBLIC KEY----- nMIIBIjANBgkq... -----END PUBLIC KEY-----"
 }
 ```
-리소스 서버가 이 끝점을 사용하고 공개 키를 얻으려면 속성 파일에서 끝점과 자격 증명만 구성하면 됩니다. 다음 코드 조각은 리소스 서버의 application.properties 파일을 정의합니다.
+리소스 서버가 이 끝점을 사용하고 공개 키를 얻으려면 속성 파일에서 끝점과 자격 증명만 구성하면 됩니다. 다음 코드는 리소스 서버의 application.properties 파일을 정의합니다.
 
 ```yaml
 server.port=9090
@@ -666,7 +667,7 @@ security.oauth2.resource.jwt.key-uri=http://localhost:8080/oauth/token_key
 security.oauth2.client.client-id=resourceserver
 security.oauth2.client.client-secret=resourceserversecret
 ```
-리소스 서버는 이제 인증 서버의 /oauth/token_key 끝점에서 공개 키를 가져오기 때문에 리소스 서버 구성 클래스에서 구성할 필요가 없습니다. 다음 코드 조각에서 볼 수 있듯이 리소스 서버의 구성 클래스는 비어 있을 수 있습니다.
+리소스 서버는 이제 인증 서버의 /oauth/token_key 끝점에서 공개 키를 가져오기 때문에 리소스 서버 구성 클래스에서 구성할 필요가 없습니다. 다음 코드에서 볼 수 있듯이 리소스 서버의 구성 클래스는 비어 있을 수 있습니다.
 
 ```java
 @Configuration
@@ -683,14 +684,14 @@ public class ResourceServerConfig
 curl -H "Authorization:Bearer eyJhbGciOiJSUzI1NiIsInR5cCI..." http://localhost:9090/hello
 ```
 
-The response body is
+응답은
 ```
 Hello!
 ```
 
 ## 15.3 JWT에 사용자 지정 세부 정보 추가
 
-이 섹션에서는 JWT 토큰에 사용자 지정 세부 정보를 추가하는 방법에 대해 설명합니다. 대부분의 경우 Spring Security가 이미 토큰에 추가한 것 이상은 필요하지 않습니다. 그러나 실제 시나리오에서는 토큰에 사용자 지정 세부 정보를 추가해야 하는 요구 사항을 찾을 수 있습니다. 이 섹션에서는 JWT에 사용자 지정 세부 정보를 추가하도록 권한 부여 서버를 변경하는 방법과 이러한 세부 정보를 읽도록 리소스 서버를 변경하는 방법을 배우는 예제를 구현합니다. 이전 예제에서 생성한 토큰 중 하나를 가져와 디코딩하면 Spring Security가 토큰에 추가하는 기본값을 볼 수 있습니다. 다음 목록은 이러한 기본값을 나타냅니다.
+JWT 토큰에 사용자 지정 세부 정보를 추가하는 방법에 대해 설명합니다. 대부분의 경우 Spring Security가 이미 토큰에 추가한 것 이상은 필요하지 않습니다. 그러나 실제 시나리오에서는 토큰에 사용자 지정 세부 정보를 추가해야 하는 요구 사항을 찾을 수 있습니다. 이 섹션에서는 JWT에 사용자 지정 세부 정보를 추가하도록 권한 부여 서버를 변경하는 방법과 이러한 세부 정보를 읽도록 리소스 서버를 변경하는 방법을 배우는 예제를 구현합니다. 이전 예제에서 생성한 토큰 중 하나를 가져와 디코딩하면 Spring Security가 토큰에 추가하는 기본값을 볼 수 있습니다. 다음 목록은 이러한 기본값을 나타냅니다.
 
 **목록 15.8** 권한 부여 서버에서 발행한 JWT 본문의 기본 세부 정보
 ```json
@@ -722,9 +723,11 @@ Hello!
 목록 15.8에서 볼 수 있듯이 기본적으로 토큰은 일반적으로 기본 인증에 필요한 모든 세부 정보를 저장합니다. 그러나 실제 시나리오의 요구 사항이 더 많은 것을 요구한다면 어떻게 될까요? 몇 가지 예는 다음과 같습니다.
 
 - 독자가 책을 검토하는 응용 프로그램에서 권한 부여 서버를 사용합니다. 일부 엔드포인트는 특정 수 이상의 리뷰를 제공한 사용자만 액세스할 수 있어야 합니다.
+
 - 사용자가 특정 시간대에서 인증된 경우에만 통화를 허용해야 합니다.
+
 - 인증 서버는 소셜 네트워크이며 일부 엔드포인트는 최소 연결 수를 가진 사용자만 액세스할 수 있어야 합니다.
--
+
 첫 번째 예에서는 토큰에 리뷰 수를 추가해야 합니다. 두 번째로 클라이언트가 연결된 시간대를 추가합니다. 세 번째 예의 경우 사용자에 대한 연결 수를 추가해야 합니다. 어떤 경우이든 JWT를 사용자 정의하는 방법을 알아야 합니다.
 
 ### 15.3.1 토큰에 사용자 지정 세부 정보를 추가하도록 인증 서버 구성
@@ -734,23 +737,23 @@ Hello!
 Listing 15.9 커스텀 토큰 인핸서
 ```java
 public class CustomTokenEnhancer 
-  implements TokenEnhancer {                            ❶
+  implements TokenEnhancer { ❶
 
   @Override
-  public OAuth2AccessToken enhance(                     ❷
+  public OAuth2AccessToken enhance( ❷
     OAuth2AccessToken oAuth2AccessToken,
     OAuth2Authentication oAuth2Authentication) {
 
-    var token =                                         ❸
+    var token = ❸
       new DefaultOAuth2AccessToken(oAuth2AccessToken);
 
-      Map<String, Object> info =                        ❹
+      Map<String, Object> info = ❹
          Map.of("generatedInZone", 
                 ZoneId.systemDefault().toString());
 
-      token.setAdditionalInformation(info);             ❺
+      token.setAdditionalInformation(info); ❺
 
-      return token;                                     ❻
+      return token; ❻
   }
 }
 ```
@@ -782,19 +785,19 @@ public class AuthServerConfig
     AuthorizationServerEndpointsConfigurer endpoints) {
   
     TokenEnhancerChain tokenEnhancerChain 
-      = new TokenEnhancerChain();            ❶
+      = new TokenEnhancerChain(); ❶
 
-    var tokenEnhancers =                     ❷
+    var tokenEnhancers = ❷
       List.of(new CustomTokenEnhancer(),
               jwtAccessTokenConverter());
 
-    tokenEnhancerChain                       ❸
+    tokenEnhancerChain ❸
       .setTokenEnhancers(tokenEnhancers);
 
     endpoints
       .authenticationManager(authenticationManager)
       .tokenStore(tokenStore())
-      .tokenEnhancer(tokenEnhancerChain);    ❹
+      .tokenEnhancer(tokenEnhancerChain); ❹
 
    }
 }
@@ -807,7 +810,7 @@ public class AuthServerConfig
 
 ❹ 토큰 인핸서 개체를 구성합니다.
 
-보시다시피 커스텀 토큰 인핸서를 구성하는 것은 조금 더 복잡합니다. 액세스 토큰 변환기 개체도 토큰 향상기이기 때문에 토큰 향상기 체인을 만들고 하나의 개체 대신 전체 체인을 설정해야 합니다. 사용자 지정 토큰 향상기만 구성하면 액세스 토큰 변환기의 동작을 재정의합니다. 대신 책임 체인에 두 가지를 모두 추가하고 두 개체를 모두 포함하는 체인을 구성합니다.
+커스텀 토큰 인핸서를 구성하는 것은 조금 더 복잡합니다. 액세스 토큰 변환기 개체도 토큰 향상기이기 때문에 토큰 향상기 체인을 만들고 하나의 개체 대신 전체 체인을 설정해야 합니다. 사용자 지정 토큰 향상기만 구성하면 액세스 토큰 변환기의 동작을 재정의합니다. 대신 책임 체인에 두 가지를 모두 추가하고 두 개체를 모두 포함하는 체인을 구성합니다.
 
 인증 서버를 시작하고 새 액세스 토큰을 생성하고 어떻게 보이는지 검사해 보겠습니다. 다음 코드 조각은 /oauth/token 엔드포인트를 호출하여 액세스 토큰을 얻는 방법을 보여줍니다.
 
@@ -815,7 +818,7 @@ public class AuthServerConfig
 curl -v -XPOST -u client:secret "http://localhost:8080/oauth/token?grant_type=password&username=john&password=12345&scope=read"
 ```
 
-The response body is
+응답은
 
 ```json
 {
@@ -873,12 +876,12 @@ public class AdditionalClaimsAccessTokenConverter
   public OAuth2Authentication 
          extractAuthentication(Map<String, ?> map) {
 
-    var authentication =                 ❶
+    var authentication = ❶
       super.extractAuthentication(map);
 
-    authentication.setDetails(map);      ❷
+    authentication.setDetails(map); ❷
 
-    return authentication;               ❸
+    return authentication; ❸
 
   }
 }
@@ -886,6 +889,7 @@ public class AdditionalClaimsAccessTokenConverter
 ❶ JwtAccessTokenConverter 클래스에서 구현한 로직을 적용하여 초기 인증 객체를 얻는다.
 
 ❷ 인증에 사용자 지정 세부 정보 추가
+
 ❸ 인증 대상 반환
 리소스 서버의 구성 클래스에서 이제 사용자 지정 액세스 토큰 변환기를 사용할 수 있습니다. 다음 목록은 구성 클래스에서 AccessTokenConverter 빈을 정의합니다.
 
@@ -934,7 +938,7 @@ public class HelloController {
 ```sh
 curl -H "Authorization:Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp... " http://localhost:9090/hello
 ```
-The response body is
+응답은
 ```
 Hello! {user_name=john, scope=[read], generatedInZone=Europe/Bucharest, exp=1582595692, authorities=[read], jti=982b02be-d185-48de-a4d3-9b27337d1a46, client_id=client}
 ```
@@ -944,10 +948,17 @@ Hello! {user_name=john, scope=[read], generatedInZone=Europe/Bucharest, exp=1582
 ## 요약
 
 - 오늘날 애플리케이션이 OAuth 2 인증 아키텍처에서 토큰을 검증하는 방식은 암호화 서명을 사용하는 경우가 많습니다.
+
 - 암호화 서명과 함께 토큰 유효성 검사를 사용할 때 JWT(JSON Web Token)가 가장 널리 사용되는 토큰 구현입니다.
+
 - 대칭 키를 사용하여 토큰에 서명하고 유효성을 검사할 수 있습니다. 대칭 키를 사용하는 것은 간단한 접근 방식이지만 권한 부여 서버가 리소스 서버를 신뢰하지 않는 경우 사용할 수 없습니다.
+
 - 구현에서 대칭 키를 사용할 수 없는 경우 비대칭 키 쌍을 사용하여 토큰 서명 및 유효성 검사를 구현할 수 있습니다.
+
 - 시스템이 키 도난에 덜 취약하도록 키를 정기적으로 변경하는 것이 좋습니다. 주기적으로 키를 변경하는 것을 키 순환이라고 합니다.
+
 - 리소스 서버 측에서 직접 공개 키를 구성할 수 있습니다. 이 접근 방식은 간단하지만 키 회전을 더 어렵게 만듭니다.
+
 - 키 순환을 단순화하기 위해 권한 부여 서버 측에서 키를 구성하고 리소스 서버가 특정 끝점에서 키를 읽도록 허용할 수 있습니다.
+
 - 구현 요구 사항에 따라 본문에 세부 정보를 추가하여 JWT를 사용자 정의할 수 있습니다. 권한 부여 서버는 토큰 본문에 사용자 지정 세부 정보를 추가하고 리소스 서버는 이러한 세부 정보를 권한 부여에 사용합니다.

@@ -103,6 +103,7 @@ In the next sections, we will explain how Docker’s components work and how to 
 A Dockerfile is a simple text file that contains a list of instructions and commands that the Docker client calls to create and prepare an image. This file automates the image creation process for you. The commands used in the Dockerfile are similar to Linux commands, which makes the Dockerfile easier to understand.
 
 The following code snippet presents a brief example of how a Dockerfile looks. In section 4.5.1, we will show you how to create custom Dockerfiles for your own microservices. Figure 4.4 shows how the Docker image creation workflow should look.
+
 ```sh
 FROM openjdk:11-slim
 ARG JAR_FILE=target/*.jar
@@ -160,17 +161,18 @@ Sets the environment variables.
 
 ## 4.4 Docker Compose
 
-Docker Compose simplifies the use of Docker by allowing us to create scripts that facilitate the design and the construction of services. With Docker Compose, you can run multiple containers as a single service or you can create different containers simultaneously. To use Docker Compose, follow these steps:
+Docker Compose는 서비스 설계 및 구성을 용이하게 하는 스크립트를 생성할 수 있도록 하여 Docker 사용을 단순화합니다. 
+Docker Compose를 사용하면 여러 컨테이너를 단일 서비스로 실행하거나 다른 컨테이너를 동시에 생성할 수 있습니다. Docker Compose를 사용하려면 다음 단계를 따르세요.
 
-1. Install Docker Compose if you don’t have it already installed.
+1. Docker Compose가 아직 설치되지 않은 경우 설치합니다.
 
-2. Create a YAML file to configure your application services. You should name this file `docker-compose.yml`.
+2. YAML 파일을 생성하여 애플리케이션 서비스를 구성합니다. 이 파일의 이름을 'docker-compose.yml'로 지정해야 합니다.
 
-3. Check the validity of the file using the following command: `docker-compose config`.
+3. 'docker-compose config' 명령을 사용하여 파일의 유효성을 확인합니다.
 
-4. Start the services using the following command: `docker-compose` up.
+4. `docker-compose` up 명령을 사용하여 서비스를 시작합니다.
 
-A docker-compose.yml file should look like that shown in the following listing. Later, in this chapter, we will explain how to create our docker-compose.yml file.
+docker-compose.yml 파일은 다음 목록에 표시된 것과 같아야 합니다. 나중에 이 장에서 docker-compose.yml 파일을 만드는 방법을 설명합니다.
 
 Listing 4.1 A sample docker-compose.yml file
 ```yml
@@ -290,7 +292,7 @@ Listing 4.2 Adding dockerfile-maven-plugin to pom.xml
             <tag>${project.version}</tag> ❹
             <buildArgs>
                <JAR_FILE>target/${project.build.finalName}
-                  .jar</JAR_FILE>                                         ❺
+                  .jar</JAR_FILE> ❺
             </buildArgs>
          </configuration>
          <executions>
@@ -586,24 +588,24 @@ COPY --from=build application/application/ ./ ❶
 ENTRYPOINT ["java", "org.springframework.boot.loader
 .JarLauncher"] ❷
 ```
+❶ jarmode 명령의 결과로 표시된 각 레이어를 복사합니다.
 
-❶ Copies each layer displayed as a result of the jarmode command
+❷ org.springframework.boot.loader.JarLauncher를 사용하여 애플리케이션 실행
 
-❷ Uses org.springframework.boot.loader.JarLauncher to execute the application
+마지막으로 마이크로 서비스의 루트 디렉터리에서 빌드를 실행하고 Docker 명령을 실행할 수 있습니다.
 
-Finally, we can execute the build and run Docker commands in the root directory of our microservice:
 ```sh
-docker build . --tag licensing-service
-docker run -it -p8080:8080 licensing-service:latest
+도커 빌드 . --태그 라이선스 서비스
+docker run -it -p8080:8080 라이선싱 서비스: 최신
 ```
 
-### 4.5.3 Launching the services with Docker Compose
+### 4.5.3 Docker Compose로 서비스 시작하기
 
-Docker Compose is installed as part of the Docker installation process. It’s a service orchestration tool that allows you to define services as a group and then to launch these together as a single unit. Docker Compose includes capabilities for also defining environment variables for each service.
+Docker Compose는 Docker 설치 프로세스의 일부로 설치됩니다. 서비스를 그룹으로 정의한 다음 이를 단일 단위로 함께 시작할 수 있는 서비스 오케스트레이션 도구입니다. Docker Compose에는 각 서비스에 대한 환경 변수를 정의하는 기능도 포함되어 있습니다.
 
-Docker Compose uses a YAML file for defining the services that are going to be launched. For example, each chapter in this book has a file called <<chapter>>/docker-compose.yml. This file contains the service definitions used to launch the services for the chapter.
+Docker Compose는 시작될 서비스를 정의하기 위해 YAML 파일을 사용합니다. 예를 들어, 이 책의 각 장에는 <<chapter>>/docker-compose.yml이라는 파일이 있습니다. 이 파일에는 해당 장의 서비스를 시작하는 데 사용되는 서비스 정의가 포함되어 있습니다.
 
-Let’s create our first docker-compose.yml file. The following listing shows what your docker-compose.yml should look like.
+첫 번째 docker-compose.yml 파일을 만들어 보겠습니다. 다음 목록은 docker-compose.yml이 어떻게 생겼는지 보여줍니다.
 
 Listing 4.7 The docker-compose.yml file
 ```yml
@@ -624,52 +626,52 @@ networks:
   backend: ❼
     driver: bridge
 ```
-❶ Applies a label to each service launched. This becomes the DNS entry for the Docker instance when it starts, which is how other services access it.
+❶ 출시된 각 서비스에 라벨을 적용합니다. 이것은 시작될 때 Docker 인스턴스에 대한 DNS 항목이 되며, 이것이 다른 서비스가 액세스하는 방법입니다.
 
-❷ Docker Compose first tries to find the target image to be started in the local Docker repository. If it can’t find it, it checks the central Docker Hub (http://hub.docker.com).
+❷ Docker Compose는 먼저 로컬 Docker 저장소에서 시작할 대상 이미지를 찾습니다. 찾을 수 없으면 중앙 Docker Hub(http://hub.docker.com)를 확인합니다.
 
-❸ Defines the port numbers on the started Docker container, which are exposed to the outside world
+❸ 외부에 노출되는 시작된 Docker 컨테이너의 포트 번호를 정의합니다.
 
-❹ Passes along environment variables to the starting Docker image. In this case, sets the `SPRING_PROFILES_ACTIVE` environment variable on the starting Docker image.
+❹ 시작 Docker 이미지에 환경 변수를 전달합니다. 이 경우 시작하는 Docker 이미지에 `SPRING_PROFILES_ACTIVE` 환경 변수를 설정합니다.
 
-❺ Names the network where the service belongs
+❺ 서비스가 속한 네트워크의 이름
 
-❻ Specifies the alternative hostname for the service on the network
+❻ 네트워크의 서비스에 대한 대체 호스트 이름을 지정합니다.
 
-❼ Creates a custom network named backend with the default type bridge
+❼ 기본 유형 브리지를 사용하여 백엔드라는 사용자 지정 네트워크를 만듭니다.
 
-Now that we have a docker-compose.yml, we can start our services by executing the docker-compose up command in the directory where the docker-compose.yml file is located. Once it executes, you should see a result similar to that shown figure 4.6.
+이제 docker-compose.yml이 있으므로 docker-compose.yml 파일이 있는 디렉터리에서 docker-compose up 명령을 실행하여 서비스를 시작할 수 있습니다. 실행되면 그림 4.6과 유사한 결과를 볼 수 있습니다.
 
-> **NOTE** If you are not yet familiar with the `SPRING_PROFILES_ACTIVE` variable, don’t worry about it. We’ll cover this in the next chapter, where we’ll manage different profiles in our microservice.
+> **참고** `SPRING_PROFILES_ACTIVE` 변수가 아직 익숙하지 않더라도 걱정하지 마세요. 마이크로서비스에서 다양한 프로필을 관리하는 다음 장에서 이에 대해 다룰 것입니다.
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781617296956/files/OEBPS/Images/CH04_F06_Huaylupo.png)
 
-Figure 4.6 The Docker Compose console log, showing that the licensing service is up and running with the SPRING_PROFILES_ACTIVE variable specified in docker-compose.yml
+그림 4.6 라이선스 서비스가 docker-compose.yml에 지정된 SPRING_PROFILES_ACTIVE 변수로 실행 중임을 보여주는 Docker Compose 콘솔 로그
 
-Once you start the container, you can execute the docker ps command to see all the containers that are running.
+컨테이너를 시작하면 docker ps 명령을 실행하여 실행 중인 모든 컨테이너를 볼 수 있습니다.
 
-> NOTE All the Docker containers used in this book are ephemeral—they won’t retain their state after they’re started and stopped. Keep this in mind if you start playing with code and you see your data disappear after your restart your containers. If you are interested in how to save the container state, take a look at the docker commit command.
+> 참고 이 책에 사용된 모든 Docker 컨테이너는 임시적입니다. 시작 및 중지된 후에는 상태를 유지하지 않습니다. 코드를 가지고 놀기 시작하고 컨테이너를 다시 시작한 후 데이터가 사라지는 경우 이 점을 염두에 두십시오. 컨테이너 상태를 저장하는 방법에 관심이 있다면 docker commit 명령을 살펴보세요.
 
-Now that we know what containers are and how to integrate Docker with our microservices, let’s continue with the next chapter. In that chapter, we’ll create our Spring Cloud configuration server.
+이제 컨테이너가 무엇이고 Docker를 마이크로서비스와 통합하는 방법을 알았으므로 다음 장으로 계속 진행하겠습니다. 이 장에서는 Spring Cloud 구성 서버를 생성합니다.
 
-## Summary
+## 요약
 
-- Containers allow us to execute successfully the software we are developing in any environment—from the developer’s machine to a physical or virtual enterprise server.
+- 컨테이너를 사용하면 개발자의 컴퓨터에서 물리적 또는 가상 엔터프라이즈 서버에 이르기까지 모든 환경에서 개발 중인 소프트웨어를 성공적으로 실행할 수 있습니다.
 
-- A VM allows us to emulate the operation of a computer within another computer. This is based on a hypervisor that mimics the complete physical machine, allocating the desired amount of system memory, processor cores, disk storage, and other resources such as networks, PCI add-ons, and so forth.
+- VM을 사용하면 다른 컴퓨터 내에서 컴퓨터의 작동을 에뮬레이트할 수 있습니다. 이것은 완전한 물리적 시스템을 모방하는 하이퍼바이저를 기반으로 하여 원하는 양의 시스템 메모리, 프로세서 코어, 디스크 스토리지 및 네트워크, PCI 추가 기능 등과 같은 기타 리소스를 할당합니다.
 
-- Containers are another OS virtualization method that allows you to run an application with its dependent elements in an isolated and independent environment.
+- 컨테이너는 격리되고 독립적인 환경에서 종속 요소와 함께 응용 프로그램을 실행할 수 있는 또 다른 OS 가상화 방법입니다.
 
-- The use of containers reduces general costs by creating lightweight VMs that speed up the run/execution process, therefore reducing the costs of each project.
+- 컨테이너를 사용하면 실행/실행 프로세스의 속도를 높이는 경량 VM을 생성하여 일반 비용을 줄여 각 프로젝트의 비용을 절감합니다.
 
-- Docker is a popular open source container engine based on Linux containers. It was created by Solomon Hykes, founder and CEO of dotCloud in 2013.
+- Docker는 Linux 컨테이너를 기반으로 하는 인기 있는 오픈 소스 컨테이너 엔진입니다. 2013년 dotCloud의 설립자이자 CEO인 Solomon Hykes가 만들었습니다.
 
-- Docker is composed of the following components: Docker Engines, clients, Registries, images, containers, volumes, and networks.
+- Docker는 Docker 엔진, 클라이언트, 레지스트리, 이미지, 컨테이너, 볼륨 및 네트워크와 같은 구성 요소로 구성됩니다.
 
-- A Dockerfile is a simple text file that contains a list of instructions and commands that the Docker client calls to create and prepare an image. This file automates the image creation process. The commands used in the Dockerfile are similar to Linux commands, which makes the Dockerfile commands easier to understand.
+- Dockerfile은 Docker 클라이언트가 이미지를 생성하고 준비하기 위해 호출하는 지침 및 명령 목록이 포함된 간단한 텍스트 파일입니다. 이 파일은 이미지 생성 프로세스를 자동화합니다. Dockerfile에서 사용되는 명령은 Linux 명령과 유사하므로 Dockerfile 명령을 더 쉽게 이해할 수 있습니다.
 
-- Docker Compose is a service orchestration tool that allows you to define services as a group and then launch them together as a single unit.
+- Docker Compose는 서비스를 그룹으로 정의한 다음 단일 단위로 함께 시작할 수 있는 서비스 오케스트레이션 도구입니다.
 
-- Docker Compose is installed as part of the Docker installation process.
+- Docker Compose는 Docker 설치 프로세스의 일부로 설치됩니다.
 
-- The Dockerfile Maven plugin integrates Maven with Docker.
+- Dockerfile Maven 플러그인은 Maven과 Docker를 통합합니다.

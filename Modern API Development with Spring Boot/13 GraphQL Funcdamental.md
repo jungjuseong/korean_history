@@ -1,30 +1,31 @@
 # Chapter 13: GraphQL Fundamentals
 
-In this chapter, you will learn about the fundamentals of GraphQL, including its Schema Definition Language (SDL), queries, mutations, and subscriptions. This knowledge will help you in the next chapter, when you will implement an API based on GraphQL.
+이 장에서는 SDL, 쿼리, 변형 및 구독을 포함하여 GraphQL의 기본 사항에 대해 배웁니다. 이 지식은 다음 장에서 GraphQL 기반 API를 구현할 때 도움이 될 것입니다.
 
-We will cover the following topics in this chapter:
+이 장에서는 다음 주제를 다룰 것입니다.
 
-- Introducing GraphQL
-- Learning about the fundamentals of GraphQL
-- Designing a GraphQL schema
-- Testing GraphQL query and mutation
-- Solving the N+1 problem
+- GraphQL 소개
+- GraphQL의 기초 학습
+- GraphQL 스키마 설계
+- GraphQL 쿼리 및 변형 테스트
+- N+1 문제 풀기
 
-After completing this chapter, you will know about the basics of GraphQL, including its semantics, schema design, and everything you need to develop a GraphQL-based API using Spring and Spring Boot.
+이 장을 마치면 의미론, 스키마 디자인, 그리고 Spring과 Spring Boot를 사용하여 GraphQL 기반 API를 개발하는 데 필요한 모든 것을 포함하여 GraphQL의 기본 사항에 대해 알게 될 것입니다.
 
-## Technical requirements
-This chapter covers the theory surrounding GraphQL. However, you need the following for developing and testing the GraphQL-based service code presented in the next chapter:
+## 기술 요구 사항
 
-- IntelliJ, or Eclipse
+이 장에서는 GraphQL을 둘러싼 이론을 다룹니다. 그러나 다음 장에서 제시하는 GraphQL 기반 서비스 코드를 개발하고 테스트하려면 다음이 필요합니다.
+
+- IntelliJ 또는 Eclipse
 - JDK 15
 
-## Introducing GraphQL
+## GraphQL 소개
 
-You might have heard of or be aware of GraphQL, which has become more popular and is the preferred way of implementing APIs for handheld devices and the web.
+GraphQL은 더 유명해졌고 모바일 및 웹 API를 구현하는 데 선호되는 방법입니다.
 
-GraphQL is a declarative query and manipulation language, and a server-side runtime for APIs. GraphQL empowers the client to query exactly the data they want – no more, no less.
+GraphQL은 선언적 쿼리 및 조작 언어이며 API용 서버 측 런타임입니다. GraphQL은 클라이언트가 더도 말고 덜도 말고 원하는 데이터를 정확하게 쿼리할 수 있도록 합니다.
 
-We'll discuss its brief history in the next subsection.
+우리는 다음 하위 섹션에서 간략한 역사를 논의할 것입니다.
 
 ### GraphQL의 간략한 역사
 
@@ -42,21 +43,23 @@ Netflix와 Coursera도 효율적이고 성능이 뛰어난 API를 구축하기 �
 
 이 책의 섹션 1에서 REST를 사용하여 API를 개발했습니다. 실제로 샘플 전자 상거래 UI 앱도 REST API를 사용하여 전자 상거래 기능을 구현했습니다. 필요한 GraphQL 개념이 어디에 적용되는지 이해할 수 있도록 이 장에서 REST를 계속 참조할 것입니다. 이 상관 관계는 GraphQL 개념을 쉽게 이해하는 데 도움이 됩니다.
 
-**GraphQL은 REST보다 강력하고 유연하며 효율적입니다**. 이유를 이해합시다.
+**GraphQL은 REST보다 강력하고 유연하며 효율적입니다**.
 
-사용자가 샘플 전자 상거래 UI 앱에 로그인하고 자동으로 제품 목록 페이지로 이동하면 UI 앱은 다음과 같이 세 가지 다른 끝점을 사용합니다.
+사용자가 샘플 전자 상거래 UI 앱에 로그인하고 자동으로 제품 목록 페이지로 이동하면 UI 앱은 다음과 같이 세 가지 다른 엔드포인트을 사용합니다.
 
-- 사용자 엔드포인트, 사용자 정보 가져오기
-- 제품 엔드포인트, 제품 목록 가져오기
-- 장바구니 엔드포인트, 사용자 장바구니에서 장바구니 항목 가져오기
+- 사용자 정보 가져오기
+- 제품 목록 가져오기
+- 사용자 장바구니 항목 가져오기
 
 따라서 기본적으로 백엔드에서 고정된 구조로 필요한 정보를 가져오려면 세 번 호출해야 합니다(응답으로 전송되는 필드는 변경할 수 없음).
 
-반면에 GraphQL은 사용자 정보, 사용자 장바구니 데이터 및 제품 목록을 단일 호출로 가져올 수 있습니다. 이것은 네트워크 호출을 3개에서 1개로 줄입니다. GraphQL은 각 사용 사례에 대해 끝점을 정의해야 하는 REST와 달리 단일 끝점만 노출합니다. 이를 수행하는 새로운 REST 엔드포인트를 작성할 수 있다고 말할 수 있습니다. 예, 이렇게 하면 이 특정 사용 사례를 해결할 수 있지만 유연하지 않습니다. 빠른 변경 반복을 허용하지 않습니다.
+반면에 GraphQL은 사용자 정보, 사용자 장바구니 데이터 및 제품 목록을 한번의 호출로 가져올 수 있습니다. GraphQL은 각 사용 사례에 대해 엔드포인트를 정의해야 하는 REST와 달리 단일 엔드포인트만 노출합니다. 이를 수행하는 새로운 REST 엔드포인트를 작성할 수 있다고 말할 수 있습니다. 이렇게 하면 이 특정 사용 사례를 해결할 수 있지만 유연하지 않습니다. 빠른 변경 반복을 허용하지 않습니다.
 
 또한 GraphQL을 사용하면 요청의 백엔드에서 가져오려는 필드를 표현할 수 있습니다. 서버는 요청된 필드에 따라 응답을 제공합니다. 더도 말고 덜도 말고요.
 
-새 필드 집합이 필요한 경우 새 REST 끝점을 만들 필요가 없습니다. 예를 들어 제품에 사용자 리뷰를 추가할 수 있습니다. 이를 위해 GraphQL 쿼리에 리뷰 필드를 추가하기만 하면 됩니다. 마찬가지로 추가 필드를 사용할 필요가 없습니다. GraphQL 쿼리에 필요한 필드를 추가하기만 하면 됩니다. 대신 REST의 응답에는 응답 개체에 특정 필드가 필요한지 여부에 관계없이 미리 정의된 필드가 포함됩니다. 그런 다음 클라이언트 측에서 필수 필드를 필터링해야 합니다. 따라서 GraphQL은 over/underfetching 문제를 피함으로써 네트워크 대역폭을 효과적으로 사용한다고 말할 수 있습니다.
+새 필드 집합이 필요한 경우 새 REST 엔드포인트를 만들 필요가 없습니다. 예를 들어 제품에 사용자 리뷰를 추가할 수 있습니다. 이를 위해 GraphQL 쿼리에 리뷰 필드를 추가하기만 하면 됩니다. 마찬가지로 추가 필드를 사용할 필요가 없습니다. GraphQL 쿼리에 필요한 필드를 추가하기만 하면 됩니다. 
+
+대신 REST의 응답에는 응답 객체에 특정 필드가 필요한지 여부에 관계없이 미리 정의된 필드가 포함됩니다. 그런 다음 클라이언트 측에서 필수 필드를 필터링해야 합니다. 따라서 GraphQL은 over/underfetching 문제를 피함으로써 네트워크 대역폭을 효과적으로 사용합니다.
 
 GraphQL API는 REST처럼 지속적인 변경이 필요하지 않습니다. 요구 사항 변경을 위해 API를 변경하거나 새 API를 추가해야 할 수 있습니다. 이것은 개발 속도와 반복을 향상시킵니다. 새 필드를 쉽게 추가하거나 더 이상 사용되지 않는 기존 필드를 표시할 수 있습니다(클라이언트에서 더 이상 사용하지 않는 필드). 따라서 백엔드에 영향을 주지 않고 클라이언트에서 변경할 수 있습니다. 간단히 말해서 버전 관리 및 주요 변경 사항 없이 진화하는 API를 작성할 수 있습니다.
 
@@ -68,7 +71,9 @@ GraphQL은 서버와 클라이언트 간의 계약 역할을 합니다. GraphQL 
 
 다음 섹션에서 GraphQL의 기본 사항에 대해 논의할 것입니다.
 
-## GraphQL의 기초에 대해 배우기
+
+
+## GraphQL 기초 배우기
 
 GraphQL API에는 쿼리, 변형 및 구독의 세 가지 중요한 루트 유형이 있습니다. 이들은 모두 특별한 SDL 구문을 사용하여 GraphQL 스키마에 정의되어 있습니다.
 
@@ -76,7 +81,7 @@ GraphQL은 쿼리, 변형 또는 구독이 될 수 있는 요청을 기반으로
 
 먼저 쿼리를 이해합시다.
 
-### 쿼리 유형 탐색
+### query 유형
 
 쿼리 유형은 서버에서 정보를 가져오는 작업을 읽는 데 사용됩니다. 단일 쿼리 유형에는 많은 쿼리가 포함될 수 있습니다. 다음 GraphQL 스키마와 같이 로그인한 사용자를 검색하기 위해 SDL을 사용하여 쿼리를 작성해 보겠습니다.
 
@@ -102,6 +107,7 @@ type LoggedInUser {
 서버에서 이 스키마를 구현하고 다음 GraphQL 쿼리를 실행하면 요청한 필드만 값과 함께 응답으로 JSON 객체로 가져옵니다.
 
 다음 코드 블록에서 me 쿼리와 해당 JSON 응답을 찾을 수 있습니다.
+
 ```graphql
 # Request input
 {
@@ -138,7 +144,7 @@ query {
 
 다음에서 GraphQL 변형에 대해 알아볼 것입니다.
 
-### Mutation 유형 탐색
+### Mutation 타입
 
 Mutation 유형은 서버에서 수행되는 모든 추가, 업데이트 또는 삭제 작업에 대한 GraphQL 요청에 사용됩니다. 단일 Mutation 유형에는 많은 Mutation이 포함될 수 있습니다. 장바구니에 새 항목을 추가하는 addItemInCart를 정의해 보겠습니다.
 
@@ -157,17 +163,19 @@ type Item {
 
 여기에서 Mutation 유형과 Item이라는 새 객체 유형을 정의했습니다. Mutation이 추가되고 addItemInCart라고 합니다. Query, Mutation 및 Subscription 유형은 인수를 전달할 수 있습니다. 필요한 매개변수를 정의하기 위해 명명된 인수를 () 대괄호로 묶을 수 있습니다. 인수는 쉼표로 구분됩니다. addItemInCart의 서명은 두 개의 인수를 포함하고 장바구니 항목 목록을 반환합니다. 목록은 [] 괄호를 사용하여 표시됩니다.
 
-OPTIONAL AND REQUIRED ARGUMENTS
+*OPTIONAL AND REQUIRED ARGUMENTS*
 
-Let's say you declare an argument with a default value, such as the following mutation:
-```
+다음 변형과 같이 기본값을 사용하여 인수를 선언한다고 가정해 보겠습니다.
+
+```graphql
 pay(amount: Float, currency: String = "USD"): Payment
 ```
-여기서 currency는 선택적 인수입니다. 여기에는 기본값이 포함되어 있지만 amount에는 기본값이 포함되어 있지 않으므로 필수 필드입니다.
+여기서 `currency`는 선택적 인수입니다. 여기에는 기본값이 포함되어 있지만 `amount`에는 기본값이 포함되어 있지 않으므로 필수 필드입니다.
 
-Int는 부호 있는 32비트 정수에 대한 내장 스칼라 유형입니다. GraphQL에서 기본값은 null입니다. 필드에 대해 nullable이 아닌 값을 강제 적용하려면 해당 유형에 느낌표(!)를 표시해야 합니다. 스키마의 필드에 적용되면 GraphQL 서버는 클라이언트가 요청 페이로드에 배치할 때 해당 필드에 대해 null 대신 항상 값을 제공합니다. 느낌표가 있는 목록을 선언할 수도 있습니다. 예를 들어 항목: [항목]! 및 항목: [항목!]!. 두 선언 모두 목록에 0개 이상의 항목을 제공합니다. 그러나 후자는 유효한 Item 객체를 제공합니다.
+Int는 부호 있는 32비트 정수에 대한 내장 스칼라 유형입니다. GraphQL에서 기본값은 null입니다. 필드에 대해 nullable이 아닌 값을 강제 적용하려면 해당 유형에 느낌표(!)를 표시해야 합니다. 스키마의 필드에 적용되면 GraphQL 서버는 클라이언트가 요청 페이로드에 배치할 때 해당 필드에 대해 null 대신 항상 값을 제공합니다. 느낌표가 있는 목록을 선언할 수도 있습니다. 예를 들어 항목: [item]! 및 item: [item!]!. 두 선언 모두 목록에 0개 이상의 항목을 제공합니다. 그러나 후자는 유효한 Item 객체를 제공합니다.
 
 서버에 이 스키마 구현이 있으면 다음 GraphQL 쿼리를 사용할 수 있습니다. 요청한 필드만 해당 값과 함께 JSON 객체로 가져옵니다.
+
 ```graphql
 # Request input
 mutation {
@@ -194,11 +202,11 @@ mutation {
   }
 }
 ```
-Here, the value of the id field is generated by the server. Similarly, you can write other mutations, such as delete and update, in the schema. Then, you can use the payload in the GraphQL request to process the mutation accordingly.
+여기서 id 필드의 값은 서버에서 생성됩니다. 마찬가지로 스키마에서 삭제 및 업데이트와 같은 다른 변형을 작성할 수 있습니다. 그런 다음 GraphQL 요청의 페이로드를 사용하여 그에 따라 변형을 처리할 수 있습니다.
 
-We'll explore the GraphQL Subscription type in the next subsection.
+다음 하위 섹션에서 GraphQL 구독 유형을 살펴보겠습니다.
 
-### Exploring the Subscription type
+### Subscription 타입
 
 REST에만 익숙하다면 구독 개념이 생소할 것입니다. GraphQL이 없으면 폴링 또는 WebSocket을 사용하여 유사한 기능을 구현할 수 있습니다. 다음을 포함하여 구독 기능이 필요한 많은 사용 사례가 있습니다.
 
@@ -207,7 +215,7 @@ REST에만 익숙하다면 구독 개념이 생소할 것입니다. GraphQL이 �
 
 이벤트를 즉시 업데이트해야 하는 경우가 많이 있습니다. GraphQL은 이 사용 사례에 대한 구독 기능을 제공합니다. 이러한 경우 클라이언트는 안정적인 연결을 시작하고 유지하여 이벤트를 구독합니다. 구독 이벤트가 발생하면 서버는 결과 이벤트 데이터를 클라이언트에 푸시합니다. 이 결과 데이터는 요청/응답 종류의 통신(쿼리/변이의 경우에 발생)이 아닌 시작된 연결을 통해 스트림으로 전송됩니다.
 
-RECOMMENDED APPROACH
+### 추천 방식
 
 큰 개체에 대해 소규모 업데이트(예: 일괄 처리)가 발생하거나 라이브 점수 업데이트와 같이 대기 시간이 짧은 라이브 업데이트가 있는 경우에만 구독을 사용하는 것이 좋습니다. 그렇지 않으면 폴링(지정된 간격으로 주기적으로 쿼리 실행)을 사용해야 합니다.
 
@@ -248,6 +256,7 @@ subscription {
   }
 }
 ```
+
 ```json
 # JSON Output
 {
@@ -269,6 +278,8 @@ subscription {
 
 다음 섹션에서는 GraphQL 스키마에 대해 자세히 알아보겠습니다.
 
+
+
 ## Designing a GraphQL schema
 
 스키마는 DSL 구문을 사용하여 작성된 GraphQL 파일입니다. 기본적으로 루트 유형(쿼리, 변형 및 구독)과 객체 유형, 스칼라 유형, 인터페이스, 통합 유형, 입력 유형 및 조각과 같은 루트 유형에 사용되는 각 유형이 포함됩니다.
@@ -286,12 +297,13 @@ subscription {
 - ID: 개체 식별자 문자열을 정의. 이것은 문자열로만 직렬화할 수 있으며 사람이 읽을 수 없습니다.
 - 사용자 정의 스칼라 유형이라고 하는 고유한 스칼라 유형을 정의할 수도 있습니다. 여기에는 날짜와 같은 유형이 포함됩니다.
 - Date 사용자 정의 스칼라 유형은 다음과 같이 정의할 수 있습니다.
-
+```
 scala Date
-
+```
 이러한 사용자 지정 스칼라 유형의 직렬화, 역직렬화 및 유효성 검사를 결정하는 구현을 작성해야 합니다. 예를 들어 날짜는 Unix 타임스탬프 또는 사용자 지정 스칼라 Date 유형 케이스의 특정 데이터 형식을 가진 문자열로 처리될 수 있습니다.
 
 또 다른 특별한 스칼라 유형은 허용되는 값의 특정 세트를 정의하는 데 사용되는 열거 유형(enum)입니다. 다음과 같이 주문 상태 열거를 정의해 보겠습니다.
+
 ```graphql
 enum OrderStatus {
   CREATED
@@ -303,7 +315,7 @@ enum OrderStatus {
 ```
 여기서 OrderStatus 열거형은 주어진 시점의 주문 상태를 나타냅니다. 다른 유형을 살펴보기 전에 다음 하위 섹션에서 GraphQL 조각을 이해할 것입니다.
 
-### 조각 이해하기
+### fragment 이해하기
 
 클라이언트 측에서 쿼리하는 동안 충돌하는 시나리오가 발생할 수 있습니다. 동일한 결과(동일한 개체 또는 필드 집합)를 반환하는 두 개 이상의 쿼리가 있을 수 있습니다. 이 충돌을 피하기 위해 쿼리 결과에 이름을 지정할 수 있습니다. 이 이름을 별칭이라고 합니다.
 
@@ -329,11 +341,12 @@ query HomeAndBillingAddress {
 }
 ```
 
-여기서 HomeAndBillingAddress는 getAddress 쿼리 작업을 포함하는 명명된 쿼리입니다. getAddress가 두 번 사용되어 동일한 필드 집합을 반환합니다. 따라서 결과 개체를 구별하기 위해 home 및 billing 별칭이 사용됩니다.
+여기서 `HomeAndBillingAddress`는 `getAddress` 쿼리 작업을 포함하는 명명된 쿼리입니다. `getAddress`가 두 번 사용되어 동일한 필드 집합을 반환합니다. 따라서 결과 개체를 구별하기 위해 `home` 및 `billing` 별칭이 사용됩니다.
 
-getAddress 쿼리는 Address 개체를 반환할 수 있습니다. 주소 개체에는 유형, 주, 국가 및 연락처와 같은 추가 필드가 있을 수 있습니다. 따라서 동일한 필드 집합을 사용할 수 있는 쿼리가 있는 경우 조각을 만들어 쿼리에서 사용할 수 있습니다.
+`getAddress` 쿼리는 `Address` 개체를 반환할 수 있습니다. 주소 개체에는 유형, 주, 국가 및 연락처와 같은 추가 필드가 있을 수 있습니다. 따라서 동일한 필드 집합을 사용할 수 있는 쿼리가 있는 경우 조각을 만들어 쿼리에서 사용할 수 있습니다.
 
-조각을 만들고 이전 코드 블록의 공통 필드를 교체해 보겠습니다. 
+fragment를 만들고 이전 코드 블록의 공통 필드를 교체해 보겠습니다. 
+
 ```graphql
 query HomeAndBillingAddress {
   home: getAddress(type: "home") {
@@ -352,18 +365,19 @@ fragment addressFragment on Address {
     pincode
 }
 ```
-Here, the addressFragment fragment has been created and used in the query.
+여기에서 addressFragment가 생성되어 쿼리에 사용되었습니다.
 
-You can also create an inline fragment in the query. Inline fragments can be used when a querying field returns an Interface or Union type. We will explore inline fragments in more detail later.
+쿼리에서 인라인 프래그먼트를 만들 수도 있습니다. 쿼리 필드가 인터페이스 또는 유니온 유형을 반환할 때 인라인 프래그먼트을 사용할 수 있습니다. 인라인 프래그먼트에 대해서는 나중에 더 자세히 살펴보겠습니다.
 
-We'll look at GraphQL interfaces in the next subsection.
+다음 하위 섹션에서 GraphQL 인터페이스를 살펴보겠습니다.
 
-### Understanding interfaces
+### interface 이해하기
 
-GraphQL interfaces are abstract. You may have a few fields that are common across multiple objects. You can create an interface type for such a common set of fields. For example, a product may have some common attributes, such as ID, name, and description. The product can also have other attributes based on its type. For example, a book may have several pages, an author, and a publisher, while a bookcase may have material, width, height, and depth attributes.
+GraphQL 인터페이스는 추상적입니다. 여러 개체에서 공통적인 몇 가지 필드가 있을 수 있습니다. 이러한 공통 필드 세트에 대한 인터페이스 유형을 작성할 수 있습니다. 예를 들어 제품에는 ID, 이름 및 설명과 같은 몇 가지 공통 속성이 있을 수 있습니다. 제품은 유형에 따라 다른 속성을 가질 수도 있습니다. 예를 들어 책에는 여러 페이지, 저자 및 출판사가 있을 수 있지만 책장은 재질, 너비, 높이 및 깊이 속성이 있을 수 있습니다.
 
-Let's define these three objects (Product, Book, and Bookcase) using interfaces:
+인터페이스를 사용하여 이 세 가지 객체(Product, Book 및 Bookcase)를 정의해 보겠습니다.
 
+```graphql
 interface Product {
   id: ID!
   name: String!
@@ -371,499 +385,384 @@ interface Product {
 }
 
 type Book implements Product {
-
   id: ID!
-
   name: String!
-
   description: string
-
   author: String!
-
   publisher: String
-
   noOfPages: Int
-
 }
 
 type Bookcase implements Product {
-
   id: ID!
-
   name: String!
-
   description: string
-
   material: [String!]!
-
   width: Int
-
   height: Int
-
   depth: Int
-
 }
+```
+여기서는 interface 키워드를 사용하여 Product라는 추상 유형을 생성했습니다. 이 인터페이스는 Book과 Bookcase라는 객체 유형을 생성하고자 할 때 구현할 수 있습니다.
 
-Here, an abstract type called Product has been created using the interface keyword. This interface can be implemented when we wish to create new the object types – Book and Bookcase.
+이제 모든 제품(책 및 책장)을 반환하는 다음 쿼리를 간단하게 작성할 수 있습니다.
 
-Now, you can simply write the following query, which returns all the products (books and bookcases):
-
+```graphql
 type query {
-
   allProducts: [Product]
-
 }
+```
+이제 클라이언트 측에서 다음 쿼리를 사용하여 모든 제품을 검색할 수 있습니다.
 
-Now, you can use the following query on the client side to retrieve all the products:
-
+```graphql
 query getProducts {
-
   allProducts {
-
     id
-
     name
-
     description
-
   }
-
 }
+```
 
-You might have noticed that the preceding code only contains attributes from the Product interface. If you want to retrieve attributes from Book and Bookcase, then you have to use inline fragments, as shown here:
+앞의 코드에는 Product 인터페이스의 속성만 포함되어 있다는 것을 눈치채셨을 것입니다. Book 및 Bookcase에서 속성을 검색하려면 다음과 같이 인라인 프래그먼트를 사용해야 합니다.
 
+```graphql
 query getProducts {
-
   allProducts {
-
     id
-
     name
-
     description
-
     ... on Book {
-
       author
-
       publisher
-
     }
 
     ... on BookCase {
-
       material
-
       height
-
     }
-
   }
-
 }
+```
 
-Here, an operation (…) is being used to create the inline fragments. This way, you can fetch the fields from the type that implements the interface.
+여기서 연산(…)은 인라인 조각을 만드는 데 사용됩니다. 이런 식으로 인터페이스를 구현하는 유형에서 필드를 가져올 수 있습니다.
 
-We'll understand Union types in the next subsection.
+다음 하위 섹션에서 Union 유형을 이해할 것입니다.
 
-Understanding Union types
-Let's say there are two object types – Book and Author. Here, you want to write a GraphQL query that can return both books and authors. Note that the interface is not there; so, how can we combine both objects in the query result? In such cases, you can use a Union type, which is a combination of two or more objects.
+### Union 유형 이해하기
 
-Consider the following before creating a Union type:
+Book과 Author의 두 가지 개체 유형이 있다고 가정해 보겠습니다. 여기에서 책과 저자를 모두 반환할 수 있는 GraphQL 쿼리를 작성하려고 합니다. 인터페이스가 없다는 점에 유의하십시오. 그렇다면 쿼리 결과에서 두 개체를 어떻게 결합할 수 있습니까? 이러한 경우 둘 이상의 개체를 조합한 Union 유형을 사용할 수 있습니다.
 
-You don't need to have a common field.
-Union members should be of a concrete type. Therefore, you can't use union, interface, input, or scalar types.
-Let's create a Union type that can return any object included in the union type – books and bookcases – as shown in the following code block:
+Union 유형을 생성하기 전에 다음 사항을 고려하십시오.
 
+- 공통 필드가 필요하지 않습니다.
+- Union 구성원은 구체적인 유형이어야 합니다. 따라서 공용체, 인터페이스, 입력 또는 스칼라 유형을 사용할 수 없습니다.
+
+다음 코드 블록과 같이 책과 책장과 같이 Union 유형에 포함된 모든 개체를 반환할 수 있는 Union 유형을 만들어 보겠습니다.
+
+```graphql
 union SearchResult = Book | Author
 
 type Book {
-
   id: ID!
-
   name: String!
-
   publisher: String
-
 }
 
 type Author {
-
   id: ID!
-
   name: String!
-
 }
 
 type Query {
-
   search(text: String): [SearchResult]
-
 }
+```
+여기에서 Union 키워드는 Book 및 Author 개체에 대한 공용체 유형을 만드는 데 사용됩니다. 파이프 기호(|)는 포함된 개체를 구분하는 데 사용됩니다. 마지막에 쿼리가 정의되어 주어진 텍스트가 포함된 책 또는 저자 컬렉션을 반환합니다.
 
-Here, the union keyword is being used to create a union type for the Book and Author objects. A pipe symbol (|) is being used to separate the included objects. At the end, a query has been defined, which returns the collection of books or authors that contains the given text.
+이제 다음과 같이 클라이언트에 대해 이 쿼리를 작성해 보겠습니다.
 
-Now, let's write this query for the client, as shown here:
-
+```graphql
 # Request Input
-
 {
-
 search(text: "Malcolm Gladwell") {
-
     __typename
-
     ... on Book {
-
       name
-
       publisher
-
     }
-
     ... on Author {
-
       name
-
     }
-
   }
-
 }
+```
 
-Response JSON
+JSON 응답
 
+```json
 {
-
   "data": {
-
     "search": [
-
       {
-
         "__typename": "Book",
-
         "name": "Blink",
-
         "publisher": "Back Bay Books"
-
       },
-
       {
-
         "__typename": "Author",
-
         "name": " Malcolm Gladwell ",
-
       }
-
     ]
-
   }
-
 }
+```
+보시다시피 쿼리에서 인라인 프래그먼트가 사용되고 있습니다. 또 다른 중요한 점은 __typename이라고 하는 추가 필드입니다. 이 필드는 해당 개체가 속한 개체를 참조하고 클라이언트의 여러 개체를 구별하는 데 도움이 됩니다.
 
-As you can see, an inline fragment is being used in the query. Another important point is the extra field, called __typename, which refers to the object it belongs to and helps you differentiate between different objects in the client.
+다음 하위 섹션에서 입력 유형을 살펴보겠습니다.
 
-We'll look at input types in the next subsection.
+### input 유형 이해
 
-Understanding input types
-So far, you have used scalar types as arguments. GraphQL also allows you to pass object types as arguments in mutations. The only difference is that you have to declare them with input instead of using the type keyword.
+지금까지 스칼라 유형을 인수로 사용했습니다. GraphQL을 사용하면 개체 유형을 mutation의 인수로 전달할 수도 있습니다. 유일한 차이점은 type 키워드를 사용하는 대신 input으로 선언해야 한다는 것입니다.
 
-Let's create a mutation that accepts an input type as an argument:
+input 타입을 인수로 받아들이는 mutation을 만들어 보겠습니다.
 
+```graphql
 type Mutation {
-
   addProduct(prodInput: ProductInput): Product
-
 }
 
 input ProductInput {
-
   name: String!
-
   description: String
-
   price: Float!
-
   # other fields…
-
 }
 
 type Product {
-
   # Product Input fields. Truncated for brevity.
-
 }
+```
+여기에서 addProduct 변형은 ProductInput을 인수로 받아들이고 Product를 반환합니다.
 
-Here, the addProduct mutation accepts ProductInput as an argument and returns a Product.
+이제 다음과 같이 GraphQL 요청을 사용하여 클라이언트에 제품을 추가해 보겠습니다.
 
-Now, let's use the GraphQL request to add a product to the client, as shown here:
-
+```graphql
 # Request Input
 
 mutation AddProduct ($input: ProductInput) {
-
   addProduct(prodInput: $input) {
-
     name
-
   }
-
 }
 
 #---- Variable Section ----
-
 {
-
   "input": {
-
     name: "Blink",
-
     description: "a book",
-
     "price": 10.00
-
   }
-
 }
 
 # JSON Output
-
 {
-
   "data": {
-
     addProduct {
-
       "name": "Blink"
-
     }
-
   }
-
 }
+```
+여기에서는 input 유형을 사용하는 mutation을 실행하고 있습니다. 여기에서 ProductInput을 전달하기 위해 Variable이 사용되는 것을 관찰했을 것입니다. 명명된 돌연변이가 변수에 사용 중입니다. 변수가 해당 유형과 함께 돌연변이에 정의된 경우 해당 변수를 mutation에 사용해야 합니다.
 
-Here, you are running a mutation that uses an input type. You might have observed that Variable is being used here to pass ProductInput. The named mutation is being used for the variable. If variables are defined in the mutation, along with their types, then they should be used in the mutation.
+변수 값은 변수 섹션에서(또는 클라이언트에서 미리) 할당되어야 합니다. 변수의 입력 값은 ProductInput에 매핑되어야 하는 JSON 개체를 사용하여 할당됩니다.
 
-Variable values should be assigned in the variable section (or beforehand in the client). The value of a variable's input is assigned using a JSON object that should map to ProductInput.
+다음 하위 섹션에서 GraphQL 스키마를 설계하는 동안 사용할 수 있는 도구를 살펴보겠습니다.
 
-We'll look at the tools we can use while designing a GraphQL schema in the next subsection.
+### 스키마 설계에 도움이 되는 도구
 
-Tools that help with designing a schema
-You can use the following tools for design and work with GraphQL. Each has its own offerings:
+다음 도구를 사용하여 GraphQL을 디자인하고 작업할 수 있습니다. 각각 고유한 제품이 있습니다.
 
-GraphiQL: It is pronounced graphical. It is an official GraphQL Foundation project that provides the web-based GraphQL Integrated Development Environment (IDE). It makes use of Language Server Protocol (LSP), which uses the JSON-RPC-based protocol between the source code editor and the IDE. It is available at https://github.com/graphql/graphiql.
-GraphQL Playground: This is also a GraphQL IDE that provides better features than GraphiQL. It is available at https://github.com/graphql/graphql-playground.
-GraphQL Faker: This provides the mock data for your GraphQL APIs. It is available at https://github.com/APIs-guru/graphql-faker.
-GraphQL Editor: This allows you to design your schema visually and then transform it into code. It is available at https://github.com/graphql-editor/graphql-editor.
-GraphQL Voyager: This converts your schema into interactive graphs, such as entity diagrams and all its relationships. It is available at https://github.com/APIs-guru/graphql-voyager.
+- GraphiQL: 그래픽으로 발음됩니다. 웹 기반 GraphQL 통합 개발 환경(IDE)을 제공하는 공식 GraphQL Foundation 프로젝트입니다. 소스 코드 편집기와 IDE 간에 JSON-RPC 기반 프로토콜을 사용하는 LSP(Language Server Protocol)를 사용합니다. https://github.com/graphql/graphiql에서 사용할 수 있습니다.
+
+- GraphQL Playground: GraphiQL보다 더 나은 기능을 제공하는 GraphQL IDE이기도 합니다. https://github.com/graphql/graphql-playground에서 사용할 수 있습니다.
+
+- GraphQL Faker: GraphQL API에 대한 모의 데이터를 제공합니다. https://github.com/APIs-guru/graphql-faker에서 사용할 수 있습니다.
+
+- GraphQL 편집기: 이를 통해 스키마를 시각적으로 디자인한 다음 코드로 변환할 수 있습니다. https://github.com/graphql-editor/graphql-editor에서 사용할 수 있습니다.
+
+- GraphQL Voyager: 스키마를 엔터티 다이어그램 및 모든 관계와 같은 대화형 그래프로 변환합니다. https://github.com/APIs-guru/graphql-voyager에서 사용할 수 있습니다.
+
 In the next section, you'll test the knowledge that you have acquired throughout this chapter.
 
-Testing GraphQL queries and mutations
-Let's write queries and mutations in a real GraphQL schema to test the skill you have learned throughout this chapter.
+## GraphQL 쿼리 및 변형 테스트
 
-You are going to use GitHub's GraphQL API explorer in this section. Let's perform the following steps:
+이 장에서 배운 기술을 테스트하기 위해 실제 GraphQL 스키마에서 쿼리와 변형을 작성해 보겠습니다.
 
-First, go to https://docs.github.com/en/graphql/overview/explorer.
-You might have to authorize it using your GitHub account, so that you can execute GraphQL queries.
-GitHub Explorer is based on GraphiQL. It is divided into three vertical sections (from left to right):
-a. There are two two subsections – an upper section for writing a query and a bottom section for defining variables.
+이 섹션에서는 GitHub의 GraphQL API 탐색기를 사용할 것입니다. 다음 단계를 수행해 보겠습니다.
 
-b. The middle vertical section shows the response.
+1. 먼저 https://docs.github.com/en/graphql/overview/explorer로 이동합니다.
 
-c. Normally, the rightmost section is hidden. Click on the Docs link to display it. It shows the respective documentation and schema, along with the root types that you can explore.
+2. GitHub 계정을 사용하여 권한을 부여해야 GraphQL 쿼리를 실행할 수 있습니다.
 
-Let's fire this query to find out the ID of the repository you wish to mark as star:
+3. GitHub Explorer는 GraphiQL을 기반으로 합니다. 세 개의 수직 섹션(왼쪽에서 오른쪽으로)으로 나뉩니다.
+
+a. 쿼리 작성을 위한 상단 섹션과 변수 정의를 위한 하단 섹션의 두 가지 하위 섹션이 있습니다.
+
+b.. 중간 수직 섹션은 응답을 보여줍니다.
+
+c. 일반적으로 맨 오른쪽 섹션은 숨겨져 있습니다. 문서 링크를 클릭하여 표시합니다. 탐색할 수 있는 루트 유형과 함께 해당 문서 및 스키마가 표시됩니다.
+
+4. 별표로 표시하려는 저장소의 ID를 찾기 위해 다음 쿼리를 실행해 보겠습니다.
+
+```graphql
 query {
-
   repository (name:
-
        "Modern-API-Development-with-Spring-and-Spring-Boot",
-
        owner: "PacktPublishing") {
-
     id
-
     owner {
-
       id
-
       login
-
     }
-
     name
-
     description
-
     viewerHasStarred
-
     stargazerCount
-
   }
-
 }
+```
+여기에서 저장소 이름과 소유자라는 두 가지 인수를 제공하여 이 책의 저장소를 쿼리합니다. 여기에서 몇 개의 필드를 가져오고 있습니다. addStar 돌연변이를 수행할 것이기 때문에 가장 중요한 것 중 하나는 stargazerCount입니다. 이 개수는 돌연변이가 성공했는지 여부를 알려줍니다.
 
-Here, you are querying this book's repository by providing two arguments – the repository's name and its owner. You are fetching a few of the fields from here. One of the most important ones is stargazerCount because we are going to perform an addStar mutation. This count will tell us whether the mutation was successful or not.
+5. 상단 표시줄에서 쿼리 실행 버튼을 클릭하거나 Ctrl + Enter를 눌러 쿼리를 실행합니다. 이 쿼리가 성공적으로 실행되면 다음 출력을 얻을 수 있습니다.
 
-Click on the Execute Query button on the top bar, or press Ctrl + Enter to execute the query. You might get the following output once this query executes successfully:
+```json
 {
-
   "data": {
-
     "repository": {
-
       "id": "MDEwOlJlcG9zaXRvcnkyOTMyOTU5NDA=",
-
       "owner": {
-
         "id": "MDEyOk9yZ2FuaXphdGlvbjEwOTc0OTA2",
-
         "login": "PacktPublishing"
-
       },
 
-      "name": "Modern-API-Development-with-Spring-and-
-
-               Spring-Boot",
-
-      "description": "Modern API Development with   
-
-       Spring and Spring Boot, published by Packt",
-
+      "name": "Modern-API-Development-with-Spring-and-Spring-Boot",
+      "description": "Modern API Development with Spring and Spring Boot, published by Packt",
       "viewerHasStarred": false,
-
       "stargazerCount": 1
-
     }
-
   }
-
 }
+```
+여기에서 시작을 표시하는 데 필요하기 때문에 응답에서 id(강조 표시됨) 값을 복사해야 합니다.
 
-Here, you need to copy the value of id (highlighted) from the response because you need it to mark the start.
+6. 다음 쿼리를 실행하여 addStar 변형을 수행합니다.
 
-Execute the following query to perform the addStar mutation:
+```graphql
 mutation {
-
   addStar(input: {
-
     starrableId: "MDEwOlJlcG9zaXRvcnkyOTMyOTU5NDA="
-
   }) {
-
     clientMutationId
-
   }
-
 }
+```
 
-This performs the addStar mutation for the given repository ID.
+이것은 주어진 저장소 ID에 대해 addStar 변형을 수행합니다.
 
-Once the previous query has executed successfully, you must reexecute the query from step 4 to find out about the change. If you get an access issue, then you can choose your own GitHub repository to perform these steps.
-You can also explore other queries and mutations to deep dive into GraphQL.
+7. 이전 쿼리가 성공적으로 실행되면 4단계의 쿼리를 다시 실행하여 변경 사항을 확인해야 합니다. 액세스 문제가 발생하면 고유한 GitHub 리포지토리를 선택하여 이러한 단계를 수행할 수 있습니다.
+다른 쿼리 및 변형을 탐색하여 GraphQL에 대해 자세히 알아볼 수도 있습니다.
 
-Finally, let's understand the N+1 problem in GraphQL queries before we jump into the implementation in the next chapter.
+마지막으로 다음 장에서 구현으로 넘어가기 전에 GraphQL 쿼리의 N+1 문제를 이해합시다.
 
-Solving the N+1 problem
-The N+1 problem is not new to Java developers. You might have encountered this problem in hibernation, which occurs if you don't optimize your queries or write entities properly.
+## Solving the N+1 problem
 
-Let's understand what the N+1 problem is.
+N+1 문제는 Java 개발자에게 새로운 것이 아닙니다. 쿼리를 최적화하지 않거나 엔터티를 올바르게 작성하지 않으면 최대 절전 모드에서 이 문제가 발생했을 수 있습니다.
 
-Understanding the N+1 problem
-The N+1 problem normally occurs when associations are involved. There are one-to-many relationships between the customer and the order. One customer can have many orders. If you need to find all the customers and their orders, you may do the following:
+N+1 문제가 무엇인지 이해합시다.
 
-Find all the users.
-Find all the user's orders based on the user's ID, which was received in the first step by setting the relation.
-So, here, you fire two queries. If you optimize the implementation any further, you can place a joint between these two entities and receive all the records in a single query.
+### N+1 문제 이해하기
 
-If this is so simple, then why does GraphQL encounter the N+1 problem? You need to understand the resolver function to answer this question.
+N+1 문제는 일반적으로 연관이 관련될 때 발생합니다. 고객과 주문 사이에는 일대다 관계가 있습니다. 한 고객이 여러 주문을 할 수 있습니다. 모든 고객과 주문을 찾아야 하는 경우 다음을 수행할 수 있습니다.
 
-If you go by the database schema we created in Chapter 4, Writing Business Logic for APIs, you can say that the getUsersOrders query will lead to the following SQL statements being executed:
+1. 모든 사용자를 찾습니다.
 
+2. 관계를 설정하여 첫 번째 단계에서 수신한 사용자 ID를 기반으로 사용자의 모든 주문을 찾습니다.
+
+여기에서 두 개의 쿼리를 실행합니다. 구현을 더 최적화하면 이 두 엔터티 사이에 조인트를 배치하고 단일 쿼리에서 모든 레코드를 수신할 수 있습니다.
+
+이것이 그렇게 간단하다면 왜 GraphQL에서 N+1 문제가 발생합니까? 이 질문에 답하려면 리졸버 기능을 이해해야 합니다.
+
+4장, API를 위한 비즈니스 로직 작성에서 생성한 데이터베이스 스키마를 살펴보면 getUsersOrders 쿼리가 다음 SQL 문이 실행되도록 할 것이라고 말할 수 있습니다.
+
+```sql
 SELECT * FROM ecomm.user;
-
 SELECT * FROM ecomm.orders WHERE customer_id in (1);
-
 SELECT * FROM ecomm.orders WHERE customer_id in (2);
-
 ...
-
 ...
-
 SELECT * FROM ecomm.orders WHERE customer_id in (n);
+```
+여기에서는 모든 사용자를 가져오기 위해 사용자에 대한 쿼리를 실행하고 있습니다. 그런 다음 주문에 대해 N개의 쿼리를 실행합니다. 이것이 N+1 문제라고 불리는 이유입니다. 이상적으로는 단일 쿼리를 실행하거나 최악의 경우 두 개의 쿼리를 실행해야 하므로 효율적이지 않습니다.
 
-Here, it's executing a query on the user to fetch all the users. Then, it executes N queries on orders. This is why it is called the N+1 problem. This is not efficient because ideally, it should execute a single query or in the worst case, two queries.
+GraphQL은 리졸버로 인해 쿼리에서 요청한 필드 값으로만 응답할 수 있습니다. 각 필드에는 해당 필드에 대한 데이터를 가져오는 GraphQL 서버 구현의 자체 리졸버 함수가 있습니다. 
 
-GraphQL can only respond with the values of fields that have been requested in the query due to resolvers. Each field has its own resolver function in the GraphQL server implementation that fetches the data for its corresponding field. Let's assume we have the following schema:
+다음 스키마가 있다고 가정해 보겠습니다.
 
+```graphql
 type Mutation {
-
   getUsersOrders: [User]
-
 }
 
 type User {
-
   name: String
-
   orders: [Order]
-
 }
 
 type Order {
-
   id: Int
-
   status: Status
-
 }
+```
+여기에 사용자 컬렉션을 반환하는 mutation이 있습니다. 각 사용자는 주문 모음을 가질 수 있습니다. 클라이언트에서 다음 쿼리를 사용할 수 있습니다.
 
-Here, we have a mutation that returns a collection of users. Each user may have a collection of orders. You might use the following query in the client:
-
+```graphql
 {
-
   getUsersOrders {
-
     name
-
     orders {
-
       id
-
       status
-
     }
-
   }
-
 }
+```
+이 쿼리가 서버에서 어떻게 처리되는지 이해합시다. 서버에서 각 필드에는 해당 데이터를 가져오는 자체 해석기 기능이 있습니다.
 
-Let's understand how this query will be processed by the server. In the server, each field will have its own resolver function that fetches the corresponding data.
+첫 번째 확인자는 사용자를 위한 것이며 데이터 저장소에서 모든 사용자를 가져옵니다. 다음으로 리졸버는 각 사용자에 대해 주문됩니다. 주어진 사용자 ID를 기반으로 데이터 저장소에서 주문을 가져옵니다. 따라서 주문 해석기는 n번 실행됩니다. 여기서 n은 데이터 저장소에서 가져온 사용자 수입니다.
 
-The first resolver will be for the user and will fetch all the users from the data store. Next, the resolver will be ordered for each user. It will fetch the orders from the data store based on the given user ID. Therefore, the orders resolver would execute n times, where n is the number of users that have been fetched from the data store.
+다음 하위 섹션에서 N+1 문제를 해결하는 방법을 배웁니다.
 
-We'll learn how to resolve the N+1 problem in the next subsection.
+### N+1 문제에 대한 솔루션
 
-### Solution for the N+1 problem
+모든 주문이 로드될 때까지 기다리는 솔루션이 필요합니다. 모든 사용자 ID가 검색되면 단일 데이터 저장소 호출에서 모든 주문을 가져오기 위해 데이터베이스 호출이 이루어져야 합니다. 데이터베이스의 크기가 큰 경우 배치를 사용할 수 있습니다. 그런 다음 개별 주문 확인자를 해결할 수 있습니다. 그러나 이것은 말보다 쉽습니다. GraphQL은 이 작업을 수행하는 DataLoader(https://github.com/graphql/dataloader)라는 라이브러리를 제공합니다.
 
-You need to have a solution that waits until all the orders have been loaded. Once all the user IDs have been retrieved, a database call should be made to fetch all the orders in a single data store call. You can use the batch if the size of the database is huge. Then, it can resolve the individual order resolvers. However, this is easier said than done. GraphQL provides a library called DataLoader (https://github.com/graphql/dataloader) that does this job for you.
+Java는 이 문제를 해결하는 데 도움이 되는 java-dataloader(https://github.com/graphql-java/java-dataloader)라는 유사한 라이브러리를 제공합니다. 자세한 내용은 https://www.graphql-java.com/documentation/v16/batching/에서 확인할 수 있습니다.
 
-Java provides a similar library called java-dataloader (https://github.com/graphql-java/java-dataloader) that can help you solve this problem. You can find out more about it at https://www.graphql-java.com/documentation/v16/batching/.
+## 요약
 
-## Summary
+- 이 장에서는 GraphQL, 그 장점 및 REST와 비교하는 방법에 대해 배웠습니다. GraphQL이 오버페칭 및 언더페칭 문제를 해결하는 방법을 배웠습니다. 그런 다음 GraphQL의 루트 유형(쿼리, 변형 및 구독)과 다양한 블록이 GraphQL 스키마를 설계하는 데 어떻게 도움이 되는지 배웠습니다. 마지막으로 리졸버가 어떻게 작동하는지, 어떻게 N+1 문제로 이어질 수 있는지, 이 문제에 대한 솔루션을 이해했습니다.
 
-In this chapter, you learned about GraphQL, its advantages, and how it compares to REST. You learned how GraphQL solves overfetching and underfetching problems. You then learned about GraphQL's root types – queries, mutations, and subscriptions – and how different blocks can help you design the GraphQL schema. Finally, you understood how resolvers work, how they can lead to the N+1 problem, and the solution to this problem.
+- 이제 GraphQL의 기본 사항을 알았으므로 GraphQL 스키마 설계를 시작할 수 있습니다. 또한 GraphQL의 클라이언트 측 쿼리와 별칭, 조각 및 변수를 사용하여 일반적인 문제를 해결하는 방법에 대해서도 배웠습니다.
 
-Now that you know about the fundamentals of GraphQL, you can start designing GraphQL schemas. You also learned about GraphQL's client-side queries and how to make use of aliases, fragments, and variables to resolve common problems.
+다음 장에서는 이 장에서 습득한 GraphQL 기술을 사용하여 GraphQL 서버를 구현합니다.
 
-In the next chapter, you will use the GraphQL skills you acquired in this chapter to implement a GraphQL server.
+### Questions
 
-Questions
-Is GraphQL better than REST? If yes, then in what way?
-When should you use fragments?
-How can you use variables in a GraphQL query?
+- Is GraphQL better than REST? If yes, then in what way?
+- When should you use fragments?
+- How can you use variables in a GraphQL query?
 
 ## Further reading
 

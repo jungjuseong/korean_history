@@ -49,9 +49,9 @@ A token is a string of characters such as
 ```
 5rm1tc1obfshrm2354lu9dlt5reqm1ddjchqh81 7rbk37q95b768bib0jf44df6suk1638sf78cef7 hfolg4ap3bkighbnk7inr68ke780744fpej0gtd 9qflm999o8q.` 
 ```
-다양한 권한 부여 흐름을 사용하여 상태 비저장 HTTP(HyperText Transfer Protocol) 끝점 또는 리소스를 호출할 수 있습니다.
+다양한 권한 부여 흐름을 사용하여 상태 비저장 HTTP 끝점 또는 리소스를 호출할 수 있습니다.
 
-2장, Spring 개념과 REST API에서 DispatcherServlet에 대해 배웠습니다. 이것은 클라이언트 요청과 REST 컨트롤러 간의 인터페이스입니다. 따라서 토큰 기반 인증 및 권한 부여에 대한 논리를 배치하려면 요청이 DispatcherServlet에 도달하기 전에 이를 수행해야 합니다. Spring Security 라이브러리는 요청이 DispatcherServlet에 도달하기 전에 처리되는 서블릿 사전 필터(필터 체인의 일부로)를 제공합니다. 사전 필터는 실제 서블릿에 도달하기 전에 처리되는 서블릿 필터이며, Spring Security의 경우 DispatcherServlet입니다. 유사하게, 포스트 필터는 요청이 서블릿/컨트롤러에 의해 처리된 후에 처리됩니다.
+"2장, Spring 개념과 REST API"에서 DispatcherServlet에 대해 배웠습니다. 이것은 클라이언트 요청과 REST 컨트롤러 간의 인터페이스입니다. 따라서 토큰 기반 인증 및 권한 부여에 대한 논리를 배치하려면 요청이 DispatcherServlet에 도달하기 전에 이를 수행해야 합니다. Spring Security 라이브러리는 요청이 DispatcherServlet에 도달하기 전에 처리되는 서블릿 pre 필터(필터 체인의 일부로)를 제공합니다. pre 필터는 실제 서블릿에 도달하기 전에 처리되는 서블릿 필터이며, Spring Security의 경우 DispatcherServlet입니다. 유사하게, post 필터는 요청이 서블릿/컨트롤러에 의해 처리된 후에 처리됩니다.
 
 토큰 기반(JWT) 인증을 구현할 수 있는 두 가지 방법이 있습니다. 
 
@@ -60,13 +60,13 @@ A token is a string of characters such as
  
 우리는 후자를 사용할 것입니다.
 
-The former contains the following libraries:
+전자는 다음 라이브러리가 들어 있습니다.
 
 - spring-security-core
 - spring-security-config
 - spring-security-web
 
-`spring-boot-starter-oauth2-resource-server` provides the following, along with all three previously mentioned Java ARchive files (JARs):
+`spring-boot-starter-oauth2-resource-server`는 위의 jar에 다음 을 추기로 제공합니다:
 
 - spring-security-oauth2-core
 - spring-security-oauth2-jose
@@ -91,8 +91,7 @@ INFO [Chapter06,,,]     [null] [null] [null]     [null] 24052 --- [main] o.s.s.w
 - SessionManagementFilter
 - ExceptionTranslationFilter
 - FilterSecurityInterceptor
-
-드디어 컨트롤러에 도착
+- 드디어 컨트롤러에 도착
 
 이 필터 체인은 향후 릴리스에서 변경될 수 있습니다. 또한 spring-boot-starter-security를 사용했거나 구성을 변경한 경우 보안 필터 체인이 달라집니다. springSecurityFilterChain에서 사용 가능한 모든 필터는 https://docs.spring.io/spring-security/site/docs/current/reference/html5/#servlet-security-filters에서 찾을 수 있습니다. 
 
@@ -103,7 +102,7 @@ INFO [Chapter06,,,]     [null] [null] [null]     [null] 24052 --- [main] o.s.s.w
 
 필터 기반 인증을 이미 알고 있는 경우 이 섹션을 건너뛰고 OAuth 2.0 리소스 서버를 사용한 인증 섹션으로 건너뛸 수 있습니다.
 
-수동 필터 구성이 필요하지 않은 인증 구현을 위해 spring-boot-starter-oauth2-resource-server 종속성을 사용할 것입니다. oauth2-resource-server는 인증을 위해 `BearerTokenAuthenticationFilter`를 사용합니다. 그러나 필터 기반 인증 구현 및 구성을 이해하면 Spring Security 개념을 단순화할 수 있습니다. 필터 기반 인증 및 권한 부여를 위해 spring-boot-starter-spring-security를 ​​추가하면 됩니다.
+수동 필터 구성이 필요하지 않은 인증 구현을 위해 spring-boot-starter-oauth2-resource-server 의존성을 사용할 것입니다. oauth2-resource-server는 인증을 위해 `BearerTokenAuthenticationFilter`를 사용합니다. 그러나 필터 기반 인증 구현 및 구성을 이해하면 Spring Security 개념을 단순화할 수 있습니다. 필터 기반 인증 및 권한 부여를 위해 spring-boot-starter-spring-security를 ​​추가하면 됩니다.
 
 적절한 사전 필터에 인증 논리를 추가할 수 있습니다. 요청이 인증에 실패하면 액세스 거부 예외(AccessDeniedException)와 함께 응답이 클라이언트에 전송되고 그 결과 HTTP 401 Unauthorized 오류 상태 응답 코드가 표시됩니다.
 
@@ -119,17 +118,17 @@ Now, let's have a look at a token authorization flow using filters.
 
 ### 필터를 사용한 토큰 인증 흐름
 
-토큰을 사용한 권한 부여는 다음 다이어그램과 같이 작동합니다. 사용자가 Authorization 헤더와 함께 유효한 bearer 토큰을 제출하면 호출이 성공하고 FilterChain.doFilter(request,response)를 호출합니다. 따라서 호출은 DispatcherServlet을 통해 컨트롤러로 라우팅됩니다. 마지막에 클라이언트는 적절한 상태 코드가 포함된 응답을 받습니다.
+토큰을 사용한 권한 부여는 다음 다이어그램과 같이 작동합니다. 사용자가 Authorization 헤더와 함께 유효한 bearer 토큰을 제출하면 호출이 성공하고 `FilterChain.doFilter(request,response)`를 호출합니다. 따라서 호출은 DispatcherServlet을 통해 컨트롤러로 라우팅됩니다. 마지막에 클라이언트는 적절한 상태 코드가 포함된 응답을 받습니다.
 
-잘못된 토큰으로 인해 호출이 실패하면 AccessDeniedException이 발생하고 401 Unauthorized 상태 코드와 함께 AuthenticationEntryPoint에서 응답이 전송됩니다. AuthenticationEntryPoint 인터페이스를 구현하고 그 begin() 메서드를 재정의하여 이 동작을 재정의할 수 있습니다.
+잘못된 토큰으로 인해 호출이 실패하면 AccessDeniedException이 발생하고 401 Unauthorized 상태 코드와 함께 `AuthenticationEntryPoint`에서 응답이 전송됩니다. `AuthenticationEntryPoint` 인터페이스를 구현하고 그 begin() 메서드를 재정의하여 이 동작을 재정의할 수 있습니다.
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781800562479/files/image/Figure_6.2_B16561.jpg)
 
 그림 6.2 – BasicAuthenticationFilter를 사용한 토큰 인증 흐름
 
-먼저 Gradle 빌드 파일에 필요한 종속성을 추가해 보겠습니다.
+먼저 Gradle 빌드 파일에 필요한 의존성을 추가해 보겠습니다.
 
-### 필요한 Gradle 종속성 추가
+### 필요한 Gradle 의존성 추가
 
 다음과 같이 build.gradle 파일에 다음 종속성을 추가해 보겠습니다.
 ```
@@ -153,11 +152,11 @@ You can now explore how to code these two filters—login- and token-based authe
 
 ### 로그인 기능을 위한 필터 코딩
 
-클라이언트는 유효한 사용자 이름/암호 조합을 제공하여 성공적인 로그인을 수행한 후 JWT 토큰을 받습니다. Spring Security는 확장할 수 있는 UsernamePasswordAuthenticationFilter를 제공하고 attemptAuthentication() 및 successAuthentication() 메서드를 재정의할 수 있습니다. 먼저 다음과 같이 LoginFilter 클래스를 생성해 보겠습니다.
+클라이언트는 유효한 username/password 조합을 제공하여 성공적인 로그인을 수행한 후 JWT 토큰을 받습니다. Spring Security는 확장할 수 있는 `UsernamePasswordAuthenticationFilter`를 제공하고 attemptAuthentication() 및 successAuthentication() 메서드를 재정의할 수 있습니다. 먼저 다음과 같이 LoginFilter 클래스를 생성해 보겠습니다.
 
 ```java
-public class LoginFilter extends  UsernamePasswordAuthenticationFilter {
-  private final AuthenticationManager  authenticationManager;
+public class LoginFilter extends UsernamePasswordAuthenticationFilter {
+  private final AuthenticationManager authenticationManager;
   private final JwtManager tokenManager;
   private final ObjectMapper mapper;
 
@@ -176,15 +175,14 @@ Let's first override the attemptAuthentication() method, as follows:
 
 ```java
 @Override
-public Authentication attemptAuthentication(
-    HttpServletRequest req,HttpServletResponse res)
+public Authentication attemptAuthentication(HttpServletRequest req,HttpServletResponse res)
     throws AuthenticationException {
   if (!req.getMethod().equals(HttpMethod.POST.name())) {
     throw new MethodNotAllowedException(req.getMethod(),
         List.of(HttpMethod.POST));
   }
   try (InputStream is = req.getInputStream()) {
-    SignInReq user = new ObjectMapper().readValue(          is, SignInReq.class);
+    SignInReq user = new ObjectMapper().readValue(is, SignInReq.class);
     return authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(
             user.getUsername(),
@@ -195,8 +193,10 @@ public Authentication attemptAuthentication(
     throw new RuntimeException(e);
   }
 }
-org.springframework.security.authentication.AuthenticationManager is a component of Spring Security. We simply use it to authenticate by passing the username, password, and authorities. Authorities are passed as an empty list; however, you can pass the authorities too if they are either received from the request payload or by fetching them from the database/memory store. SignInReq is a Plain Old Java Object (POJO) that contains the username and password fields.
-Once the login is successful, we need to return a JWT in response. The successfulAuthentication() method is overridden for the same purpose, as illustrated in the following code snippet:
+```
+security.authentication.AuthenticationManager는 Spring Security의 구성요소이다. 우리는 단순히 username, password 및 권한을 전달하여 인증하는 데 사용합니다. 권한은 빈 목록으로 전달됩니다. 그러나 요청 페이로드에서 받거나 데이터베이스/메모리 저장소에서 가져오는 경우 권한을 전달할 수도 있습니다. SignInReq는 username, password를 포함하는 POJO입니다.
+
+로그인이 성공하면 응답으로 JWT를 반환해야 합니다. 다음 코드처럼 successAuthentication() 메서드는 동일한 목적으로 재정의됩니다.
 
 ```java
 @Override
@@ -205,27 +205,26 @@ protected void successfulAuthentication(
     HttpServletResponse res,
     FilterChain chain,
     Authentication auth) throws IOException {
+
   User principal = (User) auth.getPrincipal();
   String token = tokenManager.create(principal);
-  SignedInUser user = new SignedInUser()
-            .username(principal.getUsername()).accessToken(
-                      token);
+  SignedInUser user = new SignedInUser().username(principal.getUsername()).accessToken(token);
+
   res.setContentType(MediaType.APPLICATION_JSON_VALUE);
   res.setCharacterEncoding("UTF-8");
   res.getWriter().print(mapper.writeValueAsString(user));
   res.getWriter().flush();
 }
 ```
+여기에서 tokenManager.create() 메서드를 사용하여 토큰을 생성합니다. SignedInUser는 사용자 이름 및 토큰 필드를 포함하는 POJO입니다.
 
-Here, a token is created using the tokenManager.create() method. SignedInUser is a POJO that contains the username and token fields.
-The client receives the username and token as a response after successful authentication and can then use this token in the Authorization header by prefixing the token value with "Bearer". Let's see how you can configure and add these new filters in Spring Security filter chains.
+클라이언트는 성공적인 인증 후 응답으로 사용자 이름과 토큰을 수신하고 토큰 값에 "Bearer"를 접두사로 붙여 Authorization 헤더에서 이 토큰을 사용할 수 있습니다. Spring Security 필터 체인에서 이러한 새 필터를 구성하고 추가하는 방법을 살펴보겠습니다.
 
-### Configuring Spring Security
+### 스프링 시큐리티 설정하기
 
-There is a final piece missing here about how AuthenticationManager.authenticate() works. AuthenticationManager uses the UserDetailsService bean internally— this has a single method, as shown next:
+AuthenticationManager.authenticate() 작동 방식에 대한 마지막 부분이 누락되었습니다. AuthenticationManager는 내부적으로 UserDetailsService 빈을 사용합니다. 다음과 같이 단일 메서드가 있습니다.
 ```java
-UserDetails loadUserByUsername(String username) throws
-                               UsernameNotFoundException
+UserDetails loadUserByUsername(String username) throws UsernameNotFoundException
 ```
 You just have to create an implementation of the UserDetailsService interface and expose it as a bean, as shown in the following code snippet:
 
@@ -241,49 +240,65 @@ This bean is exposed in the SecurityConfig class, which extends WebSecurityConfi
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 ```
-Here, @EnableWebSecurity annotation is applied to configure WebSecurityConfigurer or the class that extends WebSecurityConfigurerAdapter and customize the WebSecurity class. This class does the auto-configuration for security, with some override methods. The configure() method allows you to configure the HTTP security as a domain-specific language (DSL), using the methods shown here:
+여기서 @EnableWebSecurity 주석은 WebSecurityConfigurer 또는 WebSecurityConfigurerAdapter를 확장하는 클래스를 설정하고 WebSecurity 클래스를 커스터마이징하기 위해 적용된다. 이 클래스는 일부 재정의 메서드를 사용하여 보안을 위한 자동 구성을 수행합니다. configure() 메서드를 사용하면 여기에 표시된 메서드를 사용하여 HTTP 보안을 DSL(도메인별 언어)로 구성할 수 있습니다.
+
 ```java
 @Override
-protected void configure(HttpSecurity http) throws      Exception {
+protected void configure(HttpSecurity http) throws Exception {
    http.authorizeRequests()
-        .antMatchers(HttpMethod.POST, SIGN_UP_URL).permitAll()
-        .anyRequest().authenticated()
-        .and()
-        .addFilter(new LoginFilter(             super.authenticationManager(), mapper))
-        .addFilter(new JwtAuthenticationFilter(             super.authenticationManager()))
-        .sessionManagement().sessionCreationPolicy(             SessionCreationPolicy.STATELESS);
+    .antMatchers(HttpMethod.POST, SIGN_UP_URL).permitAll()
+    .anyRequest().authenticated()
+    .and()
+    .addFilter(new LoginFilter(super.authenticationManager(), mapper))
+    .addFilter(new JwtAuthenticationFilter(super.authenticationManager()))
+    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 }
 ```
-The configure() method demonstrates how you can configure the HTTP security using DSL and override its default implementation. Let's understand the code, as follows:
-You can see that the login URL is permitted without authentication by using the antMatchers() method. If you don't pass the HTTP method to antMatchers(), it will be applicable for all the HTTP methods. permitAll() removes the restriction on endpoints and their attached HTTP methods.
-You can add custom filters using addFilter(). All other URLs need authentication.
-Two extra filters have been added for sign-in operations and JWT token-based authentication.
-At the end, the session policy is set to STATELESS because we are going to use REST endpoints.
-We have coded the login filter in this section. Now, let's add the JwtAuthenticationFilter class for token verification.
-Coding the filters for token verification
-Let's explore how you can implement authentication using filters. If you use the spring-boot-starter-security dependency, then you can extend the BasicAuthenticationFilter class and override the doFilterInternal method for token verification, as shown in the code blocks that follow.
-First, create a new class that extends the BasicAuthenticationFilter class, as follows:
-public class JwtAuthenticationFilter extends
-                          BasicAuthenticationFilter {
-  public JwtAuthenticationFilter(AuthenticationManager
-                                    authenticationManager) {
+configure() 메서드는 DSL을 사용하여 HTTP 보안을 구성하고 기본 구현을 재정의하는 방법입니다. 
+
+다음과 같이 코드를 이해합시다.
+
+- antMatchers(): 인증 없이 로그인 URL이 허용된 것을 확인할 수 있습니다. antMatchers()에 HTTP 메소드를 전달하지 않으면 모든 HTTP 메소드에 적용됩니다. permitAll()은 끝점 및 연결된 HTTP 메서드에 대한 제한을 제거합니다.
+
+- addFilter(): 사용자 정의 필터를 추가할 수 있습니다. 다른 모든 URL에는 인증이 필요합니다.
+- 로그인 작업 및 JWT 토큰 기반 인증을 위해 두 개의 추가 필터가 추가되었습니다.
+- 세션 정책은 REST 끝점을 사용할 것이기 때문에 STATELESS로 설정됩니다.
+
+이 섹션에서는 로그인 필터를 코딩했습니다. 이제 토큰 확인을 위한 JwtAuthenticationFilter 클래스를 추가해 보겠습니다.
+
+### 토큰 확인을 위한 필터 코딩
+
+필터를 사용하여 인증을 구현하는 방법을 살펴보겠습니다. spring-boot-starter-security 종속성을 사용하는 경우 다음 코드 블록에 표시된 대로 BasicAuthenticationFilter 클래스를 확장하고 토큰 확인을 위해 doFilterInternal 메서드를 재정의할 수 있습니다.
+
+먼저 다음과 같이 BasicAuthenticationFilter 클래스를 확장하는 새 클래스를 만듭니다.
+
+```java
+public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
+  public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
     super(authenticationManager);
   }
+```
 https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter06/src/main/java/com/packt/modern/api/security/UNUSED/JwtAuthenticationFilter.java
-Now, we can override the doFilterInternal method. Here, we check whether the request contains the Authorization header with a bearer token or not. If it has the Authorization header then it performs the authentication, adds the token to security context, and then passes the call to the next security filter. The code is illustrated in the following snippet:
+
+이제 doFilterInternal 메소드를 재정의할 수 있습니다. 여기에서 요청에 bearer 토큰이 있는 Authorization 헤더가 포함되어 있는지 확인합니다. Authorization 헤더가 있으면 인증을 수행하고 보안 컨텍스트에 토큰을 추가한 다음 호출을 다음 보안 필터로 전달합니다.
+
+```java
 @Override
-protected void doFilterInternal(HttpServletRequest req,        HttpServletResponse res, FilterChain chain) throws                    IOException, ServletException {
+protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
   String header = req.getHeader("Authorization");
   if (Objects.isNull(header) || !header.startsWith("Bearer ")) {
     chain.doFilter(req, res);
     return;
   }
-  Optional<UsernamePasswordAuthenticationToken>     authentication = getAuthentication(req);
+  Optional<UsernamePasswordAuthenticationToken> authentication = getAuthentication(req);
   authentication.ifPresentOrElse(e ->
-      SecurityContextHolder.getContext().setAuthentication(          e), SecurityContextHolder::clearContext);
+      SecurityContextHolder.getContext().setAuthentication(e), SecurityContextHolder::clearContext);
   chain.doFilter(req, res);
 }
+```
 The getAuthentication() method performs the token authentication logic, as shown in the following code snippet:
+
+```java
 private Optional<UsernamePasswordAuthenticationToken>
          getAuthentication(HttpServletRequest request) {
   String token = request.getHeader("Authorization");
@@ -297,65 +312,105 @@ private Optional<UsernamePasswordAuthenticationToken>
     List<String> authorities = (List)
         jwt.getClaim("roles");
     if (Objects.nonNull(user)) {
-      return Optional.of(
-              new UsernamePasswordAuthenticationToken(
+      return Optional.of(new UsernamePasswordAuthenticationToken(
           user, null, Objects.nonNull(authorities) ?
-          authorities.stream().map(SimpleGrantedAuthority::
-              new)
-          .collect(Collectors.toList()) :
-              Collections.emptyList()));
+          authorities.stream().map(SimpleGrantedAuthority::new)
+          .collect(Collectors.toList()) : Collections.emptyList()));
     }
   }
   return Optional.empty();
 }
-Here, JWT and DecodedJWT are part of the com.auth0:java-jwt library. Calling verify() performs the verification of the given token and returns a DecodedJWT instance. If verification fails, it returns JWTVerificationException. Once verification is done, we simply create and return the UsernamePasswordAuthenticationToken token that takes the principal, credentials, and collection of GrantedAuthority objects. GrantedAuthority is an interface that represents the authority associated with an authentication object. OAuth2 Resource Server lets you add scope authority by default. However, you can add custom authority such as roles.
-So far, we have learned about the authentication and token authorization flow using a Spring filter chain. Next, we are going to implement the authentication using the spring-boot-starter-oauth2-resource-server dependency. In the next section, we'll explore the authentication and authorization flow using OAuth 2.0 Resource Server.
-Authentication using OAuth 2.0 Resource Server
-Spring Security OAuth 2.0 Resource Server allows you to implement authentication and authorization using BearerTokenAuthenticationFilter. This contains bearer token authentication logic. However, you still need to write the REST endpoint for generating the token. Let's explore how the authentication flow works in OAuth2.0 Resource Server. Have a look at the following diagram:
-Figure 6.3 – Token authentication flow using OAuth 2.0 Resource Server
-Figure 6.3 – Token authentication flow using OAuth 2.0 Resource Server
-Let's understand the flow depicted in Figure 6.3 , as follows:
-The client sends a GET HTTP request to /api/v1/addresses.
-BearerTokenAuthenciationFilter comes into action. If the request doesn't contain the Authorization header then BearerTokenAuthenticationFilter does not authenticate the request since it did not find the bearer token. It passes the call to FilterSecurityInterceptor, which does the authorization. It throws an AccessDeniedException exception (marked as 2 in Figure 6.3). ExceptionTranslationFilter springs into action. Control is moved to BearerTokenAuthenticationEntryPoint, which responds with a 401 Unauthorized status and a WWW-Authenticate header with a Bearer value. If the client receives a WWW-Authenticate header with a Bearer value in response, it means it has to retry with the Authorization header that holds the valid bearer token. At this stage, the request cache is NullRequestCache (that is, empty) due to security reasons because the client can replay the request.
-Let's assume the HTTP request contains an Authorization header. It extracts the Authorization header from the HTTP request and, apparently, the token from the Authorization header. It creates an instance of BearerTokenAuthenticationToken using the token value. BearerTokenAuthenticationToken is a type of AbstractAuthenticationToken class that implements an Authentication interface representing the token/principal for the authenticated request.
-The HTTP request is passed to AuthenticationManagerResolver, which provides the AuthenticationManager based on the configuration. AuthenticationManager verifies the BearerTokenAuthenticationToken token.
-If authentication is successful, then Authentication is set on the SecurityContext instance. This instance is then passed to SecurityContextHolder. setContext(). The request is passed to the remaining filters for processing and then routes to DispatcherServlet and then, finally, to AddressController.
-If authentication fails, then SecurityContextHolder.clearContext() is called to clear the context value. ExceptionTranslationFilter springs into action. Control is moved to BearerTokenAuthenticationEntryPoint, which responds with a 401 Unauthorized status and a WWW-Authenticate header with a value that contains the appropriate error message, such as Bearer error="invalid_token", error_description="An error occurred while attempting to decode the Jwt: Jwt expired at 2020-12-14T17:23:30Z", error_uri="https://tools.ietf.org/html/rfc6750#section-3.1".
-Exploring the fundamentals of JWT
-You need an authority in the form of permissions or rights to carry out any activity or access any information. This authority is known as a claim. A claim is represented as a key-value pair. The key contains the claim name and the value contains the claim that can be a valid JSON value. A claim can also be metadata about the JWT.
-HOW IS JWT PRONOUNCED?
-As per https://tools.ietf.org/html/rfc7519, the suggested pronunciation of JWT is the same as the English word jot.
-A JWT is an encoded string that contains of set of claims. These claims are either digitally signed by a JSON Web Signature (JWS) or encrypted by JSON Web Encryption (JWE). JWT is a self-contained way to transmit claims securely between parties. The links for these Request for Comments (RFC) proposed standards are provided in the Further reading section of this chapter.
-JWT structure
-A JWT is an encoded string such as aaa.bbb.ccc, consisting of the following three parts separated by dots (.):
-Header
-Payload
-Signature
+```
+여기서 JWT 및 DecodedJWT는 com.auth0:java-jwt 라이브러리의 일부입니다. verify()를 호출하면 지정된 토큰의 확인이 수행되고 DecodedJWT 인스턴스가 반환됩니다. 확인에 실패하면 JWTVerificationException을 반환합니다. 확인이 완료되면 GrantedAuthority 개체의 주체, 자격 증명 및 컬렉션을 사용하는 UsernamePasswordAuthenticationToken 토큰을 만들고 반환하기만 하면 됩니다. GrantedAuthority는 인증 객체와 관련된 권한을 나타내는 인터페이스입니다. OAuth2 Resource Server를 사용하면 기본적으로 범위 권한을 추가할 수 있습니다. 그러나 역할과 같은 사용자 지정 권한을 추가할 수 있습니다.
+
+지금까지 Spring 필터 체인을 사용하여 인증 및 토큰 권한 부여 흐름에 대해 배웠습니다. 다음으로 spring-boot-starter-oauth2-resource-server 종속성을 사용하여 인증을 구현합니다. 다음 섹션에서는 OAuth 2.0 리소스 서버를 사용한 인증 및 권한 부여 흐름을 살펴보겠습니다.
+
+
+## OAuth 2.0 리소스 서버를 이용한 인증
+
+Spring Security OAuth 2.0 Resource Server를 사용하면 BearerTokenAuthenticationFilter를 사용하여 인증 및 권한 부여를 구현할 수 있습니다. 여기에는 무기명 토큰 인증 논리가 포함됩니다. 그러나 토큰 생성을 위한 REST 엔드포인트를 작성해야 합니다. OAuth2.0 리소스 서버에서 인증 흐름이 어떻게 작동하는지 살펴보겠습니다. 다음 다이어그램을 살펴보십시오.
+
+![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781800562479/files/image/Figure_6.3_B16561.jpg)
+그림 6.3 – OAuth 2.0 리소스 서버를 사용한 토큰 인증 흐름
+
+다음과 같이 그림 6.3에 묘사된 흐름을 이해합시다.
+
+1. 클라이언트는 /api/v1/addresses에 GET HTTP 요청을 보냅니다.
+
+2. BearerTokenAuthenciationFilter가 작동합니다. 요청에 Authorization 헤더가 포함되어 있지 않으면 BearerTokenAuthenticationFilter가 전달자 토큰을 찾지 못했기 때문에 요청을 인증하지 않습니다. 권한 부여를 수행하는 FilterSecurityInterceptor에 대한 호출을 전달합니다. AccessDeniedException 예외가 발생합니다(그림 6.3에서 2로 표시됨). ExceptionTranslationFilter가 작동합니다. 제어는 401 Unauthorized 상태와 Bearer 값이 있는 WWW-Authenticate 헤더로 응답하는 BearerTokenAuthenticationEntryPoint로 이동됩니다. 클라이언트가 응답으로 Bearer 값이 포함된 WWW-Authenticate 헤더를 수신하면 유효한 Bearer 토큰을 보유한 Authorization 헤더로 재시도해야 함을 의미합니다. 이 단계에서는 클라이언트가 요청을 재생할 수 있기 때문에 보안상의 이유로 요청 캐시가 NullRequestCache(즉, 비어 있음)입니다.
+
+3. HTTP 요청에 Authorization 헤더가 포함되어 있다고 가정해 보겠습니다. HTTP 요청에서 Authorization 헤더를 추출하고 Authorization 헤더에서 토큰을 추출합니다. 토큰 값을 사용하여 BearerTokenAuthenticationToken의 인스턴스를 생성합니다. BearerTokenAuthenticationToken은 인증된 요청에 대한 토큰/주자를 나타내는 인증 인터페이스를 구현하는 AbstractAuthenticationToken 클래스 유형입니다.
+
+4. HTTP 요청은 구성에 따라 AuthenticationManager를 제공하는 AuthenticationManagerResolver로 전달됩니다. AuthenticationManager는 BearerTokenAuthenticationToken 토큰을 확인합니다.
+
+5. 인증에 성공하면 SecurityContext 인스턴스에 인증이 설정됩니다. 그런 다음 이 인스턴스는 SecurityContextHolder에 전달됩니다. 요청은 처리를 위해 나머지 필터로 전달된 다음 DispatcherServlet으로 라우팅되고 마지막으로 AddressController로 라우팅됩니다.
+
+6. 인증에 실패하면 SecurityContextHolder.clearContext()가 호출되어 컨텍스트 값을 지웁니다. ExceptionTranslationFilter가 작동합니다. 제어가 BearerTokenAuthenticationEntryPoint로 이동되어 401 Unauthorized 상태로 응답하고 Bearer error="invalid_token", error_description="Jwt 디코딩을 시도하는 동안 오류가 발생했습니다. : Jwt는 2020-12-14T17:23:30Z", error_uri="https://tools.ietf.org/html/rfc6750#section-3.1"에 만료되었습니다.
+
+## JWT의 기초 살펴보기
+
+활동을 수행하거나 정보에 액세스하려면 권한 또는 권한 형태의 권한이 필요합니다. 이 권한을 클레임이라고 합니다. 클레임은 키-값 쌍으로 표시됩니다. 키에는 클레임 이름이 포함되고 값에는 유효한 JSON 값이 될 수 있는 클레임이 포함됩니다. 클레임은 JWT에 대한 메타데이터일 수도 있습니다.
+
+JWT는 어떻게 발음됩니까?
+
+https://tools.ietf.org/html/rfc7519에 따르면 JWT의 제안 발음은 영어 단어 jot와 동일합니다.
+
+JWT는 일련의 클레임이 포함된 인코딩된 문자열입니다. 이러한 클레임은 JWS(JSON 웹 서명)로 디지털 서명되거나 JWE(JSON 웹 암호화)로 암호화됩니다. JWT는 당사자 간에 안전하게 클레임을 전송하는 자체 포함된 방법입니다. 이러한 RFC(Request for Comments) 제안 표준에 대한 링크는 이 장의 추가 읽기 섹션에서 제공됩니다.
+
+### JWT structure
+
+A JWT is an encoded string such as `aaa.bbb.ccc`, consisting of the following three parts separated by dots (.):
+
+- Header
+- Payload
+- Signature
+
 A few websites such as https://jwt.io/ or https://www.jsonwebtoken.io/ allow you to view the content of a JWT and generate a JWT.
+
 Let's have a look at the following sample JWT string. You can paste it into one of the previously mentioned websites to decode the content:
+```
 eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzY290dCIsInJvbGVzIjpbIlVTRVIiXSwiaX NzIjoiTW9kZXJuIEFQSSBEZXZlbG9wbWVudCB3aXRoIFNw cmluZyBhbmQgU3ByaW5nIEJvb3QiLCJleHAiOjE2MTA1Mj A2MjksImlhdCI6MTYxMDE5ODIzNywianRpIjoiMjk3ZGY4 YTctNTE4Zi00ZWQ3LWJhNjYtOTJkYTQ5NGRkZDc2In0.MW-QOgAcNwLoEYINzqnDSm73-N86yf29-RUJsrApDyg
+```
 This sample token demonstrates how a JWT is formed and divided into three parts using dots.
-Header
-A header consists of a Base64URL-encoded JSON string, normally containing two key-value pairs: a type of token (with a typ key) and a signing algorithm (with an alg key).
+
+#### Header
+A header consists of a Base64URL-encoded JSON string, normally containing two key-value pairs: 
+a type of token (with a typ key) and a signing algorithm (with an alg key).
+
 A sample JWT string contains the following header:
+```json
 {
   "typ": "JWT",
   "alg": "HS256"
 }
+```
 The preceding header contains typ and alg fields, representing type and algorithm respectively.
-Payload
-A payload is a second part of the JWT and contains the claims. This is also a Base64URL-encoded JSON string. There are three types of claims—registered, public, and private. These are outlined as follows:
-Registered claims: A few claims are registered in the Internet Assigned Numbers Authority (IANA) JSON Web Token Claims registry, therefore these claims are known as Registered claims. These are not mandatory but are recommended. Some Registered claims are listed here:
-a. Issuer claim (iss key): This claim identifies the principal who issued a token.
-b. Subject claim (sub key): This should be a unique value that represents the subject of the JWT.
-c. Expiration Time claim (exp key): This is a numeric value representing the expiration time on or after which a JWT should be rejected.
-d. Issued At claim (iat key): This claim identifies the time at which a JWT is issued.
-e. JWT ID claim (jti key): This claim represents the unique identifier for a JWT.
-f. Audience claim (aud key): This claims identifies the recipients, which JWT is intended for.
-g. Not Before claim (nbf key): Represents the time before which a JWT must be rejected.
-Public claims: These are defined by JWT issuers and must not collide with registered claims. Therefore, these should either be registered with the IANA JWT Claims Registry or defined as a Uniform Resource Identifier (URI) with a collision-resistant namespace.
-Private claims: These are custom claims defined and used by the issuer and audience. They are neither registered nor public.
+
+#### Payload
+페이로드는 JWT의 두 번째 부분이며 클레임을 포함합니다. 이것은 Base64URL로 인코딩된 JSON 문자열이기도 합니다. 클레임에는 등록, 공개 및 비공개의 세 가지 유형이 있습니다. 이를 요약하면 다음과 같습니다.
+
+- 등록된 클레임: 일부 클레임은 IANA JSON 웹 토큰 클레임 레지스트리에 등록되어 있으므로 이러한 클레임을 등록된 클레임이라고 합니다. 필수 사항은 아니지만 권장됩니다. 일부 등록된 클레임은 다음과 같습니다.
+
+  a. 발급자 클레임(iss 키): 이 클레임은 토큰을 발급한 주체를 식별합니다.
+
+  b. 주제 클레임(하위 키): JWT의 주제를 나타내는 고유한 값이어야 합니다.
+  
+  c. 만료 시간 클레임(exp 키): JWT가 거부되어야 하는 만료 시간을 나타내는 숫자 값입니다.
+  
+  d. 클레임 발행(iat 키): 이 클레임은 JWT가 발행된 시간을 식별합니다.
+  이자형. JWT ID 클레임(jti 키): 이 클레임은 JWT의 고유 식별자를 나타냅니다.
+  
+  e. 대상 클레임(aud 키): 이 클레임은 JWT가 의도한 수신자를 식별합니다.
+  
+  f. Not Before claim(nbf 키): JWT가 거부되어야 하는 이전 시간을 나타냅니다.
+
+- 공개 클레임: JWT 발급자가 정의하며 등록된 클레임과 충돌하지 않아야 합니다. 따라서 IANA JWT 클레임 레지스트리에 등록하거나 충돌 방지 네임스페이스가 있는 URI(Uniform Resource Identifier)로 정의해야 합니다.
+
+- 비공개 클레임: 발급자와 청중이 정의하고 사용하는 맞춤 클레임입니다. 등록된 것도 아니고 공개된 것도 아닙니다.
+
 Here is a sample JWT string containing the following payload:
+
+```json
 {
   "sub": "scott",
   "roles": [
@@ -367,14 +422,21 @@ Here is a sample JWT string containing the following payload:
   "iat": 1610198237,
   "jti": "297df8a7-518f-4ed7-ba66-92da494ddd76"
 }
+```
 The preceding payload contains sub (subject), iss (issuer), roles (custom claim roles), exp (expires), iat (issued at), and jti (JWT ID) fields.
-Signature
+
+#### Signature
+
 A signature is also a Base64-encoded string—a third part. A signature is there to protect the content of the JWT. The content is visible, but cannot be modified if the token is signed. A Base64-encoded header and payload are passed to the signature's algorithm, along with either a secret or a public key to make the token a signed token. If you wish to include any sensitive or secret information in the payload, then it's better to encrypt it before assigning it to the payload.
 A signature makes sure that the content is not modified once it is received back. The use of a public/private key enhances the security step by verifying the sender.
 You can use a combination of both a JWT and JWE. The recommended way, however, is to first encrypt the payload using JWE and then sign it.
 We'll use the public/private keys to sign the token in this chapter. Let's jump into the code.
-Securing REST APIs with JWT
+
+
+## Securing REST APIs with JWT
+
 In this section, you'll secure the REST endpoints exposed in Chapter 4, Writing Business Logic for APIs. Therefore, we'll use the code from Chapter 4, Writing Business Logic for APIs and enhance it to secure the APIs.
+
 The REST APIs should be protected with the following features:
 No secure API should be accessed without JWT.
 A JWT can be generated using sign-in/sign-up or a refresh token.
@@ -1218,12 +1280,15 @@ $  curl -v 'http://localhost:8080/api/v1/addresses' -H 'Content-Type: applicatio
     }
 ]
 This time, the call is successful. Now, let's use the refresh token to get a new access token, as follows:
+```sh
 $ curl -X POST 'http://localhost:8080/api/v1/auth/token/refresh'
 -H 'Content-Type: application/json' -H 'Accept: application/json'
 -d '{
     "refreshToken": "3i2tlrmdqnp60drl6i9c2kdm36s48qg5vm2ucgtflsk0cjo4dth hjan9aj1ck83det8m8hkl461cqkfl57puk81ct6j09ilporanf1j j414ht4ob7dkcakq6lk92cnct"
 }'
+```
 < Response
+```json
 {
     "refreshToken": "3i2tlrmdqnp60drl6i9c2kdm36s48qg5vm2ucgtflsk0cjo4dthhjan9 aj1ck83det8m8hkl461cqkfl57puk81ct6j09ilporanf1jj4 14ht4ob7dkcakq6lk92cnct",
     "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.
@@ -1231,13 +1296,20 @@ $ curl -X POST 'http://localhost:8080/api/v1/auth/token/refresh'
     "username": "scott",
     "userId": "a1b9b31d-e73c-4112-af7c-b68530f38222"
 }
+```
 This time, it returns a new access token with the same refresh token given in the payload.
 If you pass an invalid refresh token while calling the refresh token API, it would provide the following response:
+```json
 {"errorCode":"PACKT-0010",
 "message":"Requested resource not found. Invalid token.", "status":404,"url":"http://localhost:8080/api/v1/auth/token/refresh","reqMethod":"POST","timestamp":"2021-01-18T07:20:35.846649200Z"}
+```
 After testing the authentication using JWT, we can now test the authorization. Let's create an address using a token created by user SCOTT. SCOTT has a USER role. Here is the code to do this:
+
+```sh
 $ curl -v -X POST 'http://localhost:8080/api/v1/addresses' -H 'Content-Type: application/json' -H 'Accept: application/json' -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.ey
+```
 Rest of the token is truncated for brevity'
+```
 -d '{
     "number": "9I-999",
     "residency": "Fraser Suites Le Claridge",
@@ -1254,16 +1326,22 @@ Rest of the token is truncated for brevity'
 < WWW-Authenticate: Bearer error="insufficient_scope", error_description="The request requires higher privileges than provided by the access token.", error_uri="https://tools.ietf.org/html/r
 fc6750#section-3.1"
 < output truncated for brevity
+```
 The API responded with 403 (forbidden) because SCOTT has a USER role and we have configured this API to only be allowed to be accessed by a user with an ADMIN role.
-Let's create a token again, using the SCOTT2 user who has an ADMIN role, with the following code:
+Let's create a token again, using the SCOTT2 user who has an ADMIN role, with the following 
+code:
+```sh
 $ curl -X POST 'http://localhost:8080/api/v1/auth/token' -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{
     "username": "scott2",
     "password": "tiger"
 }'
+```
 Now, let's call the create address API again using the access token received from the SCOTT2 sign-in, as shown in the following code snippet:
+```sh
 $ curl -X POST 'http://localhost:8080/api/v1/addresses'
 -H 'Content-Type: application/json' -H 'Accept: application/json'
 -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.                          eyJzd
+```
 Rest of the token is truncated for brevity' -d '{
     "number": "9I-999",
     "residency": "Fraser Suites Le Claridge",

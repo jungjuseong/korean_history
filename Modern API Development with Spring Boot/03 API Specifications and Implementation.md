@@ -1,4 +1,4 @@
-# Chapter 3: API Specifications and Implementation
+# Chapter 3: API 명세와 구현
 
 이전 장에서는 REST API의 디자인 측면과 RESTful 웹 서비스 개발에 필요한 Spring 기본 사항에 대해 배웠습니다. 이 장에서는 이 두 영역을 사용하여 REST API를 구현합니다. 구현을 위해 설계 우선 접근 방식을 선택했습니다. 먼저 API를 설계하고 나중에 구현하기 위해 OpenAPI 사양(OAS)을 사용합니다. 또한 요청을 처리하는 동안 발생하는 오류를 처리하는 방법도 배우게 됩니다. 여기서는 참고용으로 샘플 전자상거래 앱의 API를 설계하고 구현합니다.
 
@@ -12,12 +12,13 @@
 ## Technical requirements
 
 You need the following to execute the instructions in this chapter:
+
 - IDE
 - JDK 14
-
-종속성과 Gradle을 다운로드
+- 의존성과 Gradle을 다운로드
 
 GitHub(https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/tree/main/Chapter03)에서 이 장의 코드 파일을 찾을 수 있습니다.
+
 
 ## OAS로 API 설계하기
 
@@ -33,20 +34,21 @@ OAS는 이전에 Swagger 사양으로 알려졌습니다. 그러나 OAS 지원 �
 
 - Swagger Codegen: Spring 기반 API 인터페이스를 생성. Swagger Codegen 위에서 작동하는 코드를 생성하기 위해 Gradle 플러그인(https://github.com/int128/gradle-swagger-generator-plugin)을 사용합니다. OpenAPI 도구 Gradle 플러그인 – OpenAPI 생성기(https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin)도 있습니다.
 
-그러나 작성 시점에 1.7k(Java/Spring의 경우에도 여러 개)인 미해결 문제 수 때문에 전자를 선호합니다.
+  그러나 작성 시점에 1.7k(Java/Spring의 경우에도 여러 개)인 미해결 문제 수 때문에 전자를 선호합니다.
 
 - REST API 문서 생성을 위한 Swagger UI(https://swagger.io/swagger-ui/). API 문서를 생성하는 데 동일한 Gradle 플러그인이 사용됩니다.
 
 다음으로 OAS 개요에 대해 논의해 보겠습니다.
 
 
-## Understanding the basic structure of OAS
+## OAS 기본 구조
 
-The OpenAPI definition structure can be divided into the following sections (all are keyword- and case-sensitive):
+The OpenAPI 정의 구조는 다음과 같은 섹션으로 나눌 수 있습니다:
 
 - openapi (version)
 - info
 - externalDocs
+
 - servers
 - tags
 - paths
@@ -58,7 +60,7 @@ API 정의는 한 파일에 있거나 여러 파일로 나눌 수 있습니다. 
 
 이 모든 섹션을 이론적으로 논의한 다음 전자 상거래 API 정의를 작성하는 대신 두 가지를 함께 논의합니다. 먼저 전자 상거래 API의 각 섹션 정의를 다룬 다음 사용 이유와 의미에 대해 논의합니다.
 
-### The metadata sections of OAS
+### 메타 데이터 섹션
 
 Let's have a look at the metadata sections of the e-commerce API definitions:
 
@@ -67,8 +69,8 @@ openapi: 3.0.3
 info:
   title: Sample Ecommerce App
   description: >
-    'This is a ***sample ecommerce app API***.  You can find     out more about Swagger at [swagger.io](http://swagger.io).
-    Description supports markdown markup. For example, you can     use the `inline code` using back ticks.'
+    'This is a ***sample ecommerce app API***.  You can find out more about Swagger at [swagger.io](http://swagger.io).
+    Description supports markdown markup. For example, you can use the `inline code` using back ticks.'
   termsOfService: https://github.com/PacktPublishing/Modern- API-Development-with-Spring-and-Spring- Boot/blob/master/LICENSE
   contact:
     email: support@packtpub.com
@@ -84,11 +86,11 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 
 Now, we have written the metadata definitions of our API. Let's discuss each in detail.
 
-### openapi
+### openapi 섹션
 
 openapi 섹션은 API 정의를 작성하는 데 사용되는 OAS를 알려줍니다. OpenAPI는 시맨틱 버전 관리(https://semver.org/)를 사용합니다. 즉, 버전이 Major:minor:patch 형식이 됩니다. openapi 메타데이터 값을 보면 3.0.3을 사용하고 있습니다. 이것은 우리가 패치 3과 함께 메이저 버전 3을 사용하고 있음을 보여줍니다(마이너 버전은 0).
 
-### info
+### info 섹션
 
 정보 섹션에는 API에 대한 메타데이터가 포함됩니다. 이 정보는 문서 생성에 사용되며 클라이언트가 사용할 수 있습니다. 여기에는 제목과 버전만 필수 필드이고 나머지는 선택 필드인 다음 필드가 포함됩니다.
 
@@ -109,7 +111,8 @@ externalDocs는 노출된 API의 확장 문서를 가리키는 선택적 필드�
 
 API 정의를 계속 구축해 보겠습니다. 메타데이터 섹션이 끝났습니다. 서버 및 태그 섹션에 대해 논의해 보겠습니다.
 
-## The servers and tags sections of OAS
+
+## servers와 tags 섹션
 
 After the metadata section, we can now describe the servers and tags sections. Let's have a look at the following code:
 
@@ -140,7 +143,7 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 name 속성은 태그 이름을 포함합니다. 메타데이터에 대한 이전 섹션에서 설명 및 externalDocs 필드에 대해 이미 논의했습니다.
 
 
-## OAS의 component 섹션
+## component 섹션
 
 순차적으로 진행했다면 path를 먼저 논의했을 것입니다. 그러나 개념적으로는 path 섹션에서 모델을 사용하기 전에 먼저 모델을 작성하고 싶습니다. 따라서 먼저 component 섹션에 대해 설명합니다.
 
@@ -164,9 +167,7 @@ components:
 ```
 https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/tree/main/Chapter03/src/main/resources/api/openapi.yaml
 
-YAML을 처음 사용하는 경우 약간 복잡할 수 있습니다. 그러나 이 섹션을 살펴보고 나면 YAML에 더 익숙해질 것입니다.
-
-여기에서 Cart라는 모델을 정의했습니다. Cart 모델은 객체 유형이며 Id(문자열) 및 항목(배열)의 두 필드를 포함합니다.
+여기에서 Cart라는 모델을 정의했습니다. Cart 모델은 객체이며 Id(문자열) 및 items(배열)의 두 필드를 포함합니다.
 
 *THE OBJECT DATA TYPE*
 
@@ -188,7 +189,7 @@ OAS는 다음과 같은 6가지 기본 데이터 유형을 지원합니다(모�
 - object
 - array
 
-문자열, 객체 및 배열 데이터 유형을 사용한 카트 모델에 대해 논의해 보겠습니다. 다른 데이터 유형은 숫자, 정수 및 부울입니다. 이제 날짜, 시간 및 부동 소수점 유형 등을 정의하는 방법이 궁금할 것입니다. 개체 유형과 함께 사용할 수 있는 형식 속성으로 이를 수행할 수 있습니다. 예를 들어 다음 코드를 살펴보십시오.
+문자열, 객체 및 배열 데이터 유형을 사용한 Cart 모델에 대해 논의해 보겠습니다. 다른 데이터 유형은 숫자, 정수 및 부울입니다. 이제 날짜, 시간 및 부동 소수점 유형 등을 정의하는 방법이 궁금할 것입니다. 개체 유형과 함께 사용할 수 있는 형식 속성으로 이를 수행할 수 있습니다. 예를 들어 다음 코드를 살펴보십시오.
 
 ```yaml
 orderDate:
@@ -203,13 +204,13 @@ orderDate:
 ```
 There are some other common formats you can use along with types, as follows:
 
-- type: number with format: float: This would contain the floating-point number.
-- type: number with format: double: This would contain the floating-point number with double precision.
-- type: integer with format: int32: This would contain the int type (signed 32-bit integer).
-- type: integer with format: int64: This would contain the long type (signed 64-bit integer).
-- type: string with format: date: This would contain the date as per RFC 3339, for example, 2020-10-22.
-- type: string with format: byte: This would contain the Base64-encoded values.
-- type: string with format: binary: This would contain the binary data (can be used for files).
+- type: number with format: float
+- type: number with format: double
+- type: integer with format: int32
+- type: integer with format: int64
+- type: string with format: date: for example, 2020-10-22.
+- type: string with format: byte: Base64-encoded values.
+- type: string with format: binary:
 
 장바구니 모델의 항목 필드는 사용자 정의 항목 유형의 배열입니다. 여기서 Item은 또 다른 모델이며 $ref를 사용하여 참조됩니다. 사실, 모든 사용자 정의 유형은 $ref를 사용하는 참조입니다. 항목 모델은 구성 요소/스키마 섹션의 일부이기도 합니다. 따라서 $ref 값에는 #/component/schemas/{type}이 있는 사용자 정의 유형에 대한 앵커가 포함됩니다.
 
@@ -223,7 +224,7 @@ $ref: definitions.yaml#/Cart
 ```
 이전 코드에 대한 또 다른 주의 사항이 있습니다. 자세히 보면 두 항목을 찾을 수 있습니다. 하나는 Cart 개체 유형의 속성이고 다른 하나는 배열 유형의 속성입니다. 전자는 Cart 개체의 필드인 단순합니다. 그러나 후자는 배열에 속하며 배열 구문의 일부입니다.
 
-*ARRAY SYNTAX*
+> *ARRAY SYNTAX*
 
 ```yaml
 type: array
@@ -235,7 +236,7 @@ i. 객체 유형을 배열로 배치하면 중첩 배열을 가질 수 있습니
 
 ii. 코드와 같이 $ref를 이용하여 사용자 정의 타입을 참조할 수도 있습니다. (그럼 아이템에 type 속성은 필요하지 않습니다.)
 
-아이템 모델이 어떻게 생겼는지 봅시다:
+item 모델이 어떻게 생겼는지 봅시다:
 
 ```yaml
 Item:
@@ -260,17 +261,16 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 
 이제 components/schema 섹션에서 모델을 정의하는 방법을 배웠습니다. 다음으로 OAS의 경로 섹션에서 API의 끝점을 정의하는 방법을 논의할 것입니다.
 
-**IMPORTANT NOTE**
+> **IMPORTANT NOTE**
 
 스키마와 마찬가지로 구성 요소 섹션에서 requestBodies(요청 페이로드) 및 응답을 정의할 수도 있습니다. 이것은 일반적인 요청 본문과 응답이 있을 때 유용합니다..
 
 
+## path 섹션
 
-## The path section of OAS
+여기서 끝점을 정의합니다. 이것은 URI를 형성하고 HTTP 메소드를 첨부하는 곳입니다.
 
-path는 OAS의 마지막 섹션입니다(순서적으로는 마지막에서 두 번째이지만 이전 하위 섹션에서 이미 구성 요소에 대해 논의했습니다). 여기서 끝점을 정의합니다. 이것은 URI를 형성하고 HTTP 메소드를 첨부하는 곳입니다.
-
-`POST /api/v1/carts/{customerId}/items`에 대한 정의를 작성해 보겠습니다. 이 API는 지정된 고객 식별자와 연결된 장바구니에 항목을 추가합니다.
+`POST /api/v1/carts/{customerId}/items`에 대한 정의를 작성해 보겠습니다. 이 API는 지정된 고객 식별자와 연결된 cart에 항목을 추가합니다.
 
 ```yaml
 paths:
@@ -313,7 +313,9 @@ paths:
 
 https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/tree/main/Chapter03/src/main/resources/api/openapi.yaml
 
-그냥 통과하면 엔드포인트가 무엇인지, 이 API가 사용하는 HTTP 메서드와 매개변수가 무엇인지, 그리고 가장 중요한 것은 어떤 응답을 기대할 수 있는지 알 수 있습니다. 더 자세히 논의해 보겠습니다. 여기서 v1은 API의 버전을 나타냅니다. 각 엔드포인트 경로(예: /api/v1/carts/{customerId}/items)에는 연결된 HTTP 메소드(예: post)가 있습니다. 끝점 경로는 항상 /로 시작합니다.
+주욱 살펴보면 엔드포인트가 무엇인지, 이 API가 사용하는 HTTP 메서드와 매개변수가 무엇인지, 그리고 가장 중요한 것은 어떤 응답을 기대할 수 있는지 알 수 있습니다. 
+
+여기서 v1은 API의 버전을 나타냅니다. 각 엔드포인트 경로(예: /api/v1/carts/{customerId}/items)에는 연결된 HTTP 메소드(예: post)가 있습니다. 끝점 경로는 항상 /로 시작합니다.
 
 그러면 각 메서드에는 태그, 요약, 설명, operationId, 매개 변수, 응답 및 requestBody의 7개 필드가 있을 수 있습니다. 다음 하위 섹션에서 각각에 대해 설명합니다.
 
@@ -327,19 +329,24 @@ Figure 3.1 — Cart APIs
 보시다시피 각 태그에 대해 별도의 API 인터페이스를 생성합니다.
 
 ### summary and description
+
 summary 및 설명 섹션은 앞서 OAS 섹션의 메타데이터 섹션에서 논의한 것과 동일합니다. 여기에는 각각 주어진 API의 작업 요약과 자세한 설명이 포함되어 있습니다. 평소와 같이 동일한 스키마를 참조하므로 설명 필드에 Markdown을 사용할 수 있습니다.
 
-## operationId
+### operationId
+
 이것은 작업의 이름을 나타냅니다. 이전 코드에서 볼 수 있듯이 addCartItemsByCustomerId 값을 할당했습니다. 이 동일한 작업 이름은 Swagger Codegen에서 생성된 API 인터페이스의 메서드 이름으로 사용됩니다.
 
 ### parameters
 자세히 보면 이름 필드 앞에 -(하이픈)이 있습니다. 이것은 배열 요소로 선언하는 데 사용됩니다. 매개변수 필드는 여러 매개변수를 포함할 수 있으며 실제로는 경로 및 쿼리 매개변수의 조합이므로 배열로 선언됩니다.
+
 경로 매개변수의 경우 매개변수 아래의 이름 값이 중괄호 안의 경로에 지정된 값과 동일한지 확인해야 합니다.
 
 매개변수 필드에는 API 쿼리, 경로, 헤더 및 쿠키 매개변수가 포함됩니다. 이전 코드에서는 경로 매개변수(in 필드의 값)를 사용했습니다. 쿼리 매개변수로 선언하려는 경우 값을 쿼리로 변경할 수 있습니다.
+
 description은 평소와 같이 정의된 매개변수를 설명합니다.
 
 부울 매개변수인 매개변수 섹션 내의 필수 필드를 사용하여 필드를 필수 또는 선택으로 표시할 수 있습니다.
+
 마지막으로 스키마 필드가 사용되는 매개변수의 데이터 유형을 선언해야 합니다.
 
 ### responses
@@ -370,9 +377,10 @@ responses:
 ### requestBody
 requestBody는 요청 페이로드 객체를 정의하는 데 사용됩니다. 응답 객체와 마찬가지로 requestBody에는 설명 및 콘텐츠 필드도 포함됩니다. 콘텐츠는 응답 개체에 대해 정의된 방식과 유사한 방식으로 정의할 수 있습니다. 예를 들어 POST /carts/{customerId}/items의 이전 코드를 참조할 수 있습니다. 응답으로 구성 요소 섹션 아래에 재사용 가능한 요청 본문을 만들고 $ref를 사용하여 직접 사용할 수도 있습니다.
 
+
 이제 OAS를 사용하여 API 사양을 정의하는 방법을 배웠습니다. 여기에서는 샘플 전자 상거래 앱 API의 일부를 설명했습니다. 마찬가지로 다른 API를 설명할 수 있습니다. openapi.yaml을 참조할 수 있습니다. 전자상거래 API 정의의 전체 코드입니다.
 
-openapi.yaml에서 코드를 복사하여 https://editor.swagger.io의 편집기에 붙여넣어 멋진 사용자 인터페이스에서 API를 보고 사용하는 것이 좋습니다. 기본 버전이 3.0으로 설정되지 않은 경우 편집 메뉴를 사용하여 API를 OpenAPI 버전 3으로 변환해야 합니다.
+openapi.yaml에서 코드를 복사하여 https://editor.swagger.io 편집기에 붙여넣어 멋진 사용자 인터페이스에서 API를 보고 사용하는 것이 좋습니다. 기본 버전이 3.0으로 설정되지 않은 경우 편집 메뉴를 사용하여 API를 OpenAPI 버전 3으로 변환해야 합니다.
 
 API 설계를 마쳤으므로 이제 openapi.yaml을 사용하여 코드를 생성하고 열심히 일한 결과를 즐기십시오.
 
@@ -464,13 +472,13 @@ swaggerSources {
     def apiYaml = "${rootDir}/src/main/resources/api/openapi.yaml"
     def configJson = "${rootDir}/src/main/resources/api/config.json"
     inputFile = file(apiYaml)
-    def ignoreFile = file("${rootDir}/src/main/resources/api                            /.openapi-generator-ignore")
+    def ignoreFile = file("${rootDir}/src/main/resources/api/.openapi-generator-ignore")
     code {
       language = 'spring'
       configFile = file(configJson)
-      rawOptions = ['--ignore-file-override', ignoreFile,                     '--type-mappings',
-          typeMappings, '--import-mappings', importMappings] as                         List<String>
-      components = [models: true, apis: true, supportingFiles:                     'ApiUtil.java']
+      rawOptions = ['--ignore-file-override', ignoreFile, '--type-mappings',
+          typeMappings, '--import-mappings', importMappings] as List<String>
+      components = [models: true, apis: true, supportingFiles: 'ApiUtil.java']
       //depends On validation // Should be uncommented once
       //plugin starts supporting OA 3 validation
     }
@@ -494,7 +502,6 @@ compileJava.dependsOn swaggerSources.eStore.code
 
 ```
 sourceSets.main.java.srcDir "${swaggerSources.eStore.code.outputDir}/src/main/java"
-
 sourceSets.main.resources.srcDir "${swaggerSources.eStore.code.outputDir}/src/main/resources"
 ```
 
@@ -518,19 +525,22 @@ In the next section, you'll implement the API interfaces generated by OpenAPI Co
 
 지금까지 전자상거래 앱 모델과 API 인터페이스로 구성된 코드를 생성했습니다. 이러한 생성된 인터페이스에는 당사에서 제공한 YAML 설명에 따라 모든 주석이 포함됩니다. 예를 들어 CartApi.java에서 @RequestMapping, @PathVariable 및 @RequestBody에는 끝점 경로(/api/v1/carts/{customerId}/items), 경로 변수의 값(예: 경로의 {customerId})이 포함됩니다.. 마찬가지로 생성된 모델에는 JSON 및 XML 콘텐츠 유형을 지원하는 데 필요한 모든 매핑이 포함됩니다.
 
-Swagger Codegen은 우리를 위해 Spring 코드를 작성합니다. 
-인터페이스를 구현하고 그 안에 비즈니스 로직을 작성하기만 하면 됩니다. Swagger Codegen은 제공된 각 태그에 대한 API 인터페이스를 생성합니다. 예를 들어 장바구니 및 결제 태그에 대해 각각 CartApi 및 PaymentAPI Java 인터페이스를 생성합니다. 모든 경로는 주어진 태그를 기반으로 하는 단일 Java 인터페이스로 함께 묶입니다. 예를 들어 장바구니 태그가 있는 모든 API는 단일 Java 인터페이스인 CartApi로 함께 묶입니다.
+`Swagger Codegen`은 우리를 위해 Spring 코드를 작성합니다. 
+인터페이스를 구현하고 그 안에 비즈니스 로직을 작성하기만 하면 됩니다. `Swagger Codegen`은 제공된 각 태그에 대한 API 인터페이스를 생성합니다. 예를 들어 cart 및 결제 태그에 대해 각각 CartApi 및 PaymentAPI Java 인터페이스를 생성합니다. 모든 경로는 주어진 태그를 기반으로 하는 단일 Java 인터페이스로 함께 묶입니다. 예를 들어 cart 태그가 있는 모든 API는 단일 Java 인터페이스인 CartApi로 함께 묶입니다.
 
 이제 각 인터페이스에 대한 클래스를 만들고 구현하기만 하면 됩니다. com.packt.modern.api.controllers 패키지에 CartController.java를 만들고 CartApi를 구현합니다.
+
 ```java
 @RestController
 public class CartsController implements CartApi {
   private static final Logger log = LoggerFactory.getLogger(CartsController.class);
+
   @Override
-  public ResponseEntity<List<Item>> addCartItemsByCustomerId       (String customerId, @Valid Item item) {
+  public ResponseEntity<List<Item>> addCartItemsByCustomerId (String customerId, @Valid Item item) {
     log.info("Request for customer ID: {}\nItem: {}",              customerId, item);
     return ok(Collections.EMPTY_LIST);
   }
+
   @Override
   public ResponseEntity<List<Cart>> getCartByCustomerId(String       customerId) {
     throw new RuntimeException("Manual Exception thrown");
@@ -584,6 +594,7 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 You can add other fields here if required. The exceptions package will contain all the code for user-defined exceptions and global exception handling.
 
 After that, we'll write an enum called ErrorCode that will contain all the exception keys, including user-defined errors and their respective error codes:
+
 ```java
 public enum ErrorCode {
   // Internal Errors: 1 to 0999
@@ -616,6 +627,7 @@ public enum ErrorCode {
 https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter03/src/main/java/com/packt/modern/api/exceptions/ErrorCode.java
 
 Here, we have just added actual error messages instead of message keys. You can add message keys and add the resource file to src/main/resources for internationalization.
+
 Next, we'll add a utility to create the Error object, as shown:
 
 ```java
@@ -677,7 +689,7 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 
 보시다시피 클래스를 @ControllerAdvice로 표시하여 이 클래스가 REST 컨트롤러의 모든 요청 및 응답 처리를 추적할 수 있도록 하고 @ExceptionHandler를 사용하여 예외를 처리할 수 있도록 합니다.
 
-이전 코드에서는 일반 내부 서버 오류 예외와 HttpMediaTypeNotSupportException이라는 두 가지 예외를 처리하고 있습니다. 처리 방법은 ErrorCode, HttpServletRequest 및 HttpStatus를 사용하여 Error 개체를 채웁니다. 마지막에 적절한 HTTP 상태로 ResponseEntity 내부에 래핑된 오류를 반환합니다.
+이전 코드에서는 일반 내부 서버 오류 예외와 HttpMediaTypeNotSupportException이라는 두 가지 예외를 처리하고 있습니다. 처리 방법은 ErrorCode, HttpServletRequest 및 HttpStatus를 사용하여 Error 객체를 채웁니다. 마지막에 적절한 HTTP 상태로 ResponseEntity 내부에 래핑된 오류를 반환합니다.
 
 여기에서 사용자 정의 예외도 추가할 수 있습니다. 국제화된 메시지를 지원하기 위해 Locale 인스턴스(메서드 매개변수)와 messageSource 클래스 멤버를 사용할 수도 있습니다. 
 
@@ -688,14 +700,17 @@ Once the code is ready to run, you can compile and build the artifact using the 
 gradlew clean build
 ```
 The previous command removes the build folder and generates the artifact (compiled classes and JAR). After the successful build, you can run the application using the following command:
+
 ```sh
 java -jar build\libs\Chapter03-0.0.1-SNAPSHOT.jar
 ```
 Now, we can perform the tests using the curl command:
+
 ```sh
 $ curl --request GET 'http://localhost:8080/api/v1/carts/1' --header 'Accept: application/xml'
 ```
 This command calls the GET request for /carts with ID 1. Here, we demand the XML response using the Accept header, and we get the following response:
+
 ```xml
 <Error>
     <errorCode>PACKT-0001</errorCode>

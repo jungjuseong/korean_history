@@ -105,7 +105,7 @@ openapi 섹션은 API 정의를 작성하는 데 사용되는 OAS를 알려줍�
 
 - version: API 버전을 문자열 형식으로 노출합니다.
 
-### externalDocs
+#### externalDocs
 
 externalDocs는 노출된 API의 확장 문서를 가리키는 선택적 필드입니다. 설명과 URL의 두 가지 속성이 있습니다. 설명은 외부 문서의 요약을 정의하는 선택적 필드입니다. 설명에 Markdown 구문을 사용할 수 있습니다. url 속성은 필수이며 외부 문서에 대한 링크입니다.
 
@@ -132,11 +132,11 @@ tags:
 ```
 https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/tree/main/Chapter03/src/main/resources/api/openapi.yaml
 
-### servers
+#### servers
 
 서버는 API를 호스팅하는 서버 목록이 포함된 선택적 섹션입니다. 호스팅된 API 문서가 대화형인 경우 Swagger UI에서 이를 사용하여 API를 직접 호출하고 응답을 표시할 수 있습니다. 제공되지 않으면 호스트된 문서 서버의 루트(/)를 가리킵니다. 서버 URL은 url 속성을 사용하여 표시됩니다.
 
-### tag
+#### tag
 
 루트 수준에서 정의된 태그 섹션에는 태그 및 해당 메타데이터 컬렉션이 포함됩니다. 태그는 리소스에서 수행되는 작업을 그룹화하는 데 사용됩니다. 태그 메타데이터에는 필수 필드인 이름과 두 개의 추가 선택적 속성인 description 및 externalDocs가 포함됩니다.
 
@@ -319,7 +319,7 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 
 그러면 각 메서드에는 태그, 요약, 설명, operationId, 매개 변수, 응답 및 requestBody의 7개 필드가 있을 수 있습니다. 다음 하위 섹션에서 각각에 대해 설명합니다.
 
-### tags
+#### tags
 Tags are used for grouping APIs, as shown in the following screenshot for APIs tagged with cart. Tags can also be used by Swagger Codegen to generate the code:
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781800562479/files/image/Figure_3.1_B16561.jpg)
@@ -336,7 +336,7 @@ summary 및 설명 섹션은 앞서 OAS 섹션의 메타데이터 섹션에서 �
 
 이것은 작업의 이름을 나타냅니다. 이전 코드에서 볼 수 있듯이 addCartItemsByCustomerId 값을 할당했습니다. 이 동일한 작업 이름은 Swagger Codegen에서 생성된 API 인터페이스의 메서드 이름으로 사용됩니다.
 
-### parameters
+#### parameters
 자세히 보면 이름 필드 앞에 -(하이픈)이 있습니다. 이것은 배열 요소로 선언하는 데 사용됩니다. 매개변수 필드는 여러 매개변수를 포함할 수 있으며 실제로는 경로 및 쿼리 매개변수의 조합이므로 배열로 선언됩니다.
 
 경로 매개변수의 경우 매개변수 아래의 이름 값이 중괄호 안의 경로에 지정된 값과 동일한지 확인해야 합니다.
@@ -349,7 +349,7 @@ description은 평소와 같이 정의된 매개변수를 설명합니다.
 
 마지막으로 스키마 필드가 사용되는 매개변수의 데이터 유형을 선언해야 합니다.
 
-### responses
+#### responses
 응답은 모든 API 작업의 필수 필드입니다. 요청 시 API 작업에서 응답할 수 있는 응답 유형을 정의합니다. 기본 필드로 HTTP 상태 코드가 포함되어 있습니다. 기본 응답 또는 200과 같은 성공적인 HTTP 상태 코드가 될 수 있는 응답이 하나 이상 있어야 합니다. 이름에서 알 수 있듯이 API 작업에서 다른 응답이 정의되거나 사용 가능하지 않을 때 기본 응답이 사용됩니다.
 
 응답 유형(예: 200 또는 기본값) 필드에는 세 가지 유형의 필드가 있습니다.
@@ -374,7 +374,7 @@ responses:
 
 앞서 언급했듯이 구성 요소 섹션에서 재사용 가능한 응답을 생성하고 $ref를 사용하여 직접 사용할 수 있습니다.
 
-### requestBody
+#### requestBody
 requestBody는 요청 페이로드 객체를 정의하는 데 사용됩니다. 응답 객체와 마찬가지로 requestBody에는 설명 및 콘텐츠 필드도 포함됩니다. 콘텐츠는 응답 개체에 대해 정의된 방식과 유사한 방식으로 정의할 수 있습니다. 예를 들어 POST /carts/{customerId}/items의 이전 코드를 참조할 수 있습니다. 응답으로 구성 요소 섹션 아래에 재사용 가능한 요청 본문을 만들고 $ref를 사용하여 직접 사용할 수도 있습니다.
 
 
@@ -759,11 +759,11 @@ $ curl --request POST 'http://localhost:8080/api/v1/carts/1/items' \
 - How can you define a nested array in a model in a YAML OAS-based file?
 - What annotations do we need to implement a Global Exception Handler?
 - How you can use models or classes written in Java code in your OpenAPI description?
-Why do we only generate models and API interfaces using Swagger Codegen?
+- Why do we only generate models and API interfaces using Swagger Codegen?
 
 ## Further reading
 - The OpenAPI Specification 3.0: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md
 - The Gradle plugin for OpenAPI Codegen: https://github.com/int128/gradle-swagger-generator-plugin
 - OAS Code Generator configuration options for Spring: https://openapi-generator.tech/docs/generators/spring/
-YAML specifications: https://yaml.org/spec/
-Semantic versioning: https://semver.org/
+- YAML specifications: https://yaml.org/spec/
+- Semantic versioning: https://semver.org/

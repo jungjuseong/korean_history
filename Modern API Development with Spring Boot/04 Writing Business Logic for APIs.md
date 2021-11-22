@@ -1,4 +1,4 @@
-# Chapter 4: Writing Business Logic for APIs
+# Chapter 4: 비즈니스 로직 
 
 3장에서 OpenAPI를 사용하는 API에 대해 논의했습니다. API 인터페이스 및 모델은 Swagger Codegen에서 생성되었습니다. 이 장에서는 비즈니스 로직과 데이터 영속성 측면에서 API 코드를 구현합니다. 서비스 및 리포지토리를 작성하고 API 응답에 하이퍼미디어 및 eTag도 추가합니다. 
 
@@ -20,20 +20,21 @@ You need the following to execute instructions in this chapter:
 
 You can find the code files for this chapter on GitHub at https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/tree/main/Chapter04.
 
+
 ## Overview of the service design
 
 프레젠테이션 계층, 응용 프로그램 계층, 도메인 계층 및 인프라 계층의 4개 계층으로 구성된 다계층 아키텍처를 구현할 것입니다. 다계층 아키텍처는 Domain-Driven Design로 알려진 아키텍처 스타일의 기본 빌딩 블록입니다. 각 레이어에 대해 간략히 살펴보겠습니다.
 
-- **프레젠테이션**: 이 계층은 사용자 인터페이스(UI)를 나타냅니다. "7장 사용자 인터페이스 디자인하기"에서는 전자 상거래 앱용 UI를 개발할 것입니다.
+- **프레젠테이션 계층**: 이 계층은 사용자 인터페이스(UI)를 나타냅니다. "7장 사용자 인터페이스 디자인하기"에서는 전자 상거래 앱용 UI를 개발할 것입니다.
 
-- **애플리케이션**: 애플리케이션 로직을 포함하고 애플리케이션의 전반적인 흐름을 유지하고 조정합니다. 참고로 여기에는 비즈니스 로직이 아닌 애플리케이션 로직만 포함되어 있습니다. 
+- **애플리케이션 계층**: 애플리케이션 로직을 포함하고 애플리케이션의 전반적인 흐름을 유지하고 조정합니다. 참고로 여기에는 비즈니스 로직이 아닌 애플리케이션 로직만 포함되어 있습니다. 
 
   RESTful 웹 서비스, 비동기 API, gRPC API 및 GraphQL API는 이 계층의 일부입니다.
 애플리케이션 계층의 일부인 "3장 API 사양 및 구현"에서 REST API 인터페이스 및 컨트롤러(REST API 인터페이스 구현)를 이미 다뤘습니다. 이전 장에서 데모 목적으로 컨트롤러를 구현했습니다. 이 장에서는 실제 데이터를 제공하기 위해 컨트롤러를 광범위하게 구현합니다.
 
-- **도메인**: 비즈니스 로직 및 도메인 정보를 포함하는 계층입니다. 여기에는 주문, 제품 등과 같은 비즈니스 개체의 상태가 포함됩니다. 인프라 계층에서 이러한 개체를 읽고 유지하는 역할을 합니다. 도메인 계층도 서비스와 저장소로 구성됩니다. 이 장에서도 이에 대해 다룰 것입니다.
+- **도메인 계층**: 비즈니스 로직 및 도메인 정보를 포함하는 계층입니다. 여기에는 주문, 제품 등과 같은 비즈니스 개체의 상태가 포함됩니다. 인프라 계층에서 이러한 개체를 읽고 유지하는 역할을 합니다. 도메인 계층도 서비스와 저장소로 구성됩니다. 이 장에서도 이에 대해 다룰 것입니다.
 
-- **인프라**: 데이터베이스, 메시지 브로커, 파일 시스템 등과의 상호 작용과 같은 통신을 담당합니다. Spring Boot는 인프라 계층으로 작동하며 데이터베이스, 메시지 브로커 등과 같은 외부 및 내부 시스템과의 통신 및 상호 작용을 지원합니다.
+- **인프라 계층**: 데이터베이스, 메시지 브로커, 파일 시스템 등과의 상호 작용과 같은 통신을 담당합니다. Spring Boot는 인프라 계층으로 작동하며 데이터베이스, 메시지 브로커 등과 같은 외부 및 내부 시스템과의 통신 및 상호 작용을 지원합니다.
 
 @Repository 컴포넌트로 도메인 레이어 구현을 시작해보자.
 
@@ -55,7 +56,7 @@ Repository 컴포넌트는 @Repository 주석이 달린 클래스입니다. 이�
 
 ### DB와 JPA 설정
 
-We also need to modify the` application.properties` file with the following configuration:
+We also need to modify the `application.properties` file with the following configuration:
 
 1. Data source 설정
 
@@ -194,7 +195,7 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 
 Cart 엔티티를 User 및 Item에 각각 매핑하기 위해 일대일 및 다대다 주석을 사용하고 있습니다. ItemEntity 목록은 `@JoinTable`과도 연관되어 있습니다. CART_ITEM 조인 테이블을 사용하여 해당 테이블의 CART_ID 및 ITEM_ID 열을 기반으로 장바구니 및 제품 항목을 매핑하기 때문입니다.
 
-UserEntity에는 다음 코드 같이 관계를 유지하기 위해 Cart 엔터티도 추가되었습니다. FetchType은 `LAZY`로 표시됩니다. 즉, 명시적으로 요청할 때만 사용자의 cart가 로드됩니다. 또한 `orphanRemoval=true`로 구성하여 사용자가 참조하지 않는 장바구니를 제거하려고 합니다.
+UserEntity에는 다음 코드같이 관계를 유지하기 위해 Cart 엔터티도 추가되었습니다. FetchType은 `LAZY`로 표시됩니다. 즉, 명시적으로 요청할 때만 사용자의 cart가 로드됩니다. 또한 `orphanRemoval=true`로 구성하여 사용자가 참조하지 않는 장바구니를 제거하려고 합니다.
 
 ```java
 @Entity
@@ -263,6 +264,7 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 public class OrderRepositoryImpl implements OrderRepositoryExt {
   @PersistenceContext
   private EntityManager em;
+
   private ItemRepository itemRepo;
   private ItemService itemService;
 
@@ -337,9 +339,9 @@ public Optional<OrderEntity> insert(NewOrder m) {
   return Optional.of(entity);
 }
 ```
-이 방법은 기본적으로 고객의 장바구니에 있는 항목을 먼저 가져옵니다. 그런 다음 주문 합계를 계산하고 새 주문을 생성하여 데이터베이스에 저장합니다. 그런 다음 카트 항목이 이제 주문의 일부이므로 매핑을 제거하여 카트에서 항목을 제거합니다. 다음으로 주문 및 장바구니 항목의 매핑을 저장합니다.
+이 방법은 기본적으로 고객의 카트에 있는 항목을 먼저 가져옵니다. 그런 다음 order 합계를 계산하고 새 order를 생성하여 데이터베이스에 저장합니다. 그런 다음 카트 항목이 이제 order의 일부이므로 매핑을 제거하여 카트에서 항목을 제거합니다. 다음으로 주문 및 카트 항목의 매핑을 저장합니다.
 
-주문 생성은 준비된 명령문과 함께 기본 SQL 쿼리를 사용하여 수행됩니다.
+Order 생성은 준비된 명령문과 함께 기본 SQL 쿼리를 사용하여 수행됩니다.
 
 If you look closely, you'll also find that we have used the official Java 15 feature, text blocks (https://docs.oracle.com/en/java/javase/15/text-blocks/index.html), in it.
 
@@ -619,7 +621,7 @@ $ curl -v --location --request GET 'http://localhost:8080/api/v1/products/6d62d9
 *   Trying ::1...
 * TCP_NODELAY set
 * Connected to localhost (::1) port 8080 (#0)
-> GET /api/v1/products/6d62d909-f957-430e-8689-b5129c0bb75e   HTTP/1.1
+> GET /api/v1/products/6d62d909-f957-430e-8689-b5129c0bb75e HTTP/1.1
 > Host: localhost:8080
 > User-Agent: curl/7.55.1
 > Content-Type: application/json
@@ -633,7 +635,7 @@ $ curl -v --location --request GET 'http://localhost:8080/api/v1/products/6d62d9
 {
     "_links": {
         "self": {
-            "href": "http://localhost:8080/6d62d909-f957-430e-                     8689-b5129c0bb75e"
+            "href": "http://localhost:8080/6d62d909-f957-430e-8689-b5129c0bb75e"
         }
     },
     "id": "6d62d909-f957-430e-8689-b5129c0bb75e",
@@ -687,7 +689,7 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 HTTP 캐시 제어(org.springframework.http.CacheControl) 클래스를 사용하고, 사용 가능한 경우 각 변경 사항에 대해 업데이트되는 버전 또는 유사한 속성을 사용하여 다음과 같이 불필요한 CPU 계산을 피하고 ETag 처리를 개선할 수 있습니다.
 
 ```java
-Return ResponseEntity.ok()
+return ResponseEntity.ok()
        .cacheControl(CacheControl.maxAge(5, TimeUnit.DAYS))
        .eTag(prodcut.getModifiedDateInEpoch())
        .body(product);

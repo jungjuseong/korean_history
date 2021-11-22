@@ -141,14 +141,14 @@ Process finished with exit code 0
 
 Servlet 3.1 컨테이너는 더 발전하고 비동기성을 지원하며 넌블로킹 I/O 스트림 API를 가지고 있습니다. 그러나 request.getParameters()와 같은 특정 Servlet API는 차단 중인 요청 본문을 구문 분석하고 Filter와 같은 동기 계약을 제공합니다. Spring MVC 프레임워크는 Servlet API 및 Servlet 컨테이너를 기반으로 합니다.
 
-따라서, **Spring은 완전히 넌블로킹이고 백프레셔 기능을 제공하는 Spring WebFlux를 제공합니다**. 적은 수의 스레드와 동시성을 제공하고 더 적은 수의 하드웨어 리소스로 확장됩니다. WebFlux는 비동기 로직의 선언적 구성을 지원하기 위해 유창하고 기능적이며 연속적인 스타일의 API를 제공합니다. 비동기 기능 코드를 작성하는 것은 명령형 코드를 작성하는 것보다 더 복잡합니다. 그러나 일단 사용하게 되면 정확하고 읽기 쉬운 코드를 작성할 수 있기 때문에 좋아하게 될 것입니다.
+따라서, **Spring은 완전히 넌블로킹이고 백프레셔 기능을 제공하는 Spring WebFlux를 제공합니다**. 적은 수의 스레드와 동시성을 제공하고 더 적은 수의 하드웨어 리소스로 확장됩니다. WebFlux는 비동기 로직의 선언적 구성을 지원하기 위해 유창하고 함수형이며 연속적인 스타일의 API를 제공합니다. 비동기 기능 코드를 작성하는 것은 명령형 코드를 작성하는 것보다 더 복잡합니다. 그러나 일단 사용하게 되면 정확하고 읽기 쉬운 코드를 작성할 수 있기 때문에 좋아하게 될 것입니다.
 
 Spring WebFlux와 Spring MVC는 모두 공존할 수 있습니다. **그러나 Reactive 프로그래밍 모델을 효과적으로 사용하려면 Reactive 흐름과 블로킹 호출을 혼합해서는 안 됩니다.**
 
 Spring WebFlux는 다음 기능과 프로토타입을 지원합니다.
 
 - 이벤트 루프 동시성 모델
-- 주석이 달린 컨트롤러와 기능적 엔드포인트 모두
+- 주석이 달린 컨트롤러와 함수형 엔드포인트 모두
 - 리액티브 클라이언트
 - Tomcat, Jetty 등 Netty 및 Servlet 3.1 컨테이너 기반 웹 서버
 
@@ -158,7 +158,8 @@ Reactive API와 Reactor Core를 이해함으로써 WebFlux가 어떻게 작동�
 
 Spring WebFlux API는 Reactive API이며 게시자를 입력으로 허용합니다. 그런 다음 WebFlux는 Reactor Core 또는 RxJava와 같은 Reactive 라이브러리에서 지원하는 유형에 맞게 조정합니다. 그런 다음 지원되는 Reactive 라이브러리 유형에 따라 입력을 처리하고 출력을 반환합니다. 이를 통해 WebFlux API는 다른 Reactive 라이브러리와 상호 운용할 수 있습니다.
 
-기본적으로 Spring WebFlux는 핵심 의존성으로 Reactor(https://projectreactor.io)를 사용합니다. Project Reactor는 `Reactive Streams` 라이브러리를 제공합니다. WebFlux는 게시자로 입력을 받아 Reactor 유형에 적용한 다음 Mono 또는 Flux 출력으로 반환합니다.
+기본적으로 Spring WebFlux는 핵심 의존성으로 Reactor(https://projectreactor.io)를 사용합니다. Project Reactor는 `Reactive Streams` 라이브러리를 제공합니다. 
+WebFlux는 게시자로 입력을 받아 Reactor 유형에 적용한 다음 Mono 또는 Flux 출력으로 반환합니다.
 
 `Reactive Streams`의 게시자는 수요에 따라 구독자에게 데이터를 푸시한다는 것을 알고 있습니다. 하나 이상의 엘리먼트를 푸시할 수 있습니다. Project Reactor는 더 나아가 Mono와 Flux라는 두 가지 Publisher 구현을 제공합니다. Mono는 구독자에게 0 또는 1개를 반환할 수 있지만 Flux는 0 ~ N의 엘리먼트를 반환합니다. 둘 다 CorePublisher 인터페이스를 구현하는 추상 클래스입니다. CorePublisher 인터페이스는 게시자를 확장합니다.
 
@@ -189,7 +190,7 @@ fluxInt.reduce(Integer::max)
 ```
 
 숫자 3개의 Flux를 만듭니다. 그런 다음, sum, max 연산을 별도로 수행합니다. 거기에 2개의 구독자가 있습니다. 기본적으로 Project Reactor는 콜드이므로 두 개의 구독자가 등록될 때 다음과 같은 출력으로 보여주면서 다시 시작합니다.
-```
+```sh
 11:23:35.060 [main] INFO reactor.Flux.Array.1 - | onSubscribe([Synchronous Fuseable] FluxArray.ArraySubscription)
 11:23:35.060 [main] INFO reactor.Flux.Array.1 - | request(unbounded)
 11:23:35.060 [main] INFO reactor.Flux.Array.1 - | onNext(1)
@@ -253,20 +254,33 @@ Now we have got to the crux of Reactive APIs, let's see what Spring WebFlux's Re
 ```
  
 - WebClient를 사용하여 클라이언트에 의해 웹 요청 호출의 처리
-
 - 콘텐츠 직렬화를 위한 코덱(인코더, 디코더, HttpMessageWriter, HttpMessageReader, DataBuffer)
 
-이 컴포넌트들이 스프링 WebFlux의 코어이며 앱 설정에 다음 빈들을 포함한다 – webHandler (DispatcherHandler), WebFilter, WebExceptionHandler, HandlerMapping, HandlerAdapter, and HandlerResultHandler.
+이 컴포넌트들이 스프링 WebFlux의 코어이며 앱 설정에 다음 빈들을 포함한다 
 
-REST 서비스 구현을 위해 Tomcat, Jetty, Netty 및 Undertow 웹 서버에 대한 특정 HandlerAdapter 인스턴스가 있습니다. `Reactive Streams`를 지원하는 Netty와 같은 웹 서버는 가입자의 요구를 처리합니다. 그러나 서버 핸들러가 `Reactive Streams`를 지원하지 않으면 org.springframework.http.server.reactive.ServletHttpHandlerAdapter HTTP HandlerAdapter가 사용됩니다. 
+- WebHandler (DispatcherHandler)
+- WebFilter
+- WebExceptionHandler
+- HandlerMapping
+- HandlerAdapter
+- HandlerResultHandler.
 
-`Reactive Streams`와 Servlet 3.1 컨테이너 비동기 I/O 간의 적응을 처리하고 Subscriber 클래스를 구현합니다. 이것은 OS TCP 버퍼를 사용합니다. OS TCP는 자체 역압(제어 흐름)을 사용합니다. 즉, 버퍼가 가득 차면 OS는 TCP 백 프레셔를 사용하여 들어오는 요소를 중지합니다.
+REST 서비스 구현을 위해 Tomcat, Jetty, Netty 및 Undertow 웹 서버에 대한 특정 HandlerAdapter 인스턴스가 있습니다. 
+`Reactive Streams`를 지원하는 Netty와 같은 웹 서버는 가입자의 요구를 처리합니다.
 
-모든 HTTP 클라이언트는 HTTP 프로토콜을 사용하여 REST API를 사용합니다. 웹 서버에서 요청을 받으면 이를 Spring WebFlux 애플리케이션으로 전달합니다. 그런 다음 WebFlux는 컨트롤러로 가는 Reactive 파이프라인을 빌드합니다. HttpHandler는 WebFlux와 HTTP 프로토콜을 사용하여 통신하는 웹 서버 간의 인터페이스입니다. 
+그러나 서버 핸들러가 `Reactive Streams`를 지원하지 않으면 org.springframework.http.server.reactive.ServletHttpHandlerAdapter HTTP HandlerAdapter가 사용됩니다. 
+
+`Reactive Streams`와 Servlet 3.1 컨테이너 비동기 I/O 간의 적응을 처리하고 Subscriber 클래스를 구현합니다. 이것은 OS TCP 버퍼를 사용합니다. OS TCP는 자체 백프레셔(제어 흐름)을 사용합니다. 즉, 버퍼가 가득 차면 OS는 TCP 백 프레셔를 사용하여 들어오는 요소를 중지합니다.
+
+모든 HTTP 클라이언트는 HTTP 프로토콜을 사용하여 REST API를 사용합니다. 웹 서버에서 요청을 받으면 이를 Spring WebFlux 애플리케이션으로 전달합니다. 그런 다음 WebFlux는 컨트롤러로 가는 Reactive 파이프라인을 빌드합니다. 
+
+HttpHandler는 WebFlux와 HTTP 프로토콜을 사용하여 통신하는 웹 서버 간의 인터페이스입니다. 
 
 기본 서버가 `Reactive Streams`를 지원하는 경우 구독은 기본적으로 서버에서 수행됩니다. 그렇지 않으면 WebFlux는 Servlet 3.1 컨테이너 기반 서버에 ServletHttpHandlerAdapter를 사용합니다. 그런 다음 ServletHttpHandlerAdapter는 스트림을 비동기 I/O 서블릿 API에 맞게 조정하고 그 반대의 경우도 마찬가지입니다. 그런 다음 `Reactive Streams`의 구독은 ServletHttpHandlerAdapter로 발생합니다.
 
-따라서 요약하면 Mono/Flux 스트림은 WebFlux 내부 클래스에 의해 구독되고 컨트롤러가 Mono/Flux 스트림을 보낼 때 이러한 클래스는 이를 HTTP 패킷으로 변환합니다. HTTP 프로토콜은 이벤트 스트림을 지원합니다. 그러나 JSON과 같은 다른 미디어 유형의 경우 Spring WebFlux는 Mono/Flux 스트림을 구독하고 onComplete() 또는 onError()가 트리거될 때까지 기다립니다. 그런 다음 하나의 HTTP 응답에서 전체 요소 목록 또는 Mono의 경우 단일 요소를 직렬화합니다.
+요약하면, Mono/Flux 스트림은 WebFlux 내부 클래스에 의해 구독되고 컨트롤러가 Mono/Flux 스트림을 보낼 때 이러한 클래스는 이를 HTTP 패킷으로 변환합니다. HTTP 프로토콜은 이벤트 스트림을 지원합니다. 
+
+그러나 JSON과 같은 다른 미디어 유형의 경우 Spring WebFlux는 Mono/Flux 스트림을 구독하고 onComplete() 또는 onError()가 트리거될 때까지 기다립니다. 그런 다음 하나의 HTTP 응답에서 전체 요소 목록 또는 Mono의 경우 단일 요소를 직렬화합니다.
 
 Spring WebFlux는 전면 컨트롤러인 Spring MVC의 DispatcherServlet과 유사한 컴포넌트가 필요합니다. 
 
@@ -280,9 +294,9 @@ DispatcherHandler에는
 
 - HandlerMapping(요청을 핸들러에 매핑), 
 - HandlerAdapter(요청에 매핑된 핸들러를 호출하는 DispatcherHandler 도우미)
-- HandlerResultHandler(결과를 처리하고 결과를 형성하기 위한 단어 회문)와 같은 특수 구성 요소를 사용하는 알고리즘이 포함되어 있습니다)
+- HandlerResultHandler(결과를 처리하고 결과를 형성하기 위한 단어 리턴)와 같은 특수 구성 요소를 사용하는 알고리즘이 포함되어 있습니다)
  
-DispatcherHandler 구성 요소는 webHandler라는 빈으로 식별됩니다.
+DispatcherHandler 구성 요소는 `webHandler`라는 빈으로 식별됩니다.
 
 다음과 같은 방식으로 요청을 처리합니다.
 
@@ -296,17 +310,15 @@ DispatcherHandler 구성 요소는 webHandler라는 빈으로 식별됩니다.
 
 5. 요청이 완료되었습니다.
 
-Spring MVC와 같은 주석이 달린 컨트롤러 또는 기능적 끝점을 사용하여 Spring WebFlux에서 REST 끝점을 만들 수 있습니다.
+Spring MVC와 같은 주석이 달린 컨트롤러 또는 함수형 끝점을 사용하여 Spring WebFlux에서 REST 끝점을 만들 수 있습니다.
 
 ### 컨트롤러
 
-Spring 팀은 Spring MVC 및 Spring WebFlux에게 이 주석이 넌블로킹이도록 동일한 주석을 유지했습니다. 
+Spring 팀은 Spring MVC 및 Spring WebFlux에게 이 주석이 넌블로킹이도록 동일한 주석을 유지했습니다. 따라서 이전 장에서 REST 컨트롤러를 생성하기 위해 사용한 것과 동일한 주석을 사용할 수 있습니다. 거기에서 주석은 Reactive Core에서 실행되고 넌블로킹 플로우를 제공합니다. 
 
-따라서 이전 장에서 REST 컨트롤러를 생성하기 위해 사용한 것과 동일한 주석을 사용할 수 있습니다. 거기에서 주석은 Reactive Core에서 실행되고 넌블로킹 플로우를 제공합니다. 
+그러나 개발자는 완전히 넌블로킹 흐름을 유지하고 Reactive 체인(파이프라인)을 유지 관리할 책임이 있습니다. Reactive 체인의 모든 블로킹 호출은 Reactive 체인을 블로킹 호출로 바꿉니다.
 
-그러나 개발자는 완전히 넌블로킹 흐름을 유지하고 Reactive 체인(파이프라인)을 유지 관리할 책임이 있습니다. Reactive 체인의 모든 블로킹 호출은 Reactive 체인을 차단 호출로 바꿉니다.
-
-넌블로킹 및 리애액티브 호출을 지원하는 간단한 REST 컨트롤러를 만들어 보겠습니다.
+넌블로킹 및 리액티브 호출을 지원하는 간단한 REST 컨트롤러를 만들어 보겠습니다.
 
 ```java
 @RestController
@@ -336,7 +348,7 @@ REST 끝점을 작성하기 위해 주석 기반 모델을 사용할 것입니�
 
 ## 함수형 엔드포인트
 
-Spring MVC를 사용하여 코딩한 REST 컨트롤러는 명령형 프로그래밍으로 작성하지만 reactive은 함수형 프로그래밍입니다. 따라서 Spring WebFlux는 엔드포인트를 사용하여 REST 엔드포인트를 정의하는 대체 방법도 허용합니다. 이들은 또한 동일한 Reactive Core 기반을 사용합니다.
+Spring MVC를 사용하여 코딩한 REST 컨트롤러는 명령형 프로그래밍으로 작성하지만 Reactive는 함수형 프로그래밍입니다. 따라서 Spring WebFlux는 엔드포인트를 사용하여 REST 엔드포인트를 정의하는 대체 방법도 허용합니다. 이들은 또한 동일한 Reactive Core 기반을 사용합니다.
 
 함수형 엔드포인트를 사용하여 동일한 순서 REST 엔드포인트를 작성하는 방법을 살펴보겠습니다.
 
@@ -345,12 +357,12 @@ OrderRepository repository = ...
 OrderHandler handler = new OrderHandler(repository);
 
 RouterFunction<ServerResponse> route = route()
-    .GET("/v1/api/orders/{id}", accept(APPLICATION_JSON), 
-      handler::getOrderById)
-    .POST("/v1/api/orders", 
-      handler::addOrder)
+    .GET("/v1/api/orders/{id}", accept(APPLICATION_JSON), handler::getOrderById)
+    .POST("/v1/api/orders", handler::addOrder)
     .build();
+```
 
+```java
 public class OrderHandler {
     public Mono<ServerResponse> addOrder(ServerRequest req){
         // ...
@@ -383,20 +395,19 @@ public class OrderHandler {
 }
 ```
 
-REST 컨트롤러의 @RequestMapping() 매핑 메소드와 달리 핸들러 메소드는 body, path, query와 같은 복수의 파라미터를 갖지 않습니다. 단지 이와 똑같이 사용할 수 있는 ServerRequest 파라미터가 있습니다. addOrder 메소드에서 Order 객체는 request.bodyToMono()로 추출되며 요청 본문을 해석한 다음 Order 객체로 변환합니다. 마찬가지로 getOrderById() 핸들러 메소드에서 request.pathVariable()을 사용하여 요청으로부터 ID를 추출합니다. 
+REST 컨트롤러의 @RequestMapping() 매핑 메소드와 달리 핸들러 메소드는 body, path, query와 같은 복수의 파라미터를 갖지 않습니다. 단지 이와 똑같이 사용할 수 있는 `ServerRequest` 파라미터가 있습니다. addOrder 메소드에서 Order 객체는 request.bodyToMono()로 추출되며 요청 본문을 해석한 다음 Order 객체로 변환합니다. 마찬가지로 getOrderById() 핸들러 메소드에서 request.pathVariable()을 사용하여 요청으로부터 ID를 추출합니다. 
 
 이제 응답에 대해 논의해 보겠습니다. 핸들러 메소드는 Spring MVC의 ResponseEntity와 비교하여 ServerResponse 객체를 사용합니다. 따라서 ok() 메서드는 ResponseEntity에서 가져온 것처럼 보이지만 org.springframework.web.reactive.function.server.ServerResponse.ok에서 가져온 것입니다. Spring 팀은 API를 Spring MVC와 최대한 유사하게 유지하려고 노력했습니다. 그러나 기본 구현은 다르며 넌블로킹 Reactive 인터페이스를 제공합니다.
 
 이러한 핸들러 메소드에 대한 마지막 요점은 응답이 작성되는 방식입니다. 명령형 스타일이 아닌 함수형 스타일을 사용하며 Reactive 체인이 끊어지지 않도록 합니다. 리포지토리는 두 경우 모두 Mono 개체(게시자)를 반환하고 ServerResponse 내부에 래핑된 응답으로 반환합니다.
 
-getOrderById() 메소드에서 흥미로운 코드를 찾을 수 있습니다. 저장소에서 받은 Mono 객체에 대해 flatMap 작업을 수행합니다. 엔터티에서 모델로 변환한 다음 ServerResponse 개체로 래핑하고 응답을 반환합니다. 저장소가 null을 반환하면 어떻게 되는지 궁금할 것입니다. 저장소는 계약에 따라 Mono를 반환하며, 이는 본질적으로 Java Optional 클래스와 유사합니다. 따라서 Mono 객체는 비어 있을 수 있지만 계약에 따라 null은 아닙니다. 저장소가 빈 Mono를 반환하면 switchIfEmpty() 연산자가 사용되며 NOT FOUND 404 응답이 전송됩니다.
+getOrderById() 메소드에서 흥미로운 코드를 찾을 수 있습니다. 레포지토리에서 받은 Mono 객체에 대해 flatMap 작업을 수행합니다. 엔터티에서 모델로 변환한 다음 ServerResponse 개체로 래핑하고 응답을 반환합니다. 저장소가 null을 반환하면 어떻게 되는지 궁금할 것입니다. 레포지토리는 계약에 따라 Mono를 반환하며, 이는 본질적으로 Java Optional 클래스와 유사합니다. 따라서 Mono 객체는 비어 있을 수 있지만 계약에 따라 null은 아닙니다. 레포지토리가 빈 Mono를 반환하면 switchIfEmpty() 연산자가 사용되며 NOT FOUND 404 응답이 전송됩니다.
 
 오류의 경우 doOnError() 또는 onErrorReturn()과 같이 사용할 수 있는 다양한 오류 연산자가 있습니다.
 
 Mono 유형을 사용하는 로직 흐름에 대해 논의했습니다. Mono 대신 Flux 유형을 사용하는 경우에도 동일합니다.
 
-Spring 컨텍스트에서 Reactive, asynchronous 및 non-blocking 프로그래밍과 관련된 많은 이론을 논의했습니다. 코딩으로 넘어가 4장, API를 위한 비즈니스 로직 작성에서 개발한 전자상거래 API를 리액티브 API로 마이그레이션합니다.
-
+Spring 컨텍스트에서 Reactive, 비동기 및 넌블로킹 프로그래밍과 관련된 많은 이론을 논의했습니다. 코딩으로 넘어가 4장, API를 위한 비즈니스 로직 작성에서 개발한 전자상거래 API를 리액티브 API로 마이그레이션합니다.
 
 
 ## 전자 상거래 앱용 Reactive API 구현

@@ -487,7 +487,7 @@ SELECT c.first_name, c.last_name, c.address_id, a.address
 보시다시피 이전과 동일한 결과가 반환됩니다(새 주소 ID 값 제외). 이는 값 9999가 고객 테이블에서 자동으로 업데이트되었음을 의미합니다. 이것을 캐스케이드라고 하며 고아 행을 보호하는 데 사용되는 두 번째 메커니즘입니다.
 
 제한 및 계단식 배열과 함께 null 설정을 선택할 수도 있습니다. 그러면 부모 테이블에서 행이 삭제되거나 업데이트될 때 자식 테이블에서 외래 키 값이 null로 설정됩니다. 외래 키 제약 조건을 정의할 때 선택할 수 있는 옵션은 모두 6가지입니다.
-```
+```sql
 on delete restrict
 on delete cascade
 on delete set null
@@ -503,21 +503,19 @@ on update set null
 
 Work through the following exercises to test your knowledge of indexes and constraints. When you’re done, compare your solutions with those in Appendix B.
 
-Exercise 13-1
+**Exercise 13-1**
 Generate an alter table statement for the rental table so that an error will be raised if a row having a value found in the rental.customer_id column is deleted from the customer table.
 
-Exercise 13-2
+**Exercise 13-2**
 Generate a multicolumn index on the payment table that could be used by both of the following queries:
-
+```sql
 SELECT customer_id, payment_date, amount
 FROM payment
 WHERE payment_date > cast('2019-12-31 23:59:59' as datetime);
-```
-```
+
 
 SELECT customer_id, payment_date, amount
 FROM payment
 ​WHERE payment_date > cast('2019-12-31 23:59:59' as datetime)
   AND amount < 5;
-```
 ```

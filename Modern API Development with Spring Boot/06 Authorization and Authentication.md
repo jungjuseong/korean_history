@@ -1062,6 +1062,7 @@ We also need to modify the UserRepository class to add a new method that returns
 #### getSignedInUser() implementation
 
 Implementation of the getSignedInUser() method is straightforward, as shown in following code snippet:
+c
 ```java
 @Override
 @Transactional

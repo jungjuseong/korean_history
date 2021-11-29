@@ -205,7 +205,8 @@ ShipmentController 클래스의 getShipmentByOrderId() 메서드를 사용하는
 
   }
 ```
-여기서는 행동 주도 개발 테스트 스타일을 사용한다. BDD 테스트는 Gherkin Given > When > Then 언어로 작성한다.
+여기서는 행동 주도 개발 테스트 스타일을 사용한다. 
+BDD 테스트는 Gherkin Given > When > Then 언어로 작성한다.
 
 - Given: 테스트 컨텍스트
 - When: 테스트 액션
@@ -262,6 +263,7 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 You have captured the MockHttpResponse instance from the mockMvc.perform() call in the previous test example; that is, testGetShipmentByOrderId(). This time, you will directly use the returned value of the mockMvc.perform() call rather than calling an extra andReturn().getResponse() on it.
 
 The ResultAction class provides the andExpect() assertion method, which takes ResultMatcher as an argument. The StatusResultMatchers.status().isOk() result matcher evaluates the HTTP status returned by the perform() call. The VerifyJson() method evaluates the JSON response object, as shown in the following code:
+
 ```java
 private void verifyJson(final ResultActions result) throws Exception {
   final String BASE_PATH = "http://localhost";
@@ -281,7 +283,7 @@ private void verifyJson(final ResultActions result) throws Exception {
       .andExpect(jsonPath("links[1].href", is(BASE_PATH + URI + "/" + entity.getId())));
 }
 ```
-Here, the MockMvcResultMatchers.jsonPath() result matcher takes two arguments – a JSON path expression and a matcher. Therefore, first, you must pass the JSON field name and then the Hamcrest matcher known as Is.is(), which is a shortcut for Is.is(equalsTo(entity.getCity())).
+Here, the `MockMvcResultMatchers.jsonPath()` result matcher takes two arguments – a JSON path expression and a matcher. Therefore, first, you must pass the JSON field name and then the Hamcrest matcher known as Is.is(), which is a shortcut for Is.is(equalsTo(entity.getCity())).
 
 Writing the unit test for a service is much easier compared to writing one for the controller because you don't have to deal with MockMvc.
 
@@ -290,6 +292,7 @@ You will learn how to test private methods in the next subsection.
 ### Testing private methods
 
 Unit testing a private method is a challenge. The Spring test library provides the ReflectionTestUtils class, which provides a method called invokeMethod. This method allows to you invoke private methods. The invokeMethod method takes three argument – the target class, the method's name, and the method's arguments (using variable arguments). Let's use it to test the AddressServiceImpl.toEntity() private method, as shown in the following code block:
+
 ```java
 @Test
 @DisplayName("returns an AddressEntity when private method
@@ -333,7 +336,7 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 
 Here, you can see that when you call ReflectionTestUtils.invokeMethod() with the given arguments, it returns the AddressEntity instance, which has been converted using the passed argument's AddAddressReq model instance.
 
-Here, you are using a third kind of assertion using AssertJ's BDDAssertions class. The BDDAssertions class provides methods that resonate with the BDD style. BDDAssertions.then() takes the actual value that you want to verify. The as() method describes the assertion and should be added before you perform the assertion. Finally, you perform verification using AssertJ's assertion methods, such as isEqualTo().
+Here, you are using a third kind of assertion using AssertJ's BDDAssertions class. The `BDDAssertions` class provides methods that resonate with the BDD style. `BDDAssertions.then()` takes the actual value that you want to verify. The as() method describes the assertion and should be added before you perform the assertion. Finally, you perform verification using AssertJ's assertion methods, such as isEqualTo().
 
 You will learn how to test void methods in the next subsection.
 
@@ -421,6 +424,7 @@ Here, you basically catch the exception and perform assertions on it.
 With that, you have explored the unit tests that you can perform for both controllers and services. You can make use of these examples and write unit tests for the rest of the classes.
 
 ### Executing unit tests
+
 You can run the gradlew clean test command to execute our tests. This will generate the unit test reports at Chapter08/build/reports/tests/test/index.html.
 
 A generated test report will look like this:
@@ -433,11 +437,11 @@ You can click on the links to drill down further. If the test fails, it also sho
 Let's move on to the next section to learn how to configure code coverage for unit tests.
 
 
-## Code coverage
+## Code 커버리지
 
-Code coverage provides important metrics, including line and branch coverage. You are going to use the JaCoCo tool to perform and report your code coverage.
+Code coverage provides important metrics, including line and branch coverage. You are going to use the `JaCoCo` tool to perform and report your code coverage.
 
-First, you need to add the jacoco Gradle plugin to the build.gradle file, as shown in the following code:
+First, you need to add the `jacoco` Gradle plugin to the build.gradle file, as shown in the following code:
 
 ```gradle
 plugins {    
@@ -452,80 +456,53 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 
 Next, configure the jacoco plugin by providing its version and reports directory:
 
+```gradle
 jacoco {
-
   toolVersion = "0.8.6"
-
   reportsDir = file("$buildDir/jacoco")
-
 }
+```
+Next, create a new task called `jacocoTestReport` that depends on the test task. You don't want to calculate coverage for auto-generated code, so add the exclude block. Exclusion can be added by configuring afterEvaluate, as shown in the following code block:
 
-Next, create a new task called jacocoTestReport that depends on the test task. You don't want to calculate coverage for auto-generated code, so add the exclude block. Exclusion can be added by configuring afterEvaluate, as shown in the following code block:
-
+```gradle
 jacocoTestReport {
-
-  dependsOn test // tests should be run before generating
-
-                 // report
-
-  afterEvaluate {        
-
+  dependsOn test // tests should be run before generating afterEvaluate {        
     classDirectories.setFrom(
-
         files(classDirectories.files.collect {
-
       fileTree(
-
         dir: it,
-
         exclude: [
-
           'com/packt/modern/api/model/*',
-
           'com/packt/modern/api/*Api.*',
-
           'com/packt/modern/api/security/UNUSED/*',
-
       ])
-
     }))
-
   }
-
 }
+```
 
-Next, you need to configure jacocoTestCoverageVerification, which defines the violation rules. We have added instructions to cover the ratio rule in the following code block. This will set the expected ratio to a minimum of 90%. If the ratio is below 0.9, then it will fail the build. You can find out more about such rules at https://docs.gradle.org/current/userguide/jacoco_plugin.html#sec:jacoco_report_violation_rules:
+Next, you need to configure `jacocoTestCoverageVerification`, which defines the violation rules. We have added instructions to cover the ratio rule in the following code block. This will set the expected ratio to a minimum of 90%. If the ratio is below 0.9, then it will fail the build. You can find out more about such rules at https://docs.gradle.org/current/userguide/jacoco_plugin.html#sec:jacoco_report_violation_rules:
 
+```
 jacocoTestCoverageVerification {
-
   violationRules {
-
     rule {
-
       limit {
-
         minimum = 0.9
-
       }
-
     }
-
   }
-
 }
+```
 
 Next, add finalizedBy(jacocoTestReport) to the test task, which ensures that the jacocoTestReport task will execute after performing the tests:
-
+```
 test {
-
   jvmArgs '--enable-preview'
-
   useJUnitPlatform()
-
   finalizedBy(jacocoTestReport)
-
 }
-
+```
 Once you've run gradlew clean build, it will not only run the test but also generate the code coverage report, along with the test reports. The code coverage report will be available at Chapter08/build/jacoco/test/html and look as follows:
 
 Figure 8.2 – Code coverage report
@@ -535,169 +512,120 @@ Here, you can see that our instruction coverage is only at 29%, while our branch
 
 You will learn about integration testing in the next section.
 
-Integration testing
+
+## Integration testing
+
 Once you have the automated integration tests in place, you can ensure that any changes you make won't produce bugs, provided you cover all the testing scenarios. You don't have to add any additional plugins or libraries to support integration testing in this chapter. The Spring test library provides all the libraries required to write and perform integration testing.
 
 Let’s add the configuration for integration testing in next subsection.
 
-Configuring the Integration testing
+### Configuring the Integration testing
+
 First, you need a separate location for your integration tests. This can be configured in build.gradle, as shown in the following code block:
 
+```gradle
 sourceSets {
-
     integrationTest {
-
         java {
-
             compileClasspath += main.output + test.output
-
             runtimeClasspath += main.output + test.output
-
             srcDir file('src/integration/java')
-
         }
-
         resources.srcDir file('src/integration/resources')
-
     }
-
 }
+```
 
 Next, you can configure the integration test's implementation and runtime so that that it's extended from the test's implementation and runtime, as shown in the following code block:
 
+```gradle
 configurations {
-
-    integrationTestImplementation.extendsFrom
-
-        testImplementation
-
+    integrationTestImplementation.extendsFrom testImplementation
     integrationTestRuntime.extendsFrom testRuntime
-
 }
+```
 
-Finally, create a task called integrationTest that will not only use the JUnit Platform, but also use our classpath and test classpath from sourceSets.integrationTest.
+Finally, create a task called `integrationTest` that will not only use the JUnit Platform, but also use our classpath and test classpath from `sourceSets.integrationTest`.
 
 Finally, configure the check task so that it depends on the integrationTest task and run integrationTest after the test task. You can remove the last line in the following code block if you want to run integrationTest separately:
 
+```gradle
 task integrationTest(type: Test) {
-
     useJUnitPlatform()
-
     description = 'Runs the integration tests.'
-
     group = 'verification'
-
     testClassesDirs = sourceSets.integrationTest.
-
         output.classesDirs
-
     classpath = sourceSets.integrationTest.runtimeClasspath
-
 }
-
 check.dependsOn integrationTest
-
 integrationTest.mustRunAfter test
-
+```
 Now, we can start writing the integration tests. Before writing integration tests, first let's write the supporting Java classes in next subsection. First, let's create the TestUtils class. This will contain a method that returns an instance of ObjectMapper. It will contain a method to check whether JWT has expired.
 
-Writing supporting classes for Integration test
+### Writing supporting classes for Integration test
+
 The ObjectMapper instance was retrieved from the AppConfig class and added an extra configuration so that we can accept a single value as an array. For example, a JSON string field value might be {[{…}, {…}]}. If you take a closer look at it, you will see that it is an array wrapped as a single value. When you convert this value into an object, ObjectMapper treats it as an array. The complete code for this class is as follows:
 
+```java
 public class TestUtils {
-
   private static ObjectMapper objectMapper;
-
   public static ObjectMapper objectMapper() {
-
     if (Objects.isNull(objectMapper)) {
-
       objectMapper = new AppConfig().objectMapper();
-
       objectMapper.configure(
-
          DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY,            true);
-
     }
-
     return objectMapper;
-
   }
 
-  public static boolean isTokenExpired(String jwt)                             throws JsonProcessingException {
-
+  public static boolean isTokenExpired(String jwt) throws JsonProcessingException {
     var encodedPayload = jwt.split("\\.")[1];
-
-    var payload = new String(Base64.getDecoder()                                  .decode(encodedPayload));
+    var payload = new String(Base64.getDecoder().decode(encodedPayload));
 
     JsonNode parent = new ObjectMapper().readTree(payload);
-
     String expiration = parent.path("exp").asText();
 
-    Instant expTime = Instant.ofEpochMilli(                          Long.valueOf(expiration) * 1000);
+    Instant expTime = Instant.ofEpochMilli(Long.valueOf(expiration) * 1000);
 
     return Instant.now().compareTo(expTime) < 0;
-
   }
-
 }
-
+```
 https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter08/src/integration/java/com/packt/modern/api/TestUtils.java
 
 Next, you need a client that lets you log in so that you can retrieve the JWT. RestTemplate is an HTTP client in Spring that provides support for making HTTP calls. The AuthClient class makes use of TestRestTemplate, which is a replica of RestTemplate from a testing perspective.
 
 Let's write this AuthClient, as follows:
 
+```java
 public class AuthClient {
-
   private TestRestTemplate restTemplate;
-
   private ObjectMapper objectMapper;
 
-  public AuthClient(TestRestTemplate restTemplate,                                ObjectMapper objectMapper) {
-
+  public AuthClient(TestRestTemplate restTemplate, ObjectMapper objectMapper) {
     this.restTemplate = restTemplate;
-
     this.objectMapper = objectMapper;
-
   }
 
-  public SignedInUser login(String username, String
-
-        password) {
-
-    SignInReq signInReq = new SignInReq()                  .username(username).password(password);
+  public SignedInUser login(String username, String password) {
+    SignInReq signInReq = new SignInReq().username(username).password(password);
 
     return restTemplate
-
       .execute("/api/v1/auth/token", HttpMethod.POST,
-
          request -> {
-
-            objectMapper.writeValue(request.getBody(),                                     signInReq);
-
+            objectMapper.writeValue(request.getBody(),signInReq);
             request.getHeaders()
-
-                .add(HttpHeaders.CONTENT_TYPE,
-
-                     MediaType.APPLICATION_JSON_VALUE);
+                .add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
             request.getHeaders().add(HttpHeaders.ACCEPT,
-
-                     MediaType.APPLICATION_JSON_VALUE);
-
+MediaType.APPLICATION_JSON_VALUE);
          },
-
-         response -> objectMapper.readValue(
-
-                        response.getBody(),
-
-                        SignedInUser.class));
-
+         response -> objectMapper.readValue(response.getBody(),
+SignedInUser.class));
   }
-
 }
-
+```
 https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter08/src/integration/java/com/packt/modern/api/AuthClient.java
 
 The Sprint test library provides MockMvc, WebTestClient, and TestRestTemplate for performing integration testing. You have already used MockMvc in unit testing. The same approach can be used for integration testing as well. However, instead of using mocks, you can use the actual objects by adding the @SpringBootTest annotation to the test class. @SpringBootTest, along with SpringExtension, provides all the necessary Spring context, such as the actual application.
@@ -708,78 +636,49 @@ The integration test you are going to write is fully fleshed out test that doesn
 
 Therefore, the integration test will be as good as long as you are hitting the REST endpoints from REST clients such as cURL or Postman. These flyway scripts create the tables and data required in the H2 memory database. This data will then be used by the RESTful web service. You can also use other databases, such as Postgres or MySQL, using their test containers.
 
-Let's create a new integration test called AddressControllerIT in src/integration/java in an appropriate package and add the following code:
+Let's create a new integration test called `AddressControllerIT` in src/integration/java in an appropriate package and add the following code:
 
+```java
 @ExtendWith(SpringExtension.class)
-
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-
 @TestMethodOrder(OrderAnnotation.class)
-
 public class AddressControllerIT {
-
   private static ObjectMapper objectMapper;
-
   private static AuthClient authClient;
-
   private static SignedInUser signedInUser;
-
   private static Address address;
-
   private static String idOfAddressToBeRemoved;
 
   @Autowired
-
   private AddressRepository repository;
 
   @Autowired
-
   private TestRestTemplate restTemplate;
 
   @BeforeAll
-
   public static void init() {
-
     objectMapper = TestUtils.objectMapper();
-
     address = new Address().id(
-
-           "a731fda1-aaad-42ea-bdbc-
-
-               a27eeebe2cc0").number("9I-999")
-
+           "a731fda1-aaad-42ea-bdbc-a27eeebe2cc0").number("9I-999")
         .residency("Fraser Suites Le Claridge")
-
         .street("Champs-Elysees").city("Paris")
-
         .state("Île-de-France").country("France")
-
             .pincode("75008");
 
   }
 
   @BeforeEach
-
   public void setup() throws JsonProcessingException {
-
     if (Objects.isNull(signedInUser)
-
         || Strings.isNullOrEmpty(
-
             signedInUser.getAccessToken())
-
         || isTokenExpired(signedInUser.getAccessToken())) {
 
-      authClient = new AuthClient(restTemplate,
-
-                   objectMapper);
-
+      authClient = new AuthClient(restTemplate,objectMapper);
       signedInUser = authClient.login("scott", "tiger");
-
     }
-
   }
-
+```
 https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter08/src/integration/java/com/packt/modern/api/controller/AddressControllerIT.java
 
 Here, SpringExtension is now being used to run the unit test on the JUnit Platform. The SpringBootTest annotation provides all the dependencies and context for the test class. A random port is being used to run the test server. You are also using @TestMethodOrder, along with the @Order annotation, to run the test in a particular order. You are going to execute the test in a particular order so that the POST HTTP method on the addresses resource is only called before the DELETE HTTP method on the addresses resource. This is because you are passing the newly created address ID in the DELETE call. Normally, tests run in a random order. If the DELETE call is made before the POST call, then the build will fail, without testing the proper scenarios.
@@ -790,57 +689,39 @@ The method's setup would be run before each test is executed because it is marke
 
 Let's add an integration test that will verify the GET /api/v1/addresses REST endpoint, as shown in the following code:
 
+```java
 @Test
-
 @DisplayName("returns all addresses")
-
 @Order(6)
-
 public void getAllAddress() throws IOException {
-
   // given
-
-  MultiValueMap<String, String> headers = new                                LinkedMultiValueMap<>();
-
-  headers.add(HttpHeaders.CONTENT_TYPE,       MediaType.APPLICATION_JSON_VALUE);
-
-  headers.add(HttpHeaders.ACCEPT,       MediaType.APPLICATION_JSON_VALUE);
-
-  headers.add("Authorization", "Bearer " +               signedInUser.getAccessToken());
+  MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+  headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+  headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+  headers.add("Authorization", "Bearer " + signedInUser.getAccessToken());
 
   // when
-
-  ResponseEntity<JsonNode> addressResponseEntity =
-
-      restTemplate
-
-      .exchange("/api/v1/addresses", HttpMethod.GET,          new HttpEntity<>(headers), JsonNode.class);
+  ResponseEntity<JsonNode> addressResponseEntity = restTemplate
+      .exchange("/api/v1/addresses", HttpMethod.GET, new HttpEntity<>(headers), JsonNode.class);
 
   // then  
-
   assertThat(addressResponseEntity.getStatusCode())
-
      .isEqualTo(HttpStatus.OK);
 
   JsonNode node = addressResponseEntity.getBody();
 
   List<Address> addressFromResponse = objectMapper
-
      .convertValue(node, new
-
          TypeReference<ArrayList<Address>>(){});
 
   assertThat(addressFromResponse).hasSizeGreaterThan(0);
-
   assertThat(addressFromResponse.get(0))
-
      .hasFieldOrProperty("links");
 
   assertThat(addressFromResponse.get(0))
-
      .isInstanceOf(Address.class);
-
 }
+```
 
 https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter08/src/integration/java/com/packt/modern/api/controller/AddressControllerIT.java
 

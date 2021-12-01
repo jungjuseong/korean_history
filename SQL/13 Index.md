@@ -324,7 +324,7 @@ possible_keys: idx_last_name,idx_full_name
 1 row in set, 1 warning (0.00 sec)
 ```
 ---
-노트
+**노트**
 
 각 데이터베이스 서버에는 쿼리 최적화 프로그램이 SQL 문을 처리하는 방법을 볼 수 있는 도구가 포함되어 있습니다. SQL Server를 사용하면 SQL 문을 실행하기 전에 showplan_text 문 집합을 실행하여 실행 계획을 볼 수 있습니다. Oracle Database에는 plan_table이라는 특수 테이블에 실행 계획을 기록하는 Explain Plan 문이 포함되어 있습니다.
 
@@ -333,7 +333,7 @@ possible_keys: idx_last_name,idx_full_name
 쿼리 결과를 보면 possible_keys 열은 서버가 idx_last_name 또는 idx_full_name 인덱스를 사용하도록 결정할 수 있음을 알려주고 키 열은 idx_full_name 인덱스가 선택되었음을 알려줍니다. 또한 유형 열은 범위 스캔이 활용될 것임을 알려줍니다. 즉, 데이터베이스 서버는 단일 행을 검색할 것으로 기대하지 않고 인덱스에서 값 범위를 찾습니다.
 
 ---
-노트
+**노트**
 
 방금 안내한 프로세스는 쿼리 튜닝의 예입니다. 튜닝에는 SQL 문을 살펴보고 해당 명령문을 실행하기 위해 서버에서 사용할 수 있는 리소스를 결정하는 작업이 포함됩니다. SQL 문을 수정하거나, 데이터베이스 리소스를 조정하거나, 명령문을 보다 효율적으로 실행하기 위해 둘 다 수행하도록 결정할 수 있습니다. 튜닝은 세부적인 주제이므로 서버의 튜닝 가이드를 읽거나 서버에 사용할 수 있는 다양한 접근 방식을 모두 볼 수 있는 좋은 튜닝 책을 선택하는 것이 좋습니다.
 
@@ -355,7 +355,8 @@ possible_keys: idx_last_name,idx_full_name
 
 - 초기 인덱스 세트를 구축한 후 테이블에 대한 실제 쿼리를 캡처하고 서버의 실행 계획을 살펴보고 가장 일반적인 액세스 경로에 맞게 인덱싱 전략을 수정하십시오.
 
-## 제약
+
+## 제약 조건
 
 제약 조건은 단순히 테이블의 하나 이상의 열에 적용되는 제한 사항입니다. 다음과 같은 여러 유형의 제약 조건이 있습니다.
 
@@ -371,15 +372,16 @@ possible_keys: idx_last_name,idx_full_name
 - **제약 조건 확인**
 열에 허용되는 값 제한
 
+
 제약 조건이 없으면 데이터베이스의 일관성이 의심됩니다. 예를 들어 서버에서 임대 테이블의 동일한 고객 ID를 변경하지 않고 고객 테이블의 고객 ID를 변경할 수 있도록 허용하는 경우 더 이상 유효한 고객 레코드(고아 행이라고 함)를 가리키지 않는 임대 데이터로 끝납니다. 그러나 기본 및 외래 키 제약 조건이 있는 경우 다른 테이블에서 참조하는 데이터를 수정 또는 삭제하거나 변경 사항을 다른 테이블로 전파하려고 하면 서버에서 오류가 발생합니다(자세한 내용은 곧 설명).
 ---
-노트
+**노트**
 
 MySQL 서버에서 외래 키 제약 조건을 사용하려면 테이블에 InnoDB 스토리지 엔진을 사용해야 합니다.
 
 ---
 
-## Constraint Creation
+## 제약 조건 만들기
 
 Constraints are generally created at the same time as the associated table via the create table statement. To illustrate, here’s an example from the schema generation script for the Sakila sample database:
 
@@ -454,9 +456,9 @@ ERROR 1451 (23000): Cannot delete or update a parent row:
   REFERENCES `address` (`address_id`) 
   ON DELETE RESTRICT ON UPDATE CASCADE)
 ```
-Because at least one row in the child table contains the value 123 in the address_id column, the on delete restrict clause of the foreign key constraint caused the statement to fail.
+자식 테이블의 적어도 하나의 행에 address_id 열의 값 123이 포함되어 있기 때문에 외래 키 제약 조건의 삭제 시 제한 절로 인해 명령문이 실패했습니다.
 
-The on update cascade clause also protects against orphaned records when a primary key value is updated in the parent table using a different strategy. Here’s what happens if you modify a value in the address.address_id column:
+on update cascade 절은 또한 다른 전략을 사용하여 상위 테이블에서 기본 키 값이 업데이트될 때 분리된 레코드로부터 보호합니다. address.address_id 열의 값을 수정하면 다음과 같이 됩니다.
 
 ```sql
 UPDATE address
@@ -465,8 +467,8 @@ UPDATE address
 ```
 ```
 Query OK, 1 row affected (0.37 sec)
-```
 Rows matched: 1  Changed: 1  Warnings: 0
+```
 The statement executed without error, and one row was modified. But what happened to Sherry Marshall’s row in the customer table? Does it still point to address ID 123, which no longer exists? To find out, let’s run the last query again, but substitute the new value 9999 for the previous value of 123:
 
 ```sql
@@ -487,7 +489,7 @@ SELECT c.first_name, c.last_name, c.address_id, a.address
 보시다시피 이전과 동일한 결과가 반환됩니다(새 주소 ID 값 제외). 이는 값 9999가 고객 테이블에서 자동으로 업데이트되었음을 의미합니다. 이것을 캐스케이드라고 하며 고아 행을 보호하는 데 사용되는 두 번째 메커니즘입니다.
 
 제한 및 계단식 배열과 함께 null 설정을 선택할 수도 있습니다. 그러면 부모 테이블에서 행이 삭제되거나 업데이트될 때 자식 테이블에서 외래 키 값이 null로 설정됩니다. 외래 키 제약 조건을 정의할 때 선택할 수 있는 옵션은 모두 6가지입니다.
-```sql
+```
 on delete restrict
 on delete cascade
 on delete set null
@@ -503,19 +505,21 @@ on update set null
 
 Work through the following exercises to test your knowledge of indexes and constraints. When you’re done, compare your solutions with those in Appendix B.
 
-**Exercise 13-1**
+Exercise 13-1
 Generate an alter table statement for the rental table so that an error will be raised if a row having a value found in the rental.customer_id column is deleted from the customer table.
 
-**Exercise 13-2**
+Exercise 13-2
 Generate a multicolumn index on the payment table that could be used by both of the following queries:
-```sql
+
 SELECT customer_id, payment_date, amount
 FROM payment
 WHERE payment_date > cast('2019-12-31 23:59:59' as datetime);
-
+```
+```
 
 SELECT customer_id, payment_date, amount
 FROM payment
 ​WHERE payment_date > cast('2019-12-31 23:59:59' as datetime)
   AND amount < 5;
+```
 ```

@@ -63,7 +63,6 @@ GraphQL은 모바일 클라이언트에서의 사용 측면에서 REST API보다
 
 GraphQL은 서버와 클라이언트 간의 계약 역할을 합니다. GraphQL 스키마를 gRPC IDL(인터페이스 정의 언어) 파일 및 OpenAPI 사양 파일과 연관시킬 수 있습니다.
 
-
 ## GraphQL 기초 배우기
 
 GraphQL API에는 query, mutation 및 subscription과 같은 중요 타입이 있습니다. 이들은 모두 특별한 SDL 구문을 사용하여 GraphQL 스키마에 정의되어 있습니다.
@@ -133,7 +132,8 @@ query {
 
 ### Mutation형
 
-Mutation형은 추가, 업데이트 또는 삭제 요청에 사용됩니다. 한 Mutation 타입에 많은 Mutation이 포함될 수 있습니다. 
+Mutation형은 추가, 업데이트 또는 삭제 요청에 사용됩니다. 한 Mutation 타입에 또 다른 Mutation이 포함될 수 있습니다. 
+
 장바구니에 새 항목을 추가하는 addItemInCart를 정의합니다.
 
 ```graphql

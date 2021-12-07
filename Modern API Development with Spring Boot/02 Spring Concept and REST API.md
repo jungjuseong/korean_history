@@ -1,5 +1,6 @@
 # Chapter 2: Spring Concepts and REST APIs
-이전 장에서 REST 아키텍처 스타일에 대해 배웠습니다. Spring과 Spring Boot를 사용하여 RESTful 웹 서비스를 구현하기 전에 기본 Spring 개념에 대한 적절한 이해가 필요합니다. 이 장에서는 Spring Framework를 사용하여 RESTful 웹 서비스를 구현하는 데 필요한 Spring 기본 사항과 기능에 대해 학습합니다. 이것은 샘플 전자 상거래 앱을 개발하는 데 필요한 기술적 관점을 제공합니다. RESTful API 구현에 필요한 Spring 기본 사항을 이미 알고 있다면 다음 장으로 넘어갈 수 있습니다.
+
+Spring과 Spring Boot를 사용하여 RESTful 웹 서비스를 구현하기 전에 기본 Spring 개념에 대한 적절한 이해가 필요합니다. 이 장에서는 Spring Framework를 사용하여 RESTful 웹 서비스를 구현하는 데 필요한 Spring 기본 사항과 기능에 대해 학습합니다. 이것은 샘플 전자 상거래 앱을 개발하는 데 필요한 기술적 관점을 제공합니다. RESTful API 구현에 필요한 Spring 기본 사항을 이미 알고 있다면 다음 장으로 넘어갈 수 있습니다.
 
 이 장의 일부로 다음 주제를 다룰 것입니다.
 
@@ -15,35 +16,36 @@ Please visit the following link to download the code files: https://github.com/P
 
 ## Spring 소개
 
-Spring은 프레임워크이며 Java 언어로 작성되었습니다. Spring Data, Spring Security, Spring Cloud, Spring Web 등과 같은 많은 모듈을 제공합니다. 엔터프라이즈 애플리케이션을 구축하는 데 널리 사용됩니다. 처음에는 Java Enterprise Edition(EE) 대안으로 간주되었습니다. 그러나 수년에 걸쳐 Java EE보다 선호되었습니다. Spring은 Dependency Injection(Inversion of Control)과 AOP를 핵심으로 지원합니다. Java 외에도 Spring은 Groovy 및 Kotlin과 같은 다른 JVM 언어도 지원합니다.
+Spring은 프레임워크이며 Java 언어로 작성되었습니다. Spring Data, Spring Security, Spring Cloud, Spring Web 등과 같은 많은 모듈을 제공합니다. 엔터프라이즈 애플리케이션을 구축하는 데 널리 사용됩니다. Spring은 DI(제어 역전)과 AOP를 핵심으로 지원합니다. 
 
-Spring Boot의 도입으로 웹 서비스 구축은 개발 소요 시간에 관한 한 머리에 못을 박았습니다. 당신은 즉시 땅을 쳤습니다. 이것은 거대하고 최근에 Spring이 인기를 얻게 된 이유 중 하나입니다.
+Java, Groovy 및 Kotlin과 같은 다른 JVM 언어도 지원합니다.
 
-Spring 기초 자체를 다루려면 전용 책이 필요합니다. 나는 간결하고 세부적인 방식으로 REST 구현 지식을 파악하고 진행하는 데 필요한 모든 기능을 다루려고 노력할 것입니다.
 
-계속 진행하기 전에 IoC(Inversion of Control), DI(Dependency Injection) 및 AOP의 원리와 디자인 패턴을 살펴봐야 합니다.
+### 제어 패턴의 역전(IoC)
 
-### 제어 패턴의 역전
+전통적인 프로그램은 흐름이 프로그래머에 의해 결정되고 코드가 하나씩 순차적으로 실행되는 절차적 프로그래밍 구현을 위한 일반적인 방법입니다. 그러나 UI 응용 프로그램은 사용자 입력 및 이벤트를 기반으로 프로그램의 흐름을 결정하며 이는 동적입니다.
 
-전통적인 CLI 프로그램은 흐름이 프로그래머에 의해 결정되고 코드가 하나씩 순차적으로 실행되는 절차적 프로그래밍 구현을 위한 일반적인 방법입니다. 그러나 UI 기반 OS 응용 프로그램은 사용자 입력 및 이벤트를 기반으로 프로그램의 흐름을 결정하며 이는 동적입니다.
+오래 전에 대부분의 절차적 프로그래밍 방식이 인기를 끌었을 때 흐름 제어를 전통적인 절차적 방식에서 결정하는 프레임워크 또는 구성 요소와 같은 외부 소스로 이동하는 방법을 찾아야 했습니다. 프로그램의 제어 흐름. 이것을 IoC라고 합니다. 
 
-오래 전에 대부분의 절차적 프로그래밍 방식이 인기를 끌었을 때 흐름 제어를 전통적인 절차적 방식(프로그래머가 흐름을 지시함)에서 결정하는 프레임워크 또는 구성 요소와 같은 외부 소스로 이동하는 방법을 찾아야 했습니다. 프로그램의 제어 흐름. 이것을 IoC라고 합니다. 이것은 매우 일반적인 원칙이자 대부분의 프레임워크의 일부입니다.
+이것은 매우 일반적인 원칙이자 대부분의 프레임워크의 일부입니다.
 
 객체 지향 프로그래밍 접근 방식을 통해 곧 프레임워크는 의존성 주입을 지원하는 IoC 컨테이너 패턴 구현을 제시했습니다.
 
 ### 의존성 주입 패턴
 
-데이터베이스에서 일부 데이터가 필요한 프로그램을 작성한다고 가정해 보겠습니다. 프로그램은 데이터베이스 연결이 필요합니다. JDBC 데이터베이스 연결 개체를 사용할 수 있습니다. 프로그램에서 즉시 데이터베이스 연결 개체를 인스턴스화하고 할당할 수 있습니다. 또는 연결 객체를 생성자나 setter/factory 메소드 매개변수로 사용할 수 있습니다. 그런 다음 프레임워크는 구성에 따라 연결 개체를 만들고 런타임에 해당 개체를 프로그램에 할당합니다. 여기서 프레임워크는 실제로 런타임에 연결 개체를 주입합니다. 이것을 DI라고 합니다. Spring은 클래스 구성을 위해 DI를 지원합니다.
+DB에서 일부 데이터가 필요한 프로그램을 작성한다고 가정해 보겠습니다. 프로그램은 DB 연결이 필요합니다. JDBC DB 연결 개체를 사용할 수 있습니다. 
 
-> 노트:
+프로그램에서 즉시 DB 연결 객체 인스턴스를 할당하거나 연결 객체를 생성자나 setter/factory 메소드 매개변수로 사용할 수 있습니다. 
 
-의존성을 사용할 수 없거나 둘 이상의 객체 유형을 사용할 수 있을 때 적절한 객체 이름이 표시되지 않으면 Spring Framework는 런타임에 오류를 발생시킵니다. 이와 대조적으로 Dagger와 같이 컴파일 시간에 이러한 의존성을 확인하는 일부 프레임워크도 있습니다.
+그런 다음 프레임워크는 구성에 따라 연결 개체를 만들고 런타임에 해당 개체를 프로그램에 할당합니다. 여기서 프레임워크는 실제로 런타임에 연결 개체를 주입합니다. 이것을 DI라고 합니다. 
+
+> **노트:**
+
+의존성을 사용할 수 없거나 둘 이상의 객체 유형을 사용할 수 있을 때 적절한 객체 이름이 표시되지 않으면 스프링은 런타임에 오류를 발생시킵니다.
 
 DI는 IoC의 한 유형입니다. IoC 컨테이너는 구현 개체를 구성하고 유지 관리합니다. 이러한 유형의 객체(다른 객체가 필요로 하는 객체 – 일종의 의존성)는 생성자, 설정자 또는 인터페이스에서 이를 필요로 하는 객체에 주입됩니다. 
 
 이것은 인스턴스화를 분리하고 런타임에 의존성 주입을 허용합니다. 의존성 주입은 Service Locator 패턴을 사용하여 달성할 수도 있습니다. 그러나 우리는 IoC 패턴 접근 방식을 고수할 것입니다.
-
-다음 섹션에서 예제를 통해 더 자세히 살펴보겠습니다.
 
 ### Aspect 지향 프로그래밍 패러다임
 
@@ -64,13 +66,12 @@ AOP가 없으면 앞의 모든 사항을 달성하는 것이 매우 어렵고 �
 
 이 섹션은 IoC, DI 및 AOP를 개념적으로 이해하는 데 도움이 됩니다. 다음 섹션에서는 이러한 패턴과 패러다임의 코드 구현에 대해 자세히 알아볼 것입니다.
 
-이제 Spring Framework의 기본 사항과 기본 구성 요소를 살펴보겠습니다.
+이제 Spring 프레임워크의 기본 사항과 기본 구성 요소를 살펴보겠습니다.
 
 
+## Spring 프레임워크의 기본 개념 배우기
 
-## Spring Framework의 기본 개념 배우기
-
-Spring Framework의 백본은 Bean의 라이프 사이클을 담당하는 IoC 컨테이너입니다. Spring 세계에서 Java 객체는 IoC 컨테이너에 의해 인스턴스화, 조합 및 관리되는 경우 빈이 될 수 있습니다. 애플리케이션에 대해 n개의 빈(객체라고도 함)을 생성합니다. 빈에는 다른 객체가 작동해야 하는 의존성이 있을 수 있습니다. IoC 컨테이너는 해당 빈을 생성할 때 객체의 의존성을 주입하는 역할을 합니다. Spring 컨텍스트에서 IoC는 DI라고도 합니다.
+Spring 프레임워크의 백본은 Bean의 라이프 사이클을 담당하는 IoC 컨테이너입니다. Spring 세계에서 Java 객체는 IoC 컨테이너에 의해 인스턴스화, 조합 및 관리되는 경우 빈이 될 수 있습니다. 애플리케이션에 대해 n개의 빈(객체라고도 함)을 생성합니다. 빈에는 다른 객체가 작동해야 하는 의존성이 있을 수 있습니다. IoC 컨테이너는 해당 빈을 생성할 때 객체의 의존성을 주입하는 역할을 합니다. Spring 컨텍스트에서 IoC는 DI라고도 합니다.
 
 In the following sections, we'll cover the following core Spring concepts:
 
@@ -80,7 +81,7 @@ In the following sections, we'll cover the following core Spring concepts:
 - How to code DI
 - Writing code for AOP
 
-*NOTE:*
+> **NOTE**
 
 You can refer to the Spring documentation (https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/) for more information about the Spring Framework.
 
@@ -88,7 +89,12 @@ Let's get started!
 
 ### IoC 컨테이너
 
-Spring Framework의 IoC 컨테이너 코어는 org.springframework.beans 및 org.springframework.context의 두 패키지로 정의됩니다. BeanFactory(org.springframework.beans.factory.BeanFactory) 및 ApplicationContext(org.springframework.context.ApplicationContext)는 IoC 컨테이너의 기반을 제공하는 두 가지 중요한 인터페이스입니다. BeanFactory는 구성 프레임워크와 기본 기능을 제공하고 Bean 인스턴스화 및 배선을 처리합니다. ApplicationContext는 또한 빈 인스턴스화 및 연결을 처리할 수 있습니다. 
+Spring의 IoC 컨테이너 코어는 org.springframework.beans 및 org.springframework.context의 두 패키지로 정의됩니다. 
+
+BeanFactory 및 ApplicationContext는 IoC 컨테이너의 기반을 제공
+
+- BeanFactory: 구성 프레임워크와 기본 기능을 제공하고 Bean 인스턴스화 및 배선을 처리합니다. 
+- ApplicationContext: 빈 인스턴스화 및 연결을 처리할 수 있습니다. 
 
 다음과 같이 더 많은 엔터프라이즈별 기능을 제공합니다.
 
@@ -98,7 +104,9 @@ Spring Framework의 IoC 컨테이너 코어는 org.springframework.beans 및 org
 - 내장된 ApplicationEvent를 이용한 이벤트 발행
 - 웹 애플리케이션을 위한 애플리케이션 계층별 컨텍스트인 WebApplicationContext 제공
 
-ApplicationContext is a sub-interface of BeanFactory. Let's look at its class signature:
+ApplicationContext is a sub-interface of BeanFactory.
+
+Let's look at its class signature:
 
 ```java
 public interface ApplicationContext extends EnvironmentCapable, ListableBeanFactory, HierarchicalBeanFactory, MessageSource, ApplicationEventPublisher, ResourcePatternResolver
@@ -111,20 +119,26 @@ Spring은 최신 Bean 관리와는 별도로 추가된 기능으로 인해 Appli
 
 이제 ApplicationContext 인터페이스가 IoC 컨테이너를 나타내고 빈을 관리한다는 것을 알고 있으므로 인스턴스화, 어셈블 및 구성할 빈에 대해 어떻게 알게 되는지 궁금할 것입니다. 
 
-그것은 어디에서 지시를 받는가? 답은 구성 메타데이터입니다. 구성 메타데이터를 사용하면 애플리케이션 개체와 이러한 개체 간의 상호 의존성을 표현할 수 있습니다. 구성 메타데이터는 XML 구성, Java 주석 및 Java 코드를 통해 세 가지 방법으로 나타낼 수 있습니다. 비즈니스 객체를 작성하고 구성 메타데이터를 제공하면 Spring 컨테이너는 다음과 같이 즉시 사용할 수 있는 완전히 구성된 시스템을 생성합니다.
+Configuration 메타데이터를 사용하면 Application 객체와 이러한 개체 간의 상호 의존성을 표현할 수 있습니다. 
+
+Configuration 메타데이터는 다음 세 가지 방법으로 나타낼 수 있습니다.  
+
+- XML 구성, 
+- Java 주석 및 
+- Java 코드
+  
+비즈니스 객체를 작성하고 구성 메타데이터를 제공하면 Spring 컨테이너는 다음과 같이 즉시 사용할 수 있는 완전히 구성된 시스템을 생성합니다.
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781800562479/files/image/B16561_02_01.jpg)
 
 Figure 2.1 – Spring 컨테이너
 
-Let's see how you can define a Spring bean.
+### 스프링 빈 정의
 
+Bean은 IoC 컨테이너에서 관리하는 객체입니다. 개발자는 IoC 컨테이너에 Configuration 메타데이터를 제공하고, 이 메타데이터는 빈을 구성, 조합 및 관리하기 위해 컨테이너에서 사용됩니다. Bean은 컨테이너 내부에 고유한 식별자를 가져야 합니다. Bean은 별칭을 사용하여 둘 이상의 ID를 가질 수 있습니다.
 
-### 빈 정의
-
-Bean은 IoC 컨테이너에서 관리하는 객체입니다. 개발자는 IoC 컨테이너에 구성 메타데이터를 제공하고, 이 메타데이터는 빈을 구성, 조합 및 관리하기 위해 컨테이너에서 사용됩니다. Bean은 컨테이너 내부에 고유한 식별자를 가져야 합니다. Bean은 별칭을 사용하여 둘 이상의 ID를 가질 수 있습니다.
-
-XML, Java 및 주석을 사용하여 빈을 정의할 수 있습니다. Java 기반 구성을 사용하여 간단한 빈을 선언해 보겠습니다.
+XML, Java 및 주석을 사용하여 빈을 정의할 수 있습니다. 
+Java 기반 구성을 사용하여 간단한 빈을 선언해 보겠습니다.
 
 ```java
 public class SampleBean {
@@ -132,18 +146,25 @@ public class SampleBean {
     public void destroy() { // destruction logic }
     // bean code
 }
+```
 
+```java
 public interface BeanInterface { 
    // interface code 
 }
+```
 
+```java
 public class BeanInterfaceImpl implements BeanInterface {
     // bean code
 }
+```
 
+```java
 @Configuration
 public class AppConfig {
-    @Bean(initMethod = "init", destroyMethod = "destroy", name = {"sampleBean", "sb"})
+    @Bean(initMethod = "init", destroyMethod = "destroy", 
+        name = {"sampleBean", "sb"})
     @Description("Demonstrate a simple bean")
     public SampleBean sampleBean() {
         return new SampleBean();
@@ -159,15 +180,17 @@ public class AppConfig {
 
 일반적으로 Bean의 이름은 이니셜이 소문자인 클래스 이름입니다. 예를 들어 BeanInterface의 빈 이름은 beanInterface입니다. 그러나 name 속성을 사용하여 빈 이름과 별칭을 정의할 수도 있습니다. SampleBean에는 sampleBean과 sb라는 두 개의 빈 이름이 있습니다.
 
-*노트:*
+> **노트:**
 
 destroy를 위한 기본 메소드는 컨테이너에 의해 자동으로 호출되는 close/shutdown 공용 메소드입니다. 그러나 다른 방법을 원할 경우 샘플 코드와 같이 수행할 수 있습니다. 컨테이너가 기본 destroyMethod를 호출하지 않도록 하려면 destroyMethod 속성에 빈 문자열을 할당하면 됩니다(destroyMethod = "").
 
 BeanInterface 빈에 대한 이전 코드에 표시된 인터페이스를 사용하여 빈을 생성할 수도 있습니다.
 
-@Bean 주석은 @Component 주석 내부에 있어야 합니다. @Component 주석은 빈을 선언하는 일반적인 방법입니다. @Configuration으로 주석이 달린 클래스는 메소드가 @bean으로 주석이 달린 빈을 반환하도록 작동합니다. @Configuration은 @Component로 메타 주석이 달려 있으므로 @Bean 주석은 내부에서 작동합니다. @Controller, @Service 및 @Repository와 같은 다른 주석도 있으며 @Component로 주석이 지정됩니다.
+@Bean 주석은 `@Component` 주석 내부에 있어야 합니다. `@Component` 주석은 빈을 선언하는 일반적인 방법입니다. `@Configuration`으로 주석이 달린 클래스는 메소드가 @bean으로 주석이 달린 빈을 반환하도록 작동합니다. 
 
-@Description 주석은 빈을 설명하는 데 사용됩니다. 모니터링 도구를 사용할 때 이러한 설명은 런타임 시 빈을 이해하는 데 도움이 됩니다.
+`@Configuration`은 `@Component`로 메타 주석이 달려 있으므로 @Bean 주석은 내부에서 작동합니다. @Controller, @Service 및 @Repository 주석도 있으며 @Component로 주석이 지정됩니다.
+
+`@Description` 주석은 빈을 설명하는 데 사용됩니다. 모니터링 도구를 사용할 때 이러한 설명은 런타임 시 빈을 이해하는 데 도움이 됩니다.
 
 ### @ComponentScan
 
@@ -189,7 +212,7 @@ BeanInterface 빈에 대한 이전 코드에 표시된 인터페이스를 사용
 class AppConfig { //code }
 ```
 
-### The bean's scope
+### 빈의 스코프
 
 Spring 컨테이너는 빈의 인스턴스 생성을 담당합니다. 인스턴스를 생성하는 방법은 scope에 의해 정의되며 기본 범위는 싱글톤입니다. 즉, IoC 컨테이너당 하나의 인스턴스만 생성되고 동일한 인스턴스가 주입됩니다. 요청될 때마다 새 인스턴스를 생성하려면 빈에 대한 프로토타입 범위를 정의할 수 있습니다.
 
@@ -330,9 +353,9 @@ public static void main(String[] args) {
 }
 ```
 
-### The @DependsOn annotation
+### @DependsOn 주석
 
-Spring 컨테이너는 Bean 초기화 순서를 관리합니다. 다른 빈에 의존하는 빈이 있다면? 종속 Bean이 필요한 Bean보다 먼저 초기화되었는지 확인하려고 합니다. @DependsOn은 XML이 아닌 Java를 사용하여 빈을 구성할 때 이를 달성하는 데 도움이 됩니다.
+Spring 컨테이너는 Bean 초기화 순서를 관리합니다. 다른 빈에 의존하는 빈이 있다면? 종속 Bean이 필요한 Bean보다 먼저 초기화되었는지 확인하려고 합니다. @DependsOn은 Java를 사용하여 빈을 구성할 때 이를 달성하는 데 도움이 됩니다.
 
 빈의 초기화 순서가 엉망이고 그로 인해 Spring 컨테이너가 의존성을 찾지 못하면 예외 NoSuchBeanDefinitionException이 발생합니다.
 
@@ -361,7 +384,7 @@ public class AppConfig {
 
 ## DI를 코딩하는 방법
 
-다음 예를 살펴보십시오. CartService에는 CartRepository에 대한 의존성이 있습니다. CartRepository 인스턴스화는 CartService 생성자 내에서 수행되었습니다.
+CartService에는 CartRepository에 대한 의존성이 있습니다. CartRepository 인스턴스화는 CartService 생성자 내에서 수행되었습니다.
 
 ```java
 public class CartService {
@@ -384,7 +407,7 @@ public class CartService {
 }  
 ```
 
-CartRepository 구현의 Bean을 생성하면 구성 메타데이터를 사용하여 CartRepository Bean을 쉽게 주입할 수 있습니다. 이 장의 @Import 주석 하위 섹션에서 ApplicationContext를 초기화하는 방법을 보았습니다. 생성될 때 빈의 구성에서 모든 메타데이터를 가져옵니다. @Import를 사용하면 여러 구성을 가질 수 있습니다.
+CartRepository 구현의 Bean을 생성하면 Configuration 메타데이터를 사용하여 CartRepository Bean을 쉽게 주입할 수 있습니다. 이 장의 @Import 주석 하위 섹션에서 ApplicationContext를 초기화하는 방법을 보았습니다. 생성될 때 빈의 구성에서 모든 메타데이터를 가져옵니다. @Import를 사용하면 여러 구성을 가질 수 있습니다.
 
 각 빈은 의존성을 가질 수 있습니다. 즉, 빈은 CartService 예제에서와 같이 작동(구성)하기 위해 다른 객체가 필요할 수 있습니다. 이러한 의존성은 생성자, 설정자 메서드 또는 속성을 사용하여 정의할 수 있습니다. 이러한 종속 객체(생성자의 일부, setter 메서드 인수 또는 클래스 속성)는 빈의 정의와 범위를 사용하여 Spring 컨테이너에 의해 주입됩니다. DI를 정의하는 이러한 각 방법을 살펴보겠습니다.
 
@@ -415,7 +438,7 @@ public class AppConfig {
 
 ### 세터 메소드로 의존성 정의
 
-이제 CartService 클래스를 변경해 보겠습니다. 생성자를 사용하는 대신 setter 메서드를 사용하여 의존성을 인스턴스화합니다.
+이제 CartService 클래스를 변경해 보겠습니다. 생성자 대신 setter 메서드를 사용하여 의존성을 인스턴스화합니다.
 
 ```java
 public class CartService {
@@ -446,7 +469,7 @@ public class AppConfig {
 }
 ```
 
-> *노트*
+> **노트**
 
 Spring은 setter 메소드나 클래스 속성 기반 의존성 주입보다 **생성자 기반 의존성 주입을 사용할 것을 권장합니다**. 그러나 옵트인 의존성의 경우 setter 메서드 기반 의존성 주입을 신중하게 사용해야 합니다.
 
@@ -467,17 +490,19 @@ Spring 컨테이너는 CartRepository 빈 주입을 처리합니다. 다음 섹�
 
 ## 주석으로 빈의 메타데이터 구성
 
-Spring에서는 빈에 대한 메타데이터를 구성하기 위해 많은 주석을 제공합니다. 그러나 가장 일반적으로 사용되는 주석인 @Autowired, @Qualifier, @Inject, @Resource, @Primary 및 @Value에 초점을 맞춥니다.
+Spring에서는 빈에 대한 메타데이터를 구성하기 위해 많은 주석을 제공합니다. 그러나 가장 일반적으로 사용되는 주석인 `@Autowired`, `@Qualifier`, `@Inject`, `@Resource`, `@Primary` 및 `@Value`에 초점을 맞춥니다.
 
 ### @Autowired 사용법
 
-@Autowired 주석을 사용하면 @Configuration 주석이 달린 별도의 구성 클래스를 작성하는 대신 빈의 클래스 자체에서 구성 부분을 정의할 수 있습니다. @Autowired 주석은 필드(클래스 속성 기반 의존성 주입 예제에서 보았듯이), 생성자, 세터 또는 모든 메서드에 적용할 수 있습니다.
+`@Autowired` 주석을 사용하면 @Configuration 주석이 달린 별도의 Configuration 클래스 대신 빈의 클래스 자체에서 구성 부분을 정의할 수 있습니다. 
 
-Spring 컨테이너는 @Autowired로 주석이 달린 빈을 주입하기 위해 리플렉션을 사용합니다. 이것은 또한 다른 주입 접근법보다 비용이 많이 듭니다.
+`@Autowired` 주석은 필드, 생성자, 세터 또는 모든 메서드에 적용할 수 있습니다.
 
-**클래스 멤버에 @Autowired를 적용하는 것은 종속 빈을 주입할 생성자 또는 세터 메서드가 없는 경우에만 작동**한다는 점에 유의하십시오.
+Spring 컨테이너는 `@Autowired`로 주석이 달린 빈을 주입하기 위해 리플렉션을 사용합니다. 이것은 다른 주입 접근법보다 비용이 많이 듭니다.
 
-다음은 의존성을 주입하는 @Autowired 방법의 코드 예입니다.
+**클래스 멤버에 `@Autowired`를 적용하는 것은 종속 빈을 주입할 생성자 또는 세터 메서드가 없는 경우에만 작동**한다는 점에 유의하십시오.
+
+다음은 의존성을 주입하는 `@Autowired` 방법의 코드 예입니다.
 
 ```java
 @Component
@@ -501,16 +526,15 @@ public class CartService {
     }
 
     @Autowired // method based auto wiring
-    public void xMethod(BRepo bRepo, CRepo cRepository)
-    {
+    public void someMethod(BRepo bRepo, CRepo cRepo) {
         this.bRepo = bRepo;
         this.cRepo = cRepo;
     }
 }
 ```
-@Autowired는 리플렉션을 기반으로 작동합니다. 그러나 모호성을 제거하기 위해 일치하는 빈을 찾고 동일한 우선 순위로 유형 일치, 한정자 일치 또는 이름 일치를 사용하여 주입합니다. 필드 및 세터 메서드 주입 모두에 적용할 수 있습니다.
+@Autowired는 리플렉션을 기반으로 작동합니다. 그러나 모호성을 제거하기 위해 일치하는 빈을 찾고 동일한 우선 순위로 타입 일치, qualifier 일치 또는 name 일치를 사용하여 주입합니다. 필드 및 세터 메서드 주입 모두에 적용할 수 있습니다.
 
-### type 일치
+### 타입 일치
 
 다음 예는 type 일치가 우선하므로 작동합니다. CartService 빈을 찾아 CartController에 주입합니다.
 
@@ -610,7 +634,7 @@ public class CartController {
 
 #### @Primary의 목적은 무엇입니까?
 
-이전 하위 섹션에서 @Qualifier가 여러 빈을 주입할 수 있을 때 사용해야 하는 유형을 결정하는 데 도움이 되는 것을 보았습니다. @Primary 주석을 사용하면 type의 빈 중 하나를 기본값으로 설정할 수 있습니다. @Primary가 있는 Bean 주석은 autowired 필드에 주입됩니다.
+이전 하위 섹션에서 @Qualifier가 여러 빈을 주입할 수 있을 때 사용해야 하는 유형을 결정하는 데 도움이 됩니다. @Primary 주석을 사용하면 type의 빈 중 하나를 기본값으로 설정할 수 있습니다. @Primary가 있는 Bean 주석은 autowired 필드에 주입됩니다.
 
 ```java
 @Configuration

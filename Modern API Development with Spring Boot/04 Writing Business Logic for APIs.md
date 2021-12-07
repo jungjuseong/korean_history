@@ -1,6 +1,6 @@
 # Chapter 4: 비즈니스 로직 
 
-3장에서 OpenAPI를 사용하는 API에 대해 논의했습니다. API 인터페이스 및 모델은 Swagger Codegen에서 생성되었습니다. 이 장에서는 비즈니스 로직과 데이터 영속성 측면에서 API 코드를 구현합니다. 서비스 및 리포지토리를 작성하고 API 응답에 하이퍼미디어 및 eTag도 추가합니다. 
+3장에서 OpenAPI를 사용하는 API에 대해 논의했습니다. API 인터페이스 및 모델은 Swagger Codegen에서 생성되었습니다. 이 장에서는 비즈니스 로직과 데이터 영속성 측면에서 API 코드를 구현합니다. 서비스 및 레포지토리를 작성하고 API 응답에 하이퍼미디어 및 eTag도 추가합니다. 
 
 이 장에는 다음 항목이 포함되어 있습니다.
 
@@ -41,7 +41,7 @@ You can find the code files for this chapter on GitHub at https://github.com/Pac
 
 ## Repository 컴포넌트 추가
 
-먼저, @Repository 컴포넌트를 사용하여 도메인 계층을 구현합니다. 그 다음에는 서비스를 구현하고 컨트롤러를 개선할 것입니다. @Repository 컴포넌트를 만든 다음 생성자 주입을 사용하여 @Service 구성 요소에서 사용합니다. @Controller 컴포넌트는 @Service 컴포넌트를 사용하여 향상되며 생성자 주입을 사용하여 컨트롤러에도 주입됩니다.
+@Repository 컴포넌트를 사용하여 도메인 계층을 구현합니다. 그 다음에는 서비스를 구현하고 컨트롤러를 개선할 것입니다. @Repository 컴포넌트를 만든 다음 생성자 주입을 사용하여 @Service 구성 요소에서 사용합니다. @Controller 컴포넌트는 @Service 컴포넌트를 사용하여 향상되며 생성자 주입을 사용하여 컨트롤러에도 주입됩니다.
 
 ### @Repository
 Repository 컴포넌트는 @Repository 주석이 달린 클래스입니다. 이것은 데이터베이스와 상호 작용하는 데 사용되는 특별한 Spring 컴포넌트입니다.
@@ -72,7 +72,7 @@ We need to add H2-specific properties to the data source. The URL value suggests
 
 2. H2 database 설정
 
-```
+```yaml
 spring.h2.console.enabled=true
 spring.h2.console.settings.web-allow-others=false
 ```
@@ -96,7 +96,7 @@ Therefore, generate-ddl is marked with false and ddl-auto is set to none.
 
 4. Flyway 설정
 
-```
+```yaml
 spring.flyway.url=jdbc:h2:mem:ecomm
 spring.flyway.schemas=ecomm
 spring.flyway.user=sa
@@ -213,11 +213,11 @@ All other entities are being added to the entity package located at https://gith
 
 Now, we can add the repository.
 
-## 리포지토리 추가
+## 레포지토리 추가
 
 All the repository have been added to https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter04/src/main/java/com/packt/modern/api/repository.
 
-리포지토리는 Spring Data JPA 덕분에 CRUD 작업에 가장 간단하게 추가할 수 있습니다. save, saveAll, findById, findAll, findAllById, delete 및 deleteById와 같은 모든 CRUD 작업 구현을 제공하는 CrudRepository와 같은 기본 구현으로 인터페이스를 확장하기만 하면 됩니다.` save(Entity e)` 메소드는 엔티티 생성 및 업데이트 작업 모두에 사용됩니다.
+레포지토리는 Spring Data JPA 덕분에 CRUD 작업에 가장 간단하게 추가할 수 있습니다. save, saveAll, findById, findAll, findAllById, delete 및 deleteById와 같은 모든 CRUD 작업 구현을 제공하는 CrudRepository와 같은 기본 구현으로 인터페이스를 확장하기만 하면 됩니다.` save(Entity e)` 메소드는 엔티티 생성 및 업데이트 작업 모두에 사용됩니다.
 
 ```java
 public interface CartRepository extends CrudRepository<CartEntity, UUID> {
@@ -280,7 +280,7 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 
 이런 식으로 JPQL/HQL 또는 기본 SQL에서 자체 구현을 가질 수도 있습니다. 여기에서 @Repository 주석은 이 특수 컴포넌트가 저장소이고 기본 JPA를 사용하여 데이터베이스와 상호 작용하는 데 사용해야 함을 Spring 컨테이너에 알려줍니다.
 
-또한 @Transactional은 이 클래스의 메소드에 의해 수행되는 트랜잭션이 Spring에 의해 관리됨을 의미하는 특수 주석입니다. 커밋 및 롤백을 추가하는 모든 수동 작업을 제거합니다. 이 주석을 클래스 내의 특정 메서드에 추가할 수도 있습니다.
+또한 @Transactional은 이 클래스의 메소드에 의해 수행되는 트랜잭션이 Spring에 의해 관리됨을 의미하는 주석입니다. 커밋 및 롤백을 추가하는 모든 수동 작업을 제거합니다. 이 주석을 클래스 내의 특정 메서드에 추가할 수도 있습니다.
 
 또한 EntityManager 클래스에 @PersistenceContext를 사용하여 다음 코드와 같이 수동으로 쿼리를 만들고 실행할 수 있습니다.
 
@@ -339,7 +339,11 @@ public Optional<OrderEntity> insert(NewOrder m) {
   return Optional.of(entity);
 }
 ```
-이 방법은 기본적으로 고객의 카트에 있는 항목을 먼저 가져옵니다. 그런 다음 order 합계를 계산하고 새 order를 생성하여 데이터베이스에 저장합니다. 그런 다음 카트 항목이 이제 order의 일부이므로 매핑을 제거하여 카트에서 항목을 제거합니다. 다음으로 주문 및 카트 항목의 매핑을 저장합니다.
+이 방법은 기본적으로 고객의 Cart에 있는 항목을 먼저 가져옵니다. 
+
+1. 주문 합계를 계산하고 새 주문을 생성하여 데이터베이스에 저장합니다. 
+2. 카트 항목이 이제 주문의 일부이므로 매핑을 제거하여 카트에서 항목을 제거합니다. 
+3. 주문 및 카트 항목의 매핑을 저장합니다.
 
 Order 생성은 준비된 명령문과 함께 기본 SQL 쿼리를 사용하여 수행됩니다.
 
@@ -349,9 +353,9 @@ Similarly, you can create a repository for all other entities. All entities are 
 
 Now that we have created the repositories, we can move on to adding services.
 
-## 서비스 컴포넌트 추가
+## Service 컴포넌트 추가
 
-서비스 컴포넌트는 컨트롤러와 리포지토리 사이에서 작동하는 인터페이스이며 여기에서 비즈니스 로직을 추가할 것입니다. 컨트롤러에서 리포지토리를 직접 호출할 수 있지만 리포지토리는 데이터 검색 및 지속성 기능의 일부여야 하므로 좋은 방법이 아닙니다. 서비스 구성 요소는 또한 데이터베이스 및 기타 외부 응용 프로그램과 같은 다양한 소스에서 데이터를 소싱하는 데 도움이 됩니다.
+서비스 컴포넌트는 컨트롤러와 레포지토리 사이에서 작동하는 인터페이스이며 여기에서 비즈니스 로직을 추가할 것입니다. 컨트롤러에서 레포지토리를 직접 호출할 수 있지만 레포지토리는 데이터 검색 및 지속성 기능의 일부여야 하므로 좋은 방법이 아닙니다. 서비스 구성 요소는 또한 데이터베이스 및 기타 외부 응용 프로그램과 같은 다양한 소스에서 데이터를 소싱하는 데 도움이 됩니다.
 
 서비스 구성 요소는 구현된 클래스가 클래스 경로 스캐닝을 사용하여 자동 감지되도록 하는  @Service 주석으로 표시합니다. 서비스 클래스는 비즈니스 로직을 추가하는 데 사용됩니다. Repository와 마찬가지로 Service 객체도 DDD의 Service와 Java EE의 Business Service Façade 패턴을 모두 나타냅니다. Repository와 마찬가지로 범용 고정 관념이며 기본 접근 방식에 따라 사용할 수 있습니다.
 
@@ -520,7 +524,6 @@ API 비즈니스 로직을 구현하기 위해 절반 정도 남았습니다. �
 
 ```java
 @Component
-
 public class CartRepresentationModelAssembler extends     RepresentationModelAssemblerSupport<CartEntity, Cart> {
   private ItemService itemService;
   public CartRepresentationModelAssembler(ItemService itemService) {
@@ -567,7 +570,6 @@ public Order process(Order model) {
       .expand(model.getOrderId()));
 
   return model;
-
 }
 ```
 You can always refer to https://docs.spring.io/spring-hateoas/docs/current/reference/html/ for more information.
@@ -576,7 +578,7 @@ You can always refer to https://docs.spring.io/spring-hateoas/docs/current/refer
 
 3장, API 사양 및 구현에서는 Swagger Codegen 생성 API 사양 인터페이스인 CartApi를 구현하는 Cart API용 Controller 클래스인 CartController를 만들었습니다. 비즈니스 로직이나 데이터 지속성 호출이 없는 단순한 코드 블록이었습니다.
 
-이제 리포지토리, 서비스 및 HATEOAS 어셈블러를 작성했으므로 다음과 같이 API 컨트롤러 클래스를 향상할 수 있습니다.
+이제 레포지토리, 서비스 및 HATEOAS 어셈블러를 작성했으므로 다음과 같이 API 컨트롤러 클래스를 개선할 수 있습니다.
 
 ```java
 @RestController
@@ -597,13 +599,12 @@ You could see that CartService and CartRepresentationModelAssembler are injected
 ```java
 @Override
 public ResponseEntity<Cart> getCartByCustomerId(String customerId) {
-
  return ok(
      assembler.toModel(service.getCartByCustomerId(customerId)));
 ```
 https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter04/src/main/java/com/packt/modern/api/controller/CartsController.java
 
-앞의 코드에서 서비스가 customerId(리포지토리에서 내부적으로 검색)를 기반으로 Cart 엔터티를 검색하는 것을 볼 수 있습니다. 그런 다음 이 Cart 엔터티는 Spring HATEOAS의 RepresentationModelAssemblerSupport 클래스에서 사용할 수 있는 하이퍼미디어 링크도 포함하는 모델로 변환됩니다.
+앞의 코드에서 서비스가 customerId(레포지토리에서 내부적으로 검색)를 기반으로 Cart 엔터티를 검색하는 것을 볼 수 있습니다. 그런 다음 이 Cart 엔터티는 Spring HATEOAS의 RepresentationModelAssemblerSupport 클래스에서 사용할 수 있는 하이퍼미디어 링크도 포함하는 모델로 변환됩니다.
 
 ResponseEntity의 ok() 정적 메서드는 상태 200 OK도 포함하는 반환된 모델을 래핑하는 데 사용됩니다. 이 방법으로 다른 컨트롤러도 향상하고 구현할 수 있습니다. 이제 API 응답에 ETag를 추가할 수도 있습니다.
 
@@ -705,13 +706,14 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 
 *BUILDING AND RUNNING THE SERVICE*
 
-You can build the code by running gradlew clean build from the root of the project, and run the service using java -jar build/libs/Chapter04-0.0.1-SNAPSHOT.jar. Make sure to use Java 15 in the path.
+You can build the code by running gradlew clean build from the root of the project, and run the service using `java -jar build/libs/Chapter04-0.0.1-SNAPSHOT.jar`. Make sure to use Java 15 in the path.
 
 ## 요약
 
-이 장에서는 Flyway를 사용한 데이터베이스 마이그레이션, 리포지토리를 사용한 데이터 유지 및 유지, 서비스에 비즈니스 로직 작성에 대해 배웠습니다. 또한 Spring HATEOAS 어셈블러를 사용하여 API 응답에 하이퍼미디어를 자동으로 추가하는 방법을 배웠습니다. 이제 RESTful API 개발과 관련된 일상적인 작업에서 이러한 기술을 사용할 수 있는 완전한 RESTful API 개발 사례에 대해 배웠습니다.
+이 장에서는 Flyway를 사용한 데이터베이스 마이그레이션, 레포지토리를 사용한 데이터 유지 및 유지, 서비스에 비즈니스 로직 작성에 대해 배웠습니다. 또한 Spring HATEOAS 어셈블러를 사용하여 API 응답에 하이퍼미디어를 자동으로 추가하는 방법을 배웠습니다. 이제 RESTful API 개발과 관련된 일상적인 작업에서 이러한 기술을 사용할 수 있는 완전한 RESTful API 개발 사례에 대해 배웠습니다.
 
-지금까지 동기 API를 작성했습니다. 다음 장에서는 비동기 API와 이를 Spring을 사용하여 구현하는 방법에 대해 학습합니다.
+지금까지 동기 API를 작성했습니다. 
+다음 장에서는 비동기 API와 이를 Spring을 사용하여 구현하는 방법에 대해 학습합니다.
 
 ## 질문
 

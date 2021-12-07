@@ -5,27 +5,27 @@ In this chapter, you will go through the fundamentals of RESTful APIs, or REST A
 This chapter will also introduce a sample e-commerce app, which will be used throughout the book as you learn about the different aspects of API development. In this chapter, we will cover the following topics:
 
 - Introducing REST APIs
-- Handling resources and Uniform Resource Identifiers (URIs)
-- Exploring Hypertext Transfer Protocol (HTTP) methods and status codes
+- Handling resources and URIs
+- Exploring HTTP methods and status codes
 - Learning HATEOAS
 - Best practices for designing REST APIs
 - Overview of an e-commerce app (our sample app)
 
 ## Technical requirements
 
-This chapter does not require any specific software. However, knowledge of HTTP is necessary.
+- knowledge of HTTP
 
-## Introducing REST APIs
+## REST API 소개
 
-An API is the means by which a piece of code communicates with another piece of code. You might have already written an API for your code or used one in your programs; for example, in Java libraries for collection, input/output, or streams that provide a variety of APIs to perform specific tasks.
+API는 코드 조각이 다른 코드 조각과 통신하는 수단입니다. 이미 코드용 API를 작성했거나 프로그램에서 사용했을 수 있습니다. 예를 들어, 특정 작업을 수행하기 위한 다양한 API를 제공하는 수집, 입력/출력 또는 스트림을 위한 Java 라이브러리에서.
 
-Java's SDK APIs allow one part of a program to communicate with another part of a program. You can write a function and then expose it with public access modifiers so that other classes can use it. That function signature is an API for that class. However, APIs that are exposed using these classes or libraries only allow internal communication inside a single application or individual service. So, what happens when two or more applications (or services) want to communicate with each other? In other words, you would like to integrate two or more services. This is where system-wide APIs help us.
+Java의 SDK API를 사용하면 프로그램의 한 부분이 프로그램의 다른 부분과 통신할 수 있습니다. 함수를 작성한 다음 다른 클래스에서 사용할 수 있도록 공용 액세스 한정자로 이를 노출할 수 있습니다. 해당 함수 서명은 해당 클래스에 대한 API입니다. 그러나 이러한 클래스나 라이브러리를 사용하여 노출되는 API는 단일 애플리케이션 또는 개별 서비스 내부에서만 내부 통신을 허용합니다. 그렇다면 둘 이상의 애플리케이션(또는 서비스)이 서로 통신하기를 원하면 어떻게 될까요? 즉, 둘 이상의 서비스를 통합하려고 합니다. 여기에서 시스템 전반의 API가 도움이 됩니다.
 
-Historically, there were different ways to integrate one application with another – RPC, Simple Object Access Protocol (SOAP)-based services, and more. The integration of apps has become an integral part of software architectures, especially after the boom of the cloud and mobile phones. You now have social logins, such as Facebook, Google, and GitHub, which means you can develop your application even without writing an independent login module and get around security issues such as storing passwords in a secure way.
+역사적으로 RPC, SOAP(Simple Object Access Protocol) 기반 서비스 등 한 응용 프로그램을 다른 응용 프로그램과 통합하는 다양한 방법이 있었습니다. 앱 통합은 특히 클라우드와 휴대폰의 붐 이후 소프트웨어 아키텍처의 필수적인 부분이 되었습니다. 이제 Facebook, Google 및 GitHub와 같은 소셜 로그인이 있습니다. 즉, 독립적인 로그인 모듈을 작성하지 않고도 애플리케이션을 개발할 수 있고 안전한 방법으로 비밀번호를 저장하는 것과 같은 보안 문제를 해결할 수 있습니다.
 
-These social logins provide APIs using REST and GraphQL. Currently, REST is the most widely used, and it has become a standard for writing APIs for integration and web app consumption. We'll also discuss GraphQL in detail in the final chapters of this book (in Chapter 13, GraphQL Fundamentals, and Chapter 14, GraphQL Development and Testing).
+이러한 소셜 로그인은 REST 및 GraphQL을 사용하는 API를 제공합니다. 현재 REST가 가장 널리 사용되고 있으며, 통합 및 웹앱 소비를 위한 API 작성의 표준이 되었습니다. 또한 이 책의 마지막 장(13장, GraphQL 기초 및 14장, GraphQL 개발 및 테스트)에서 GraphQL에 대해 자세히 설명합니다.
 
-REST stands for REpresentational State Transfer, which is a style of software architecture. Web services that adhere to the REST style are called RESTful web services. In the following sections, we will take a quick look at the history of REST to understand its fundamentals.
+REST는 소프트웨어 아키텍처 스타일인 REpresentational State Transfer의 약자입니다. REST 스타일을 따르는 웹 서비스를 RESTful 웹 서비스라고 합니다. 다음 섹션에서는 REST의 기초를 이해하기 위해 REST의 역사를 간단히 살펴보겠습니다.
 
 ### REST 기록
 
@@ -419,10 +419,14 @@ GitHub API에서 보낸 헤더를 확인할 수 있습니다. 예를 들어 다�
 전자 상거래는 매우 인기 있는 도메인입니다. 기능을 살펴보면 경계 컨텍스트를 사용하여 애플리케이션을 다음 하위 도메인으로 나눌 수 있습니다.
 
 - Users: 이 하위 도메인은 사용자와 관련이 있습니다. 사용자 관리를 위한 REST API를 제공하는 사용자 RESTful 웹 서비스를 추가합니다.
+
 - Carts: 이 하위 도메인은 장바구니와 관련이 있습니다. 장바구니 관리를 위한 REST API를 제공하는 장바구니 RESTful 웹 서비스를 추가합니다. 사용자는 장바구니 항목에 대해 CRUD 작업을 수행할 수 있습니다.
 - Product: 이 하위 도메인은 제품 카탈로그와 관련이 있습니다. 제품 검색 및 검색을 위한 REST API를 제공하는 제품 RESTful 웹 서비스를 추가합니다.
+
 - Order: 이 하위 도메인은 주문과 관련이 있습니다. 사용자가 주문할 수 있도록 REST API를 제공하는 주문 RESTful 웹 서비스를 추가합니다.
+
 - Payment: 이 하위 도메인은 결제와 관련이 있습니다. 결제 처리를 위한 REST API를 제공하는 결제 RESTful 웹 서비스를 추가합니다.
+
 - Shipping: 이 하위 도메인은 배송과 관련이 있습니다. 주문 추적 및 배송을 위한 REST API를 제공하는 배송 RESTful 웹 서비스를 추가합니다.
   
 다음은 앱 아키텍처를 시각적으로 나타낸 것입니다.

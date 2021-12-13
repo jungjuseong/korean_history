@@ -1,6 +1,9 @@
 # 5장: 비동기 API 설계
 
-지금까지 호출이 동기식인 기존 모델을 기반으로 RESTful 웹 서비스를 개발했습니다. 코드를 비동기 및 넌블로킹으로 만들고 싶다면 어떻게 해야 할까요? 이것이 우리가 이 장에서 할 일입니다. 호출이 비동기 및 넌블로킹인 이 장에서 비동기 API 설계에 대해 배울 것입니다. 자체적으로 Project Reactor(https://projectreactor.io)를 기반으로 하는 Spring WebFlux를 사용하여 이러한 API를 개발할 것입니다.
+지금까지 호출이 동기식인 기존 모델을 기반으로 RESTful 웹 서비스를 개발했습니다. 
+코드를 비동기 및 넌블로킹으로 만들고 싶다면 어떻게 해야 할까요? 
+호출이 비동기 및 넌블로킹인 이 장에서 비동기 API 설계에 대해 배울 것입니다. 
+자체적으로 Project Reactor(https://projectreactor.io)를 기반으로 하는 Spring WebFlux를 사용하여 이러한 API를 개발할 것입니다.
 
 먼저 Reactive 프로그래밍 기본 사항을 살펴본 다음 기존 전자 상거래 REST API(4장)를 비동기식(Reactive) API로 마이그레이션하여 기존 방식과 Reactive 방식을 비교합니다.
 
@@ -27,7 +30,7 @@ The code present in this chapter is found at https://github.com/PacktPublishing/
 
 스레드는 비싸고 무한하지 않지만 효과적인 활용을 위해 차단하고 싶지 않습니다. 이것이 비동기성이 도움이 되는 곳입니다. 비동기식 호출에서 스레드는 호출이 완료되는 즉시 해제되고 JavaScript와 같은 콜백 유틸리티를 사용합니다. 소스에서 데이터를 사용할 수 있는 경우 데이터를 푸시합니다. 
 
-Reactive 스트림은 데이터 소스인 게시자가 데이터를 구독자에게 푸시하는 게시자-구독자 모델을 사용합니다. 반면에 Node.js는 단일 스레드를 사용하여 대부분의 리소스를 사용한다는 것을 알고 있을 것입니다. 이벤트 루프라고 하는 비동기식 넌블로킹 설계를 기반으로 합니다.
+Reactive 스트림은 데이터 소스인 게시자가 데이터를 구독자에게 푸시하는 게시자-구독자 모델을 사용합니다. 반면에 `node.js`는 단일 스레드를 사용하여 대부분의 리소스를 사용한다는 것을 알고 있을 것입니다. 이벤트 루프라고 하는 비동기식 넌블로킹 설계를 기반으로 합니다.
 
 Reactive API는 이벤트 루프 디자인을 기반으로 하며 푸시 스타일 알림을 사용합니다.
 `Reactive Streams`는 map, flatMap, filter와 같은 Java Streams 작업도 지원합니다. 내부적으로 `Reactive Streams`는 푸시 스타일을 사용하는 반면 Java Stream은 풀 모델에서 작동합니다. 즉, 컬렉션과 같은 소스에서 항목을 가져옵니다. Reactive에서 소스(게시자)는 데이터를 푸시합니다.
@@ -45,7 +48,9 @@ Let's have a look at each.
 
 #### Publisher
 
-게시자는 한 명 이상의 구독자에게 데이터 스트림을 제공합니다. 구독자는 subscriber() 메서드를 사용하여 게시자를 구독합니다. 각 구독자는 게시자에게 한 번만 구독해야 합니다. **가장 중요한 것은 게시자가 구독자의 요청에 따라 데이터를 푸시한다는 것입니다**. reactive 스트림은 게으릅니다. 따라서 게시자는 구독자가 있는 경우에만 엘리먼트를 푸시합니다.
+게시자는 한 명 이상의 구독자에게 데이터 스트림을 제공합니다. 구독자는 `subscriber()` 메서드를 사용하여 게시자를 구독합니다. 
+각 구독자는 게시자에게 한 번만 구독해야 합니다. **가장 중요한 것은 게시자가 구독자의 요청에 따라 데이터를 푸시한다는 것입니다**. 
+reactive 스트림은 lazy합니다. 따라서 게시자는 구독자가 있는 경우에만 항목을 푸시합니다.
 
 A publisher is defined as follows:
 
@@ -60,17 +65,17 @@ public interface Publisher<T> {
 
 구독자는 게시자가 푸시한 데이터를 사용합니다. 게시자-구독자 통신은 다음과 같이 작동합니다.
 
-1. 구독자 인스턴스가 Publisher.subscribe() 메서드에 전달되면 onSubscribe() 메서드를 트리거합니다. 여기에는 백프레셔, 즉 구독자가 게시자에게 요구하는 데이터의 양을 제어하는 ​​구독 매개변수가 포함되어 있습니다.
+1. 구독자 인스턴스가 `subscribe()` 메서드에 전달되면 `onSubscribe()` 메서드를 트리거합니다. 여기에는 백프레셔, 즉 구독자가 게시자에게 요구하는 데이터의 양을 제어하는 ​​구독 매개변수가 포함되어 있습니다.
 
-2. 첫 번째 단계 후 게시자는 Subscription.request(long) 호출을 기다립니다. Subscription.request() 호출이 이루어진 후에만 데이터를 구독자로 푸시합니다. 이 방법은 Publisher의 엘리먼트 수를 요구합니다.
+2. 첫 번째 단계 후 게시자는 `request(long)` 호출을 기다립니다. `request()` 호출이 이루어진 후에만 데이터를 구독자로 푸시합니다. 이 방법은 Publisher의 엘리먼트 수를 요구합니다.
 
     일반적으로 게시자는 구독자가 데이터를 안전하게 처리할 수 있는지 여부에 관계없이 구독자에게 데이터를 푸시합니다. 그러나 구독자는 안전하게 처리할 수 있는 데이터의 양을 가장 잘 알고 있습니다. 따라서 reactive 스트림에서 구독자는 구독 인스턴스를 사용하여 엘리먼트 수에 대한 수요를 게시자에게 전달합니다. 이것은 **back-pressure** 또는 **흐름 제어**로 알려져 있습니다.
 
     게시자가 구독자에게 속도를 줄이도록 요청했지만 속도를 늦출 수 없다면 어떻게 될까요? 이 경우 게시자는 실패, 삭제 또는 버퍼링 여부를 결정해야 합니다.
 
-3. 2단계를 사용하여 요청이 이루어지면 게시자는 데이터 알림을 보내고 onNext() 메서드를 사용하여 데이터를 사용합니다. Subscription.request()에 의해 전달된 수요에 따라 게시자가 데이터 알림을 푸시할 때까지 트리거됩니다.
+3. 2단계를 사용하여 요청이 이루어지면 게시자는 데이터 알림을 보내고 onNext() 메서드를 사용하여 데이터를 사용합니다. `request()`에 의해 전달된 수요에 따라 게시자가 데이터 알림을 푸시할 때까지 트리거됩니다.
 
-4. 마지막에 onError() 또는 onCompletion()이 터미널 상태로 트리거됩니다. Subscription.request()를 호출하더라도 이러한 호출 중 하나가 트리거된 후에는 알림이 전송되지 않습니다. 다음은 터미널 방법입니다.
+4. 마지막에 `onError()` 또는 `onCompletion()`이 종료 상태로 트리거됩니다. `request()`를 호출하더라도 이러한 호출 중 하나가 트리거된 후에는 알림이 전송되지 않습니다. 다음은 종료 방법입니다.
    
     a. onError()는 오류가 발생하면 호출됩니다.
 
@@ -89,7 +94,8 @@ public interface Subscriber<T> {
 
 #### Subscription
 
-Subscription은 게시자와 구독자 사이의 중재자입니다. Subscription.subscriber() 메서드를 호출하고 게시자에게 수요를 알리는 것은 구독자의 책임입니다. 구독자가 필요할 때 호출할 수 있습니다. cancel() 메서드는 게시자에게 데이터 알림 전송을 중지하고 리소스를 정리하도록 요청합니다.
+Subscription은 게시자와 구독자 사이의 중재자입니다. `subscriber()` 메서드를 호출하고 게시자에게 수요를 알리는 것은 구독자의 책임입니다. 
+구독자가 필요할 때 호출할 수 있습니다. `cancel()`은 게시자에게 데이터 알림 전송을 중지하고 리소스를 정리하도록 요청합니다.
 
 ```java
 public interface Subscription {
@@ -100,14 +106,16 @@ public interface Subscription {
 
 #### Processor
 
-프로세서는 게시자와 구독자 사이의 브릿지 역할을 하며 처리 단계를 나타냅니다. 게시자와 구독자 모두로 작동하며 둘 다에서 정의한 계약을 따릅니다.
+Processor는 게시자와 구독자 사이의 브릿지 역할을 하며 처리 단계를 나타냅니다. 게시자와 구독자 모두로 작동하며 둘 다에서 정의한 계약을 따릅니다.
 
 ```java
 public interface Processor<T, R> extends Subscriber<T>, Publisher<R> {
 }
 ```
 
-다음 예를 살펴보겠습니다. 여기서는 Flux.just() 팩토리 메서드를 사용하여 Flux를 생성합니다. Flux는 `Project Reactor`의 게시자 유형입니다. 이 게시자는 4개의 정수 엘리먼트를 포함합니다. 그런 다음 reduce 연산자(Java Streams와 유사)를 사용하여 합계 연산을 수행합니다.
+Flux는 `Project Reactor`의 게시자 유형입니다.
+다음 코드는 Flux.just() 팩토리 메서드를 사용하여 Flux를 생성합니다.  
+이 게시자는 4개의 정수 항목에 대해 reduce 연산자를 사용하여 합계 연산을 수행합니다.
 
 ```java
 Flux<Integer> fluxInt = Flux.just(1, 10, 100, 1000).log();
@@ -115,7 +123,7 @@ fluxInt.reduce(Integer::sum)
     .subscribe(sum -> System.out.printf("Sum is: %d", sum));
 ```
 
-When you run this code, it prints the following output:
+코드를 실행하면 다음과 같이 로그를 출력한다.
 
 ```sh
 11:00:38.074 [main] INFO reactor.Flux.Array.1 - | onSubscribe([Synchronous Fuseable] FluxArray.ArraySubscription)
@@ -130,66 +138,88 @@ Sum is: 1111
 Process finished with exit code 0
 ```
 
-출력을 보면 게시자가 구독할 때 구독자가 무제한 Subscription.request()를 보냅니다. 첫 번째 엘리먼트가 알림을 받으면 onNext()가 호출되는 식입니다. 마지막으로 게시자가 푸시 엘리먼트를 완료하면 onComplete() 이벤트가 호출됩니다. 이것이 리액티브 스트림이 작동하는 방식입니다.
+게시자가 구독할 때 구독자가 무제한 `Subscription.request()`를 보냅니다. 
+첫 번째 항목이 알림을 받으면 onNext()가 호출되는 식입니다. 
+마지막으로 게시자가 푸시 엘리먼트를 완료하면 onComplete() 이벤트가 호출됩니다. 
+이것이 Reactive 스트림이 작동하는 방식입니다.
 
-이제 Reactive 스트림이 작동하는 방식에 대한 아이디어를 얻었으므로 Spring이 Spring WebFlux 모듈에서 이러한 Reactive 스트림을 사용하는 방법과 이유를 살펴보겠습니다.
+Spring이 Spring WebFlux 모듈에서 이러한 Reactive 스트림을 사용하는 방법과 이유를 살펴보겠습니다.
 
 
 ## Spring WebFlux 살펴보기
 
-기존 서블릿 API는 블로킹 API입니다. 이들은 API를 차단하는 입력 및 출력 스트림을 사용합니다. Servlet 3.0 컨테이너는 기본 이벤트 루프를 발전시키고 사용합니다. 비동기 요청은 비동기적으로 처리되지만 읽기 및 쓰기 작업은 여전히 ​​블로킹 입출력 스트림을 사용합니다.
+기존 서블릿 API는 블로킹 API입니다. 이들은 API를 블로킹 I/O 스트림을 사용합니다. 
+Servlet 3.0 컨테이너는 기본 이벤트 루프를 발전시키고 사용합니다. 
+비동기 요청은 비동기적으로 처리되지만 I/O 작업은 여전히 ​​블로킹 I/O 스트림을 사용합니다.
 
-Servlet 3.1 컨테이너는 더 발전하고 비동기성을 지원하며 넌블로킹 I/O 스트림 API를 가지고 있습니다. 그러나 request.getParameters()와 같은 특정 Servlet API는 차단 중인 요청 본문을 구문 분석하고 Filter와 같은 동기 계약을 제공합니다. Spring MVC 프레임워크는 Servlet API 및 Servlet 컨테이너를 기반으로 합니다.
+**Servlet 3.1 컨테이너**는 더 발전하고 비동기성을 지원하며 넌블로킹 I/O 스트림 API를 가지고 있습니다. 
+그러나 `request.getParameters()`와 같은 특정 Servlet API는 블로킹 요청 본문을 구문 분석하고 Filter와 같은 동기 계약을 제공합니다. 
+Spring MVC 프레임워크는 Servlet API 및 Servlet 컨테이너를 기반으로 합니다.
 
-따라서, **Spring은 완전히 넌블로킹이고 백프레셔 기능을 제공하는 Spring WebFlux를 제공합니다**. 적은 수의 스레드와 동시성을 제공하고 더 적은 수의 하드웨어 리소스로 확장됩니다. WebFlux는 비동기 로직의 선언적 구성을 지원하기 위해 유창하고 함수형이며 연속적인 스타일의 API를 제공합니다. 비동기 기능 코드를 작성하는 것은 명령형 코드를 작성하는 것보다 더 복잡합니다. 그러나 일단 사용하게 되면 정확하고 읽기 쉬운 코드를 작성할 수 있기 때문에 좋아하게 될 것입니다.
+따라서, **Spring은 완전히 넌블로킹이고 백프레셔 기능을 제공하는 `Spring WebFlux`를 제공합니다**. 
+적은 수의 스레드와 동시성을 제공하고 더 적은 수의 하드웨어 리소스로 확장됩니다. 
+WebFlux는 비동기 로직의 선언적 구성을 지원하기 위해 유창하고 함수형이며 연속적인 스타일의 API를 제공합니다. 
+비동기 기능 코드를 작성하는 것은 명령형 코드를 작성하는 것보다 더 복잡합니다. 
+그러나 일단 사용하게 되면 정확하고 읽기 쉬운 코드를 작성할 수 있기 때문에 좋아하게 될 것입니다.
 
-Spring WebFlux와 Spring MVC는 모두 공존할 수 있습니다. **그러나 Reactive 프로그래밍 모델을 효과적으로 사용하려면 Reactive 흐름과 블로킹 호출을 혼합해서는 안 됩니다.**
+Spring WebFlux와 Spring MVC는 공존할 수 있습니다. 
+**그러나 Reactive 프로그래밍 모델을 효과적으로 사용하려면 Reactive 흐름과 블로킹 호출을 혼합해서는 안 됩니다.**
 
 Spring WebFlux는 다음 기능과 프로토타입을 지원합니다.
 
 - 이벤트 루프 동시성 모델
-- 주석이 달린 컨트롤러와 함수형 엔드포인트 모두
-- 리액티브 클라이언트
+- 주석이 달린 컨트롤러와 함수형 엔드포인트
+- Reactive 클라이언트
 - Tomcat, Jetty 등 Netty 및 Servlet 3.1 컨테이너 기반 웹 서버
 
 Reactive API와 Reactor Core를 이해함으로써 WebFlux가 어떻게 작동하는지 깊이 파헤쳐 봅시다.
 
 ### Reactive APIs
 
-Spring WebFlux API는 Reactive API이며 게시자를 입력으로 허용합니다. 그런 다음 WebFlux는 Reactor Core 또는 RxJava와 같은 Reactive 라이브러리에서 지원하는 유형에 맞게 조정합니다. 그런 다음 지원되는 Reactive 라이브러리 유형에 따라 입력을 처리하고 출력을 반환합니다. 이를 통해 WebFlux API는 다른 Reactive 라이브러리와 상호 운용할 수 있습니다.
+`Spring WebFlux` API는 Reactive API이며 게시자를 입력으로 허용합니다. 
+그런 다음 WebFlux는 `Reactor Core` 또는 `RxJava`와 같은 Reactive 라이브러리에서 지원하는 유형에 맞게 조정합니다. 
+그런 다음 지원되는 Reactive 라이브러리 유형에 따라 입력을 처리하고 출력을 반환합니다. 
+이를 통해 WebFlux API는 다른 Reactive 라이브러리와 상호 운용할 수 있습니다.
 
-기본적으로 Spring WebFlux는 핵심 의존성으로 Reactor(https://projectreactor.io)를 사용합니다. Project Reactor는 `Reactive Streams` 라이브러리를 제공합니다. 
+기본적으로 `Spring WebFlux`는 핵심 의존성으로 Reactor(https://projectreactor.io)를 사용합니다. 
+`Project Reactor`는 `Reactive Streams` 라이브러리를 제공합니다. 
 WebFlux는 게시자로 입력을 받아 Reactor 유형에 적용한 다음 Mono 또는 Flux 출력으로 반환합니다.
 
-`Reactive Streams`의 게시자는 수요에 따라 구독자에게 데이터를 푸시한다는 것을 알고 있습니다. 하나 이상의 엘리먼트를 푸시할 수 있습니다. Project Reactor는 더 나아가 Mono와 Flux라는 두 가지 Publisher 구현을 제공합니다. Mono는 구독자에게 0 또는 1개를 반환할 수 있지만 Flux는 0 ~ N의 엘리먼트를 반환합니다. 둘 다 CorePublisher 인터페이스를 구현하는 추상 클래스입니다. CorePublisher 인터페이스는 게시자를 확장합니다.
+`Reactive Streams`의 게시자는 수요에 따라 구독자에게 데이터를 푸시합니다. 
+Project Reactor는 더 나아가 Mono와 Flux라는 두 가지 Publisher 구현체를 제공합니다. 
+Mono는 구독자에게 0 또는 1개를 반환할 수 있지만 Flux는 0 ~ N의 엘리먼트를 반환합니다. 
+둘 다 Publisher를 확장한 CorePugblisher 인터페이스를 구현하는 추상 클래스입니다.
 
-Normally, we have the following methods in the repository:
+레포지토리에 다음과 같은 메소드가 있습니다
 
 ```java
 public Product findById(UUID id);
 public List<Product> getAll();
 ```
-These can be replaced with Mono and Flux:
+Mono와 Flux로 치환할 수 있습니다:
 
 ```java
-Public Mono<Product> findById(UUID id);
+public Mono<Product> findById(UUID id);
 public Flux<Product> getAll();
 ```
-핫 스트림과 콜드 스트림의 개념이 있습니다. 콜드 스트림의 경우 여러 구독자가 있으면 소스를 새로 시작하지만 핫 스트림은 여러 구독자에 대해 동일한 소스를 사용합니다. `Project Reactor` 스트림은 기본적으로 콜드입니다. 따라서 스트림을 사용하면 다시 시작할 때까지 재사용할 수 없습니다. 그러나 `Project Reactor`를 사용하면 cache() 메서드를 사용하여 콜드 스트림을 핫 스트림으로 전환할 수 있습니다. 이 두 가지 방법은 Mono 및 Flux 추상 클래스에서 모두 사용할 수 있습니다.
+Hot 스트림과 Cold 스트림의 개념이 있습니다. 
+Cold 스트림의 경우 여러 구독자가 있으면 소스를 새로 시작하지만 핫 스트림은 여러 구독자에 대해 동일한 소스를 사용합니다. 
+
+`Project Reactor` 스트림은 기본적으로 `cold`이므로 스트림을 사용하면 다시 시작할 때까지 재사용할 수 없습니다. 그러나 `Project Reactor`를 사용하면 cache() 메서드를 사용하여 콜드 스트림을 `hot` 스트림으로 전환할 수 있습니다. 
 
 Let's understand the cold and hot stream concepts with some examples:
 
 ```java
-Flux<Integer> fluxInt = Flux.just(1, 10, 100).log();
+Flux<Integer> flux = Flux.just(1, 10, 100).log();
 
-fluxInt.reduce(Integer::sum)
+flux.reduce(Integer::sum)
     .subscribe(sum -> System.out.printf("Sum is: %d\n", sum));
 
-fluxInt.reduce(Integer::max)
+flux.reduce(Integer::max)
     .subscribe(max -> System.out.printf("Maximum is: %d", max));
 ```
 
-숫자 3개의 Flux를 만듭니다. 그런 다음, sum, max 연산을 별도로 수행합니다. 거기에 2개의 구독자가 있습니다. 기본적으로 Project Reactor는 콜드이므로 두 개의 구독자가 등록될 때 다음과 같은 출력으로 보여주면서 다시 시작합니다.
+숫자 3개의 Flux를 만든 후 sum, max 연산을 별도로 수행합니다. 거기에 2개의 구독자가 있습니다. 기본적으로 Project Reactor는 콜드이므로 두 개의 구독자가 등록될 때 다음과 같은 출력으로 보여주면서 다시 시작합니다.
 ```sh
 11:23:35.060 [main] INFO reactor.Flux.Array.1 - | onSubscribe([Synchronous Fuseable] FluxArray.ArraySubscription)
 11:23:35.060 [main] INFO reactor.Flux.Array.1 - | request(unbounded)
@@ -210,7 +240,7 @@ Sum is: 111
 
 Maximum is: 100
 ```
-소스는 같은 프로그램에서 만들었지만 소스가 HTTP 요청과 같이 다른 어딘가라든가 또는 소스를 재시작하지 않으려면 어떻게 할까요? 이러한 경우 cache()를 사용하여 콛드 스트림을 핫 스트림으로 바꿀 수 있습니다. 이 둘간의 유일한 차이는 Flux.just()에 cache() 호출을 추가한 것입니다.
+소스는 같은 프로그램에서 만들었지만 소스가 HTTP 요청과 같이 다른 어딘가라든가 또는 소스를 재시작하지 않으려면 어떻게 할까요? 이러한 경우 `cache()`를 사용하여 콛드 스트림을 핫 스트림으로 바꿀 수 있습니다. 이 둘간의 유일한 차이는 `Flux.just()`에 `cache()` 호출을 추가한 것입니다.
 
 ```java
 Flux<Integer> fluxInt = Flux.just(1, 10, 100).log().cache();
@@ -237,15 +267,17 @@ Maximum is: 100
 
 Now we have got to the crux of Reactive APIs, let's see what Spring WebFlux's Reactive Core consists of.
 
-### Reactive Core
 
-스프링을 리액티브 앱을 개발하는 토대를 제공합니다. 웹 앱이 HTTP 웹 요청을 서비스하려면 3가지 수준의 지원이 필요합니다.
+## Reactive Core
+
+Reactive Core는 스프링을 Reactive 앱으로 개발하는 토대를 제공합니다. 
+웹 앱이 HTTP 웹 요청을 서비스하려면 3가지 수준의 지원이 필요합니다.
 
 - 서버에 의해 웹 요청을 처리:
   
-  a. `HttpHandler`: Netty 또는 Tomcat 같은 다른 HTTP 서버 상에서 요청/응답을 추상화하는 인터페이스:
+  a. `HttpHandler`: Netty 또는 Tomcat 같은 다른 HTTP 서버 상에서 요청/응답을 추상화하는 인터페이스
 
-  b. `WebHandler`: 사용자 세션, 요청과 세션 속성, 로케일과 요청 principal, 폼 데이터 등의 지원을 제공합니다
+  b. `WebHandler`: 사용자 세션, 요청과 세션 속성, 로케일과 요청 principal, 폼 데이터 등의 지원을 제공
 
 ```java
   public interface HttpHandler {
@@ -258,7 +290,7 @@ Now we have got to the crux of Reactive APIs, let's see what Spring WebFlux's Re
 
 이 컴포넌트들이 스프링 WebFlux의 코어이며 앱 설정에 다음 빈들을 포함한다 
 
-- WebHandler (DispatcherHandler)
+- WebHandler(DispatcherHandler)
 - WebFilter
 - WebExceptionHandler
 - HandlerMapping

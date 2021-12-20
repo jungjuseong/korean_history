@@ -15,7 +15,7 @@ In this chapter, the following topics are covered:
 
 ## Reactivity for everyone
 
-In previous chapters, we have learned a lot of exciting things about reactive programming in Spring, as well as the role RxJava plays in its story. We also looked at the need to use reactive programming to implement the reactive system. We have also seen a brief overview of the reactive landscape and available alternatives to RxJava, which makes it possible to quickly start with reactive programming.
+In previous chapters, we have learned a lot of exciting things about reactive programming in Spring, as well as the role `RxJava` plays in its story. We also looked at the need to use reactive programming to implement the reactive system. We have also seen a brief overview of the reactive landscape and available alternatives to `RxJava`, which makes it possible to quickly start with reactive programming.
 
 ## API's 불일치 문제
 

@@ -824,11 +824,11 @@ window: [107, 108]
 window: [109, 110, 111, 112]
 window: [113, 114, 115, 116, 117, 118, 119, 120]
 ```
-Note that the first window is empty. This happens because, as soon as we start the original stream, we generate an initial window. Then, the first element arrives (number 101), which is a prime number, which triggers a new window and, consequently, the already-opened window is closed (with the onComplete signal) without any elements.
+첫 번째 window는 비어 있습니다. 이것은 원래 스트림을 시작하자마자 초기 window를 생성하기 때문에 발생합니다. 그런 다음 새 window를 트리거하는 소수인 첫 번째 요소(숫자 101)가 도착하고 결과적으로 이미 열린 window는 요소 없이 닫힙니다(onComplete 신호 사용).
 
-Of course, we could resolve the exercise with the buffer operator. Both operators behave pretty similarly. However, buffer emits a collection only when a buffer closes, while the window operator propagates events as soon as they arrive, making it possible to react sooner and implement more sophisticated workflows.
+물론 buffer 연산자를 사용하여 문제를 해결할 수 있습니다. 두 연산자는 매우 유사하게 동작합니다. 그러나 버퍼는 버퍼가 닫힐 때만 컬렉션을 내보내고 창 연산자는 이벤트가 도착하는 즉시 이벤트를 전파하므로 더 빨리 반응하고 보다 정교한 워크플로를 구현할 수 있습니다.
 
-Also, we may group elements in a Reactive Stream by some criteria with the groupBy operator. Let's divide the integer sequence by odd and even numbers and track only the last two elements in each group. The code may look like the following:
+또한 groupBy 연산자를 사용하여 일부 기준에 따라 Reactive Stream의 요소를 그룹화할 수 있습니다. 정수 시퀀스를 홀수와 짝수로 나누고 각 그룹의 마지막 두 요소만 추적해 보겠습니다. 코드는 다음과 같을 수 있습니다.
 
 ```java
 Flux.range(1, 7)                                                   // (1)
@@ -871,4 +871,31 @@ Odd: [3, 5]
 Even: [4, 6]
 Odd: [5, 7]
 ```
-Also, the Project Reactor library supports some advanced techniques such as grouping emitted elements over distinct time windows. For that functionality, please refer to the documentation of the groupJoin operator.
+Also, the Project Reactor library supports some advanced techniques such as grouping emitted elements over distinct time windows. For that functionality, please refer to the documentation of the `groupJoin` operator.
+
+
+
+
+
+
+
+
+
+## 요약
+
+이 장에서 우리는 많은 주제를 다루었습니다. Reactor의 역사를 간략하게 설명하여 또 다른 리액티브 라이브러리인 Project Reactor의 동기를 확인했습니다. 우리는 또한 이 라이브러리의 가장 중요한 이정표, 즉 다재다능하고 강력한 도구를 구축하는 데 필요한 이정표를 살펴보았습니다. 또한 RxJava 1.x 구현의 주요 문제점과 초기 Reactor 버전의 문제점에 대한 개요를 살펴보았습니다. Reactive Streams 사양 이후에 Project Reactor에서 변경된 사항을 살펴봄으로써 우리는 왜 그렇게 효율적이고 직관적인 반응 프로그래밍이 어려운 구현을 요구하는지 강조했습니다.
+
+또한 Mono 및 Flux 리액티브 유형과 리액티브 스트림을 생성, 변환 및 소비하는 다양한 방법에 대해 설명했습니다. 실행 중인 스트림 내부를 살펴보고 구독 개체를 통해 pull-push 모델로 배압을 제어했습니다. 또한 operator fusion이 Reactive Streams의 성능을 향상시키는 방법에 대해서도 설명했습니다. 요약하면, Project Reactor 라이브러리는 반응 프로그래밍과 비동기 및 IO 집약적 애플리케이션을 위한 강력한 도구 세트를 제공합니다.
+
+다음 장에서는 일반적으로 리액티브 프로그래밍과 특히 Project Reactor의 힘을 활용하기 위해 Spring Framework가 어떻게 개선되었는지 다룰 것입니다. Spring 5 WebFlux와 Reactive Spring Data를 사용하여 효율적인 애플리케이션을 구축하는 데 중점을 둘 것입니다.
+
+
+
+
+
+
+
+
+
+
+

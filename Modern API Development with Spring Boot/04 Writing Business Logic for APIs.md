@@ -18,12 +18,9 @@ You need the following to execute instructions in this chapter:
 
 - The Postman tool (https://learning.postman.com/docs/getting-started/sending-the-first-request/)
 
-You can find the code files for this chapter on GitHub at https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/tree/main/Chapter04.
+## 서비스 디자인 개요
 
-
-## Overview of the service design
-
-프레젠테이션 계층, 응용 프로그램 계층, 도메인 계층 및 인프라 계층의 4개 계층으로 구성된 다계층 아키텍처를 구현할 것입니다. 다계층 아키텍처는 Domain-Driven Design로 알려진 아키텍처 스타일의 기본 빌딩 블록입니다. 각 레이어에 대해 간략히 살펴보겠습니다.
+프레젠테이션 계층, 응용 프로그램 계층, 도메인 계층 및 인프라 계층의 4개 계층으로 구성된 다계층 아키텍처를 구현할 것입니다. 아키텍처는 Domain-Driven Design로 알려진 아키텍처 스타일의 기본 빌딩 블록입니다. 각 레이어에 대해 간략히 살펴보겠습니다.
 
 - **프레젠테이션 계층**: 이 계층은 사용자 인터페이스(UI)를 나타냅니다. "7장 사용자 인터페이스 디자인하기"에서는 전자 상거래 앱용 UI를 개발할 것입니다.
 
@@ -41,10 +38,11 @@ You can find the code files for this chapter on GitHub at https://github.com/Pac
 
 ## Repository 컴포넌트 추가
 
-@Repository 컴포넌트를 사용하여 도메인 계층을 구현합니다. 그 다음에는 서비스를 구현하고 컨트롤러를 개선할 것입니다. @Repository 컴포넌트를 만든 다음 생성자 주입을 사용하여 @Service 구성 요소에서 사용합니다. @Controller 컴포넌트는 @Service 컴포넌트를 사용하여 향상되며 생성자 주입을 사용하여 컨트롤러에도 주입됩니다.
+`@Repository` 컴포넌트를 사용하여 도메인 계층을 구현합니다. 그 다음에는 서비스를 구현하고 컨트롤러를 개선할 것입니다. `@Repository` 컴포넌트를 만든 다음 생성자 주입을 사용하여 `@Service` 컴포넌트에서 사용합니다. `@Controller` 컴포넌트는 `@Service` 컴포넌트를 사용하여 향상되며 생성자 주입을 사용하여 컨트롤러에도 주입됩니다.
 
 ### @Repository
-Repository 컴포넌트는 @Repository 주석이 달린 클래스입니다. 이것은 데이터베이스와 상호 작용하는 데 사용되는 특별한 Spring 컴포넌트입니다.
+
+`Repository` 컴포넌트는 `@Repository` 주석이 달린 클래스입니다. 이것은 데이터베이스와 상호 작용하는 데 사용되는 특별한 Spring 컴포넌트입니다.
 
 @Repository는 DDD의 Repository와 Java EE 패턴인 DAO를 모두 나타내는 범용 스테레오타입입니다. 개발자와 팀은 기본 접근 방식을 기반으로 Repository 객체를 처리해야 합니다. DDD에서 Repository는 모든 개체에 대한 참조를 전달하고 요청된 개체의 참조를 반환해야 하는 중심 개체입니다. @Repository로 표시된 클래스를 작성하기 전에 필요한 모든 의존성과 구성을 준비해야 합니다.
 
@@ -111,7 +109,7 @@ You can access the H2 database console using /h2-console. For example, if your s
 
 ### DB와 초기 데이터 입력
 
-이제 코드 작성을 시작할 수 있습니다. 먼저 Flyway DB 마이그레이션 스크립트를 추가합니다. 이 스크립트는 SQL로만 작성할 수 있습니다. 이 파일을 src/main/resources 디렉토리 내의 db/migration 디렉토리에 배치합니다. Flyway 명명 규칙(V<version>.<name>.sql)을 따르고 db/migration 디렉토리 안에 V1.0.0.Init.sql 파일을 생성합니다. 
+이제 코드 작성을 시작할 수 있습니다. 먼저 Flyway DB 마이그레이션 스크립트를 추가합니다. 이 스크립트는 SQL로만 작성할 수 있습니다. 이 파일을 `src/main/resources` 디렉토리 내의 `db/migration` 디렉토리에 배치합니다. Flyway 명명 규칙(`V<version>.<name>.sql`)을 따르고 db/migration 디렉토리 안에 `V1.0.0.Init.sql` 파일을 생성합니다. 
 
 그런 다음 이 파일에 다음 스크립트를 추가할 수 있습니다.
 
@@ -153,16 +151,13 @@ create TABLE IF NOT EXISTS `ecomm`.`cart_item` (
 );
 -- other SQL scripts
 ```
-
-https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter04/src/main/resources/db/migration/V1.0.0__Init.sql
-
 This script creates the ecomm schema and adds all the tables required for our sample e-commerce app. It also adds insert statements for the seed data.
 
 ### 엔티티 추가
 
-이제 엔티티를 추가할 수 있습니다. 엔티티는 Hibernate와 같은 ORM 구현을 사용하여 테이블에 직접 매핑되는 @Entity 주석으로 표시된 특수 객체입니다.
+엔티티는 Hibernate와 같은 ORM 구현을 사용하여 테이블에 직접 매핑되는 @Entity 주석으로 표시된 특수 객체입니다.
 
-CartEntity.java 파일을 생성해 보겠습니다.
+`CartEntity.java` 파일을 생성해 보겠습니다.
 
 ```java
 @Entity
@@ -189,13 +184,12 @@ public class CartEntity {
 
 // Getters/Setter and other codes are removed for brevity
 ```
-https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter04/src/main/java/com/packt/modern/api/entity/CartEntity.java
 
-여기서 @Entity 주석은 Entity이고 javax.persistence 패키지의 일부입니다. 기본적으로 엔티티 이름을 사용하지만 @Table 주석을 사용하여 데이터베이스 테이블에 매핑합니다.
+여기서 `@Entity` 주석은 Entity이고 `javax.persistence` 패키지의 일부입니다. 기본적으로 엔티티 이름을 사용하지만 `@Table` 주석을 사용하여 데이터베이스 테이블에 매핑합니다.
 
-Cart 엔티티를 User 및 Item에 각각 매핑하기 위해 일대일 및 다대다 주석을 사용하고 있습니다. ItemEntity 목록은 `@JoinTable`과도 연관되어 있습니다. CART_ITEM 조인 테이블을 사용하여 해당 테이블의 CART_ID 및 ITEM_ID 열을 기반으로 장바구니 및 제품 항목을 매핑하기 때문입니다.
+Cart 엔티티를 User 및 Item에 각각 매핑하기 위해 일대일 및 다대다 주석을 사용하고 있습니다. `ItemEntity` 목록은 `@JoinTable`과도 연관되어 있습니다. `CART_ITEM` 조인 테이블을 사용하여 해당 테이블의 CART_ID 및 ITEM_ID 열을 기반으로 Cart 및 제품 Item을 매핑하기 때문입니다.
 
-UserEntity에는 다음 코드같이 관계를 유지하기 위해 Cart 엔터티도 추가되었습니다. FetchType은 `LAZY`로 표시됩니다. 즉, 명시적으로 요청할 때만 사용자의 cart가 로드됩니다. 또한 `orphanRemoval=true`로 구성하여 사용자가 참조하지 않는 장바구니를 제거하려고 합니다.
+UserEntity에는 관계를 유지하기 위해 Cart 엔터티도 추가되었습니다. FetchType은 `LAZY`로 표시됩니다. 즉, 명시적으로 요청할 때만 사용자의 cart가 로드됩니다. 또한 `orphanRemoval=true`로 구성하여 사용자가 참조하지 않는 장바구니를 제거하려고 합니다.
 
 ```java
 @Entity
@@ -207,17 +201,12 @@ public class UserEntity {
   // other code…
 ```
 
-https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter04/src/main/java/com/packt/modern/api/entity/UserEntity.java
-
-All other entities are being added to the entity package located at https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter04/src/main/java/com/packt/modern/api/entity.
-
-Now, we can add the repository.
-
 ## 레포지토리 추가
 
 All the repository have been added to https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter04/src/main/java/com/packt/modern/api/repository.
 
-레포지토리는 Spring Data JPA 덕분에 CRUD 작업에 가장 간단하게 추가할 수 있습니다. save, saveAll, findById, findAll, findAllById, delete 및 deleteById와 같은 모든 CRUD 작업 구현을 제공하는 CrudRepository와 같은 기본 구현으로 인터페이스를 확장하기만 하면 됩니다.` save(Entity e)` 메소드는 엔티티 생성 및 업데이트 작업 모두에 사용됩니다.
+레포지토리는 Spring Data JPA 덕분에 CRUD 작업에 가장 간단하게 추가할 수 있습니다. save, saveAll, findById, findAll, findAllById, delete 및 deleteById와 같은 모든 CRUD 작업 구현을 제공하는 CrudRepository와 같은 기본 구현으로 인터페이스를 확장하기만 하면 됩니다.
+`save(Entity e)` 메소드는 엔티티 생성 및 업데이트 작업 모두에 사용됩니다.
 
 ```java
 public interface CartRepository extends CrudRepository<CartEntity, UUID> {
@@ -225,16 +214,14 @@ public interface CartRepository extends CrudRepository<CartEntity, UUID> {
     public Optional<CartEntity> findByCustomerId(@Param("customerId") UUID customerId);
 }
 ```
-
-https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter04/src/main/java/com/packt/modern/api/repository/CartRepository.java
-
-CartRepository 인터페이스는 CrudRepository 부분을 확장합니다. @Query로 표시된 JPQL에서 지원하는 메서드를 추가할 수도 있습니다. @Query 주석 내부의 쿼리는 JPQL로 작성됩니다. JPQL은 SQL과 매우 유사하지만 여기서는 실제 테이블 이름 대신 데이터베이스 테이블에 매핑된 Java 클래스 이름을 사용했습니다. 따라서 Cart 대신 CartEntity를 테이블 이름으로 사용했습니다.
+`CartRepository` 인터페이스는 `CrudRepository` 부분을 확장합니다. @Query로 표시된 JPQL에서 지원하는 메서드를 추가할 수도 있습니다. @Query 주석 내부의 쿼리는 JPQL로 작성됩니다. JPQL은 SQL과 매우 유사하지만 여기서는 실제 테이블 이름 대신 데이터베이스 테이블에 매핑된 Java 클래스 이름을 사용했습니다. 따라서 `Cart` 대신 `CartEntity`를 테이블 이름으로 사용했습니다.
 
 > **참고**
 
-마찬가지로 속성의 경우 테이블의 필드가 아니라 클래스의 필드 변수 이름을 사용해야 합니다. 어쨌든 테이블 이름이나 필드 이름을 사용하고 실제 테이블에 매핑된 클래스 및 클래스 멤버와 일치하지 않으면 오류가 발생합니다.
+마찬가지로 속성의 경우 테이블의 필드가 아니라 클래스의 필드 변수 이름을 사용해야 합니다. 테이블 이름이나 필드 이름을 사용하고 실제 테이블에 매핑된 클래스 및 클래스 멤버와 일치하지 않으면 오류가 발생합니다.
 
-JPQL 또는 기본 SQL을 사용하여 나만의 사용자 지정 메서드를 추가하려면 어떻게 해야 합니까?. 먼저 CartRepository와 매우 유사한 OrderRepository를 살펴보겠습니다.
+JPQL 또는 기본 SQL을 사용하여 나만의 사용자 지정 메서드를 추가하려면 어떻게 해야 합니까?. 
+먼저 CartRepository와 매우 유사한 OrderRepository를 살펴보겠습니다.
 
 ```java
 @Repository
@@ -243,16 +230,13 @@ public interface OrderRepository extends CrudRepository<OrderEntity, UUID>, Orde
     public Iterable<OrderEntity> findByCustomerId(@Param("customerId") UUID customerId);
 }
 ```
-https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter04/src/main/java/com/packt/modern/api/repository/OrderRepository.java
 
-If you look closely, we have extended an extra interface – OrderRepositoryExt. This is our extra interface for the Order repository and consists of the following code:
+If you look closely, we have extended an extra interface – `OrderRepositoryExt`. This is our extra interface for the Order repository and consists of the following code:
 ```java
 public interface OrderRepositoryExt {
   Optional<OrderEntity> insert(NewOrder m);
 }
 ```
-
-https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter04/src/main/java/com/packt/modern/api/repository/OrderRepositoryExt.java
 
 이미 CrudRepository에 `save()` 메소드가 있지만 다른 구현을 사용하려고 합니다. 이를 위해 그리고 고유한 저장소 메서드 구현을 만드는 방법을 보여주기 위해 이 추가 저장소 인터페이스를 추가합니다.
 
@@ -275,8 +259,6 @@ public class OrderRepositoryImpl implements OrderRepositoryExt {
   }
   // other code
 ```
-
-https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter04/src/main/java/com/packt/modern/api/repository/OrderRepositoryImpl.java
 
 이런 식으로 JPQL/HQL 또는 기본 SQL에서 자체 구현을 가질 수도 있습니다. 여기에서 @Repository 주석은 이 특수 컴포넌트가 저장소이고 기본 JPA를 사용하여 데이터베이스와 상호 작용하는 데 사용해야 함을 Spring 컨테이너에 알려줍니다.
 
@@ -609,6 +591,7 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 ResponseEntity의 ok() 정적 메서드는 상태 200 OK도 포함하는 반환된 모델을 래핑하는 데 사용됩니다. 이 방법으로 다른 컨트롤러도 향상하고 구현할 수 있습니다. 이제 API 응답에 ETag를 추가할 수도 있습니다.
 
 ### API 응답에 ETag 추가
+
 엔터티 태그(ETag)는 응답 엔터티의 계산된 해시 또는 이에 상응하는 값을 포함하는 HTTP 응답 헤더이며 엔터티의 사소한 변경은 해당 값을 변경해야 합니다. HTTP 요청 객체는 조건부 응답을 수신하기 위한 If-None-Match 및 If-Match 헤더를 포함할 수 있습니다.
 
 다음과 같이 ETag를 사용하여 응답을 검색하기 위한 API를 호출해 보겠습니다.
@@ -712,7 +695,6 @@ You can build the code by running gradlew clean build from the root of the proje
 
 이 장에서는 Flyway를 사용한 데이터베이스 마이그레이션, 레포지토리를 사용한 데이터 유지 및 유지, 서비스에 비즈니스 로직 작성에 대해 배웠습니다. 또한 Spring HATEOAS 어셈블러를 사용하여 API 응답에 하이퍼미디어를 자동으로 추가하는 방법을 배웠습니다. 이제 RESTful API 개발과 관련된 일상적인 작업에서 이러한 기술을 사용할 수 있는 완전한 RESTful API 개발 사례에 대해 배웠습니다.
 
-지금까지 동기 API를 작성했습니다. 
 다음 장에서는 비동기 API와 이를 Spring을 사용하여 구현하는 방법에 대해 학습합니다.
 
 ## 질문
@@ -720,13 +702,3 @@ You can build the code by running gradlew clean build from the root of the proje
 - @Repository 클래스를 사용하는 이유는 무엇입니까?
 - Swagger 생성 클래스 또는 모델에 추가 가져오기 또는 주석을 추가할 수 있습니까?
 - ETag는 어떻게 유용합니까?
-
-## Further reading
-
-Spring HATEOAS: https://docs.spring.io/spring-hateoas/docs/current/reference/html/
-
-RFC-8288: https://tools.ietf.org/html/rfc8288
-
-A video on Spring HATEOAS: https://subscription.packtpub.com/video/programming/9781788993241/p3/video3_6/using-spring-hateoas
-
-The Postman tool:https://learning.postman.com/docs/getting-started/sending-the-first-request/

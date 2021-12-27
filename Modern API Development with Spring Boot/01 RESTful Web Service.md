@@ -4,12 +4,12 @@ In this chapter, you will go through the fundamentals of RESTful APIs, or REST A
 
 This chapter will also introduce a sample e-commerce app, which will be used throughout the book as you learn about the different aspects of API development. In this chapter, we will cover the following topics:
 
-- Introducing REST APIs
-- Handling resources and URIs
-- Exploring HTTP methods and status codes
-- Learning HATEOAS
-- Best practices for designing REST APIs
-- Overview of an e-commerce app (our sample app)
+- REST APIs 소개
+- 리소스와 URIs 다루기
+- HTTP 매소드와 상태 코드
+- HATEOAS
+- REST APIs 설계 방법
+- 예제 앱 e-commerce app의 개요
 
 ## Technical requirements
 
@@ -21,7 +21,7 @@ API는 코드 조각이 다른 코드 조각과 통신하는 수단입니다. �
 
 Java의 SDK API를 사용하면 프로그램의 한 부분이 프로그램의 다른 부분과 통신할 수 있습니다. 함수를 작성한 다음 다른 클래스에서 사용할 수 있도록 공용 액세스 한정자로 이를 노출할 수 있습니다. 해당 함수 서명은 해당 클래스에 대한 API입니다. 그러나 이러한 클래스나 라이브러리를 사용하여 노출되는 API는 단일 애플리케이션 또는 개별 서비스 내부에서만 내부 통신을 허용합니다. 그렇다면 둘 이상의 애플리케이션(또는 서비스)이 서로 통신하기를 원하면 어떻게 될까요? 즉, 둘 이상의 서비스를 통합하려고 합니다. 여기에서 시스템 전반의 API가 도움이 됩니다.
 
-역사적으로 RPC, SOAP(Simple Object Access Protocol) 기반 서비스 등 한 응용 프로그램을 다른 응용 프로그램과 통합하는 다양한 방법이 있었습니다. 앱 통합은 특히 클라우드와 휴대폰의 붐 이후 소프트웨어 아키텍처의 필수적인 부분이 되었습니다. 이제 Facebook, Google 및 GitHub와 같은 소셜 로그인이 있습니다. 즉, 독립적인 로그인 모듈을 작성하지 않고도 애플리케이션을 개발할 수 있고 안전한 방법으로 비밀번호를 저장하는 것과 같은 보안 문제를 해결할 수 있습니다.
+역사적으로 RPC, SOAP 기반 서비스 등 한 응용 프로그램을 다른 응용 프로그램과 통합하는 다양한 방법이 있었습니다. 앱 통합은 특히 클라우드와 휴대폰의 붐 이후 소프트웨어 아키텍처의 필수적인 부분이 되었습니다. 이제 Facebook, Google 및 GitHub와 같은 소셜 로그인이 있습니다. 즉, 독립적인 로그인 모듈을 작성하지 않고도 애플리케이션을 개발할 수 있고 안전한 방법으로 비밀번호를 저장하는 것과 같은 보안 문제를 해결할 수 있습니다.
 
 이러한 소셜 로그인은 REST 및 GraphQL을 사용하는 API를 제공합니다. 현재 REST가 가장 널리 사용되고 있으며, 통합 및 웹앱 소비를 위한 API 작성의 표준이 되었습니다. 또한 이 책의 마지막 장(13장, GraphQL 기초 및 14장, GraphQL 개발 및 테스트)에서 GraphQL에 대해 자세히 설명합니다.
 
@@ -47,7 +47,7 @@ REST 끝점은 REST 리소스를 나타내는 고유한 URI입니다. 예를 들
 
 여기에 클라이언트와 서버 통신이 있습니다. 따라서 REST는 클라이언트-서버 개념을 기반으로 합니다. 클라이언트는 REST API를 호출하고 서버는 응답으로 응답합니다. REST를 사용하면 클라이언트(즉, 프로그램, 웹 서비스 또는 UI 앱)가 HTTP 요청 및 응답을 사용하여 원격(또는 로컬로) 실행 중인 서버(또는 웹 서비스)와 통신할 수 있습니다. 클라이언트는 웹에 대한 HTTP 요청에 래핑된 API 명령을 사용하여 웹 서비스에 보냅니다. 이 HTTP 요청에는 쿼리 매개변수, 헤더 또는 요청 본문 형식의 페이로드(또는 입력)가 포함될 수 있습니다. 호출된 웹 서비스는 성공/실패 표시기와 HTTP 응답 내부에 래핑된 응답 데이터로 응답합니다. HTTP 상태 코드는 일반적으로 상태를 나타내며 응답 본문에는 응답 데이터가 포함됩니다. 예를 들어 HTTP 상태 코드 200 OK는 일반적으로 성공을 나타냅니다.
 
-REST 관점에서 HTTP 요청은 자체 설명적이며 서버에서 처리할 수 있는 충분한 컨텍스트가 있습니다. 따라서 REST 호출은 상태 비저장입니다. 상태는 클라이언트 측이나 서버 측에서 관리됩니다. REST API는 상태를 유지하지 않습니다. 서버에서 클라이언트로 또는 그 반대로 상태만 전송합니다. 따라서 이를 REpresentation State Transfer 또는 줄여서 REST라고 합니다.
+REST 관점에서 HTTP 요청은 자체 설명적이며 서버에서 처리할 수 있는 충분한 컨텍스트가 있습니다. 따라서 REST 호출은 상태 비저장입니다. 상태는 클라이언트 측이나 서버 측에서 관리됩니다. REST API는 상태를 유지하지 않습니다. 서버에서 클라이언트로 또는 그 반대로 상태만 전송합니다. 따라서 이를 REST라고 합니다.
 
 또한 HTTP 캐시 제어를 사용하여 REST API를 캐시 가능하게 만듭니다. 따라서 클라이언트는 모든 표현이 자체 설명적이기 때문에 표현(즉, HTTP 응답)을 캐시할 수도 있습니다.
 
@@ -97,7 +97,7 @@ X-GitHub-Request-Id: 1C03:5C22:640347:81F9C5:5F70D372
     …
 ]
 ```
-이 응답의 세 번째 줄을 메모하면 콘텐츠 유형의 값을 알려줍니다. 요청과 응답 모두에 대한 콘텐츠 유형으로 JSON을 사용하는 것이 좋습니다.
+이 응답의 세 번째 줄은 콘텐츠 유형의 값을 알려줍니다. 
 
 
 ## 리소스 및 URI 처리
@@ -145,22 +145,26 @@ The following list contains examples of URIs:
 - index.html: This contains no scheme nor authority. It only contains the path.
 https://www.packt.com/index.html: This contains the scheme, authority, and path.
 
-Here are some examples of different scheme URIs:
+다른 스키마 URI의 예입니다.
 
-- mailto:support@packt.com
-- telnet://192.168.0.1:23/
-- ldap://[2020:ab9::9]/c=AB?objectClass?obj
+```
+mailto:support@packt.com
+telnet://192.168.0.1:23/
+ldap://[2020:ab9::9]/c=AB?objectClass?obj
+```
 
-From a REST perspective, the path component of a URI is very important because it represents the resource path and your API endpoint paths are formed based on it. For example, take a look at the following:
+REST 입장에서는 path 부분이 리소스의 경로와 API 엔드포인트를 구성하므로 매우 중요합니다. 다음을 보면 
 ```
 GET https://www.domain.com/api/v1/order/1
 ```
-Here, /api/v1/order/1 represents the path, and GET represents the HTTP method.
+`/api/v1/order/1`는 경로를 나타내고 GET은 HTTP 메소드를 나타냅니다.
 
 ### URLs
-자세히 보면 앞에서 언급한 대부분의 URI 예제를 URL이라고도 할 수 있습니다. URI는 식별자입니다. 반면에 URL은 식별자일 뿐만 아니라 URL에 도달하는 방법도 알려줍니다.
 
-URI에 대한 RFC(Request for Comments)-3986(https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3986.html)에 따라 URL이라는 용어는 리소스를 식별하고 기본 액세스 메커니즘(예: 네트워크 "위치")을 설명하여 리소스를 찾는 수단을 제공합니다.
+자세히 보면 앞에서 언급한 대부분의 URI 예제를 URL이라고도 할 수 있습니다. 
+URI는 식별자입니다. 반면에 URL은 식별자일 뿐만 아니라 URL에 도달하는 방법도 알려줍니다.
+
+URI에 대한 RFC-3986(https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3986.html)에 따라 URL이라는 용어는 리소스를 식별하고 기본 액세스 메커니즘(예: 네트워크 "위치")을 설명하여 리소스를 찾는 수단을 제공합니다.
 
 URL은 프로토콜 이름(체계), 호스트 이름 포트(HTTP 포트가 80이 아닌 경우, HTTPS의 경우 기본 포트는 443)를 포함하는 리소스의 전체 웹 주소, 권한 구성 요소의 일부, 경로, 선택적 쿼리 및 조각 하위 구성 요소.
 
@@ -194,6 +198,7 @@ REST에는 어떤 작업에 어떤 방법을 사용해야 하는지 지정하는
 다음 섹션에서 각 방법에 대해 자세히 살펴보겠습니다.
 
 ### post
+
 HTTP POST 메서드는 일반적으로 리소스 작업 생성과 연결하려는 것입니다. 그러나 읽기 작업에 POST 메서드를 사용하려는 경우 특정 예외가 있습니다. 그러나 충분히 숙고한 과정을 거쳐 실행에 옮겨야 합니다. 이러한 예외 중 하나는 필터 기준에 GET 호출의 길이 제한을 초과할 수 있는 매개변수가 너무 많은 검색 작업입니다.
 
 GET 쿼리 문자열은 256자로 제한됩니다. 또한 GET HTTP 메서드는 최대 2,048자에서 실제 경로의 문자 수를 뺀 것으로 제한됩니다. 반면에 POST 방식은 이름과 값 쌍을 제출하기 위한 URL의 크기에 제한을 받지 않습니다.
@@ -204,16 +209,20 @@ GET 쿼리 문자열은 256자로 제한됩니다. 또한 GET HTTP 메서드는 
 
 실패한 작업의 경우 REST 응답은 오류 유형에 따라 다른 오류 상태 코드를 가질 수 있습니다. 이에 대해서는 이 섹션의 뒷부분에서 살펴보겠습니다.
 
-### GET
+### get
+
 HTTP GET 메서드는 일반적으로 리소스 읽기 작업과 연결하려는 것입니다. 마찬가지로 GitHub 시스템에서 사용 가능한 라이선스를 반환하는 GitHub GET /licenses 호출을 관찰해야 합니다. 또한 성공적인 GET 작업은 응답에 데이터가 포함된 경우 200 OK 상태 코드와 연결되어야 하고 응답에 데이터가 포함되지 않은 경우 204 No Content와 연결되어야 합니다.
 
 ### put
+
 HTTP PUT 메서드는 일반적으로 리소스 업데이트 작업과 연결하려는 것입니다. 또한 성공적인 업데이트 작업은 응답에 데이터가 포함된 경우 200 OK 상태 코드와 연결되어야 하고 응답에 데이터가 포함되지 않은 경우 204 No Content와 연결되어야 합니다. 일부 개발자는 PUT HTTP 메서드를 사용하여 기존 리소스를 대체합니다. 예를 들어 GitHub API v3은 PUT을 사용하여 기존 리소스를 대체합니다.
 
 ### delete
+
 HTTP DELETE 메서드는 리소스 삭제 작업과 연결하려는 것입니다. GitHub는 라이선스 리소스에 대한 DELETE 작업을 제공하지 않습니다. 그러나 존재한다고 가정하면 DELETE /licenses/agpl-3.0과 매우 유사하게 보일 것입니다. 성공적인 삭제 호출은 agpl-3.0 키와 연결된 리소스를 삭제해야 합니다. 또한 성공적인 DELETE 작업은 204 No Content 상태 코드와 연결되어야 합니다.
 
 ### patch
+
 HTTP PATCH 메서드는 부분 업데이트 리소스 작업과 연결하려는 것입니다. 또한 성공적인 PATCH 작업은 200 OK 상태 코드와 연결되어야 합니다. PATCH는 다른 HTTP 작업에 비해 비교적 새롭습니다. 사실, 몇 년 전 Spring은 오래된 Java HTTP 라이브러리로 인해 REST 구현을 위한 이 방법에 대한 최신 지원을 제공하지 않았습니다. 그러나 현재 Spring은 REST 구현에서 PATCH 메소드에 대한 내장 지원을 제공합니다.
 
 ### HTTP status codes

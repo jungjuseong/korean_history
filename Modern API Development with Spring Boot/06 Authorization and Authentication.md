@@ -1693,23 +1693,23 @@ Postman Collection 버전 2.1을 기반으로 하는 이 장의 API의 Postman(A
   
 ## Further reading
 
-Hands-On Spring Security 5.x (video course):
+- Hands-On Spring Security 5.x (video course):
 https://www.packtpub.com/product/hands-on-spring-security-5-x-video/9781789802931
 
-Spring Security documentation:
+- Spring Security documentation:
 https://docs.spring.io/spring-security/site/docs/current/reference/html5/
 
-List of filters available in Spring Security:
+- List of filters available in Spring Security:
 https://docs.spring.io/spring-security/site/docs/current/reference/html5/#servlet-security-filters
 
-JWT:
+- JWT:
 https://tools.ietf.org/html/rfc7519
 
-JWS:
+- JWS:
 https://www.rfc-editor.org/info/rfc7515
 
-JWE:
+- JWE:
 https://www.rfc-editor.org/info/rfc7516
 
-Spring Security in-built SpEL expressions:
+- Spring Security in-built SpEL expressions:
 https://docs.spring.io/spring-security/site/docs/current/reference/html5/#el-access

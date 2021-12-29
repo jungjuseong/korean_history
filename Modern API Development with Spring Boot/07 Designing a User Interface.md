@@ -53,28 +53,7 @@ Now, let's create an ecomm-ui application using this command:
 
 ```sh
 $ npx create-react-app ecomm-ui
-Creating a new React app in C:\modern-api-with-spring-and-sprint-boot\Chapter07\ecomm-ui.
-Installing packages. This might take a couple of minutes.
-Installing react, react-dom, and react-scripts with cra-template...
-yarn add v1.22.5
-[1/4] Resolving packages...
-[2/4] Fetching packages...
-[3/4] Linking dependencies...
-[4/4] Building fresh packages...
-success Saved lockfile.
-success Saved 297 new dependencies.
-info Direct dependencies
-├─ cra-template@1.1.1
-├─ react-dom@17.0.1
-├─ react-scripts@4.0.1
-└─ react@17.0.1
-info All dependencies
-├─ @babel/compat-data@7.12.7
-├─ @babel/core@7.12.10
-├─ <Output truncated for brevity>
-├─ yargs-parser@18.1.3
-└─ yocto-queue@0.1.0
-Done in 644.56s.
+
 ```
 
 After it has installed all the required dependent packages, it continues by installing the template dependencies, as follows:
@@ -1507,45 +1486,24 @@ The refreshCart function updates the total and dispatches the updateCart action.
 Let's add the last function of the Cart component to perform the checkout operation, as shown in the following code snippet:
 ```js
   // Cart.js Continue…
-
   const checkout = async () => {
-
     const res = await customerClient.fetch();
-
     if (res && res.success) {
-
       const payload = {
-
         address: { id: res.data.addressId },
-
         card: { id: res.data.cardId },
-
       };
-
       const orderRes = await orderClient.add(payload);
-
       if (orderRes && orderRes.success) {
-
         history.push("/orders");
-
       } else {
-
-        setNoRecMsg(orderRes && typeof orderRes ===
-
-            "string"
-
+        setNoRecMsg(orderRes && typeof orderRes === "string"
             ? orderRes: "Couldn't process checkout."
-
         );
-
       }
-
     } else {
-
-      setNoRecMsg( res && typeof res === "string" ? res                                 : "error retreiving customer");
-
+      setNoRecMsg( res && typeof res === "string" ? res : "error retreiving customer");
     }
-
   };
 ```
 The checkout function first fetches the customer information and forms a payload for placing the order. On a successful POST order API response, the user is redirected to the Orders component.
@@ -1553,73 +1511,38 @@ The checkout function first fetches the customer information and forms a payload
 Finally, let's add a JSX template, which is used from codepen user abdelrhman for the Cart component as shown in the next code block (Code and className values have been stripped for brevity):
 ```js
   // Cart.js Continue…
-
   return (
-
     <div className="…">
-
       <!-- code stripped for brevity  -->
-
           <div className="…">
-
             <h1 className="…">Shopping Cart</h1>
-
-            <h2 className="…">{cartItems?.length}
-
-            Items</h2>
-
+            <h2 className="…">{cartItems?.length} Items</h2>
           </div>
-
           <div className="…">
-
             <h3 className="…">Product Details</h3>
-
             <h3 className="…">Quantity</h3>
-
             <h3 className="…">Price</h3>
-
             <h3 className="…">Total</h3>
-
           </div>
-
           {cartItems && cartItems.length > 0 ? (
-
             cartItems?.map((i) => (
-
              <CartItem item={i} key={i.id}
-
                  removeItem={deleteItem}
-
               increaseQty={
-
                   increaseQty}decreaseQty={decreaseQty}/>
-
         <!-- code stripped for brevity  -->
-
           <div className="…">
-
             <div className="…">
-
               <span>Total cost</span>
-
               <span>${grandTotal}</span>
-
             </div>
-
             <button className="…" onClick={checkout}
-
               disabled={grandTotal == 0 ? true : false} >
-
               Checkout
-
             </button>
-
         <!-- code stripped for brevity  -->
-
     </div>
-
   );
-
 };
 
 export default Cart;
@@ -1629,11 +1552,7 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 Here, you can see that on a click of the Checkout button, it calls the checkout function to place the user order. Cart items are rendered using the CartItem component that you create next. You pass the removeItem, increaseQty, and decreaseQty functions as props to it.
 
 Let's write the CartItem component by creating a new file (src/components/CartItem.js) and adding the following code:
-```
-import { useEffect, useState } from "react";
-
-import { Link } from "react-router-dom";
-
+```java
 const CartItem = ({ item, increaseQty, decreaseQty, removeItem }) => { const des = item ? item.description?.split(".") : [];
 
   const author = des && des.length > 0       ? des[des.length - 1] : "";
@@ -1671,69 +1590,37 @@ Here, you maintain the state of the total that is a product of the quantity and 
 Let's add the last piece of the JSX template for the CartItem component, as shown in the next code block (className values have been stripped for brevity):
 ```js
   return (
-
     <div className="…">
-
       <div className="…">
-
         <div className="…">
-
           <img className="…" src={item?.imageUrl} alt="" />
-
         </div>
-
         <div className="…">
-
           <Link to={"/products/" + item.id} className="…">
-
             {item?.name}
-
           </Link>
-
           <span className="…">Author: {author}</span>
-
           <button className="…" onClick={() =>
-
               removeItem(item.id)}>
-
             Remove
-
           </button>
-
         </div>
-
       </div>
-
       <div className="…">
-
         <span className="…" onClick={() => updateQty(-1)}>
-
           <svg className="…" viewBox="0 0 448 512">
-
-            <path d="M416 208H32c-17.67 0-32 14.33-32 32v32c0             17.67              14.33 32 32 32h384c17.67 0 32-14.33             32-32v-32c0-17.67-            14.33-32-32-32z" /></svg>
-
+            <path d="M416 208H32c-17.67 0-32 14.33-32 32v32c017.67 14.33 32 32 32h384c17.67 0 32-14.3332-32v-32c0-17.67-14.33-32-32-32z" /></svg>
         </span>
-
         <input type="text" readOnly value={item?.quantity} />
-
         <span className="…" onClick={() => updateQty(1)}>
-
           <svg className="…" viewBox="0 0 448 512">
-
-            <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-            32c-            17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32             32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33             32 32             32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-            14.33             32-32v-32c0-17.67-14.33-32-32-32z" /></svg>
-
+            <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.3332 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.3332-32v-32c0-17.67-14.33-32-32-32z" /></svg>
         </span>
-
       </div>
-
       <span className="…">{item?.unitPrice?.toFixed(2)}</span>
-
       <span className="…">${total}</span>
-
     </div>
-
   );
-
 };
 
 export default CartItem;
@@ -1786,9 +1673,7 @@ Next, add the following JSX template. Here, the code and className have been str
                     <th scope="col" className="…">Order Amount</th>
                   </tr>
                 </thead>
-
                 <tbody className="…">{orders && orders.length < 1 ?
-
                   ( <tr className="px-6 py-4 whitespace-nowrap">
                      Found zero order</tr>
                   ) : (
@@ -1799,7 +1684,6 @@ Next, add the following JSX template. Here, the code and className have been str
                       </div>
                       <div className="…">Local Time</div>
                     </td>
-
                     <td className="…">
                        <!-- code stripped for brevity  -->
                             {order?.items.map((o, idx) => (
@@ -1808,52 +1692,29 @@ Next, add the following JSX template. Here, the code and className have been str
                                   {idx + 1}.
                                 </span>{" "}{o.name}{" "}
                                 <span className="…">
-
                                   ({o?.quantity +" x $" +
                                   o?.unitPrice?.toFixed(2)}
-
                                   )
-
                                 </span><br/>
-
                               </div>
-
                             ))}
-
                            </div>
-
                         </div>
-
                     </div>
-
                   </td>
-
                   <td className="…"><span className="…">{
-
                       order?.status}</span>
-
                   </td>
-
                   <td className="…">${
-
                       order?.total?.toFixed(2)}</td>
-
                       </tr>
-
                     ))
-
                   )}
-
                 </tbody>
-
               </table>
-
         <!-- code stripped for brevity  -->
-
       </div>
-
     </div>
-
   );
 
 };
@@ -1873,17 +1734,7 @@ The App component is a root component of the React application. It contains rout
 Update the App.js file available in the project src directory with the following code:
 ```js
 
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import ProductList from "./components/ProductList";
-import Login from "./components/Login";
-import useToken from "./hooks/useToken";
-import Cart from "./components/Cart";
-import ProductDetail from "./components/ProductDetail";
-import NotFound from "./components/NotFound";
-import Auth from "./api/Auth";
-import { CartContextProvider } from "./hooks/CartContext";
-import Orders from "./components/Orders";
+
 
 function App() {
   const { token, setToken } = useToken();
@@ -1937,7 +1788,7 @@ All components are wrapped inside CartContextProvider to allow cartItems and dis
 
 ## Running the application
 
-You can start the backend server by using code from Chapter 6, Security (Authorization and Authentication). Then, you can start the ecomm-ui app by executing a yarn start command from the project root directory. You can log in with scott/tiger and perform all the operations.
+You can start the backend server by using code from Chapter 6, Security (Authorization and Authentication). Then, you can start the ecomm-ui app by executing a yarn start command from the project root directory. You can log in with `scott/tiger` and perform all the operations.
 
 ## Summary
 

@@ -35,7 +35,7 @@ The code present in this chapter can be found on GitHub at https://github.com/Pa
 
 - **사용자 승인 테스팅**: 비즈니스 관점에서 비즈니스 사용자가 수행
 
-이 책의 앞부분에서 cURL 및 Postman 도구를 사용하여 수동 API 테스트를 수행했습니다. 모든 변경은 영향을 받는 API뿐만 아니라 API를 완전히 테스트해야 합니다. 여기에는 이유가 있습니다. 특정 API에만 영향을 미친다고 가정할 수 있지만 기본 가정이 잘못된 경우에는 어떻게 합니까? 건너뛴 다른 API에 영향을 주어 프로덕션 문제가 발생할 수 있습니다. 이로 인해 패닉이 발생할 수 있으며 릴리스를 롤오버하거나 패치를 수정하여 릴리스해야 할 수 있습니다.
+이 책의 앞부분에서 `cURL` 및 `Postman` 도구를 사용하여 수동 API 테스트를 수행했습니다. 모든 변경은 영향을 받는 API뿐만 아니라 API를 완전히 테스트해야 합니다. 여기에는 이유가 있습니다. 특정 API에만 영향을 미친다고 가정할 수 있지만 기본 가정이 잘못된 경우에는 어떻게 합니까? 건너뛴 다른 API에 영향을 주어 프로덕션 문제가 발생할 수 있습니다. 이로 인해 패닉이 발생할 수 있으며 릴리스를 롤오버하거나 패치를 수정하여 릴리스해야 할 수 있습니다.
 
 이러한 상황에 처하는 것을 원하지 않으므로 제품에는 릴리스가 가능한 최고의 품질로 전달되도록 보장하는 별도의 QA 팀이 있습니다. QA 팀은 개발 팀에서 수행하는 테스트와 별도로 별도의 종단 간 및 승인 테스트(비즈니스/도메인 사용자와 함께)를 수행합니다.
 
@@ -122,16 +122,15 @@ public class ShipmentControllerTest {
 
   // continue…
 ```
+[ShipmentControllerTest](https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter08/src/test/java/com/packt/modern/api/controller/ShipmentControllerTest.java)
 
-https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/blob/main/Chapter08/src/test/java/com/packt/modern/api/controller/ShipmentControllerTest.java
-
-이 테스트는 Mockito 기반 모형 및 stubbing을 지원하기 위해 확장을 등록하는 Jupiter 기반 주석(ExtendWith)을 사용합니다.
+이 테스트는 `Mockito` 기반 모형 및 `stubbing`을 지원하기 위해 확장을 등록하는 `Jupiter` 기반 주석(ExtendWith)을 사용합니다.
 
 여기에서 Spring 테스트 라이브러리는 Spring MVC를 흉내낼 수 있는 MockMvc 클래스를 제공합니다. 결과적으로 연결된 API 끝점의 URI를 호출하여 컨트롤러 메서드를 실행할 수 있습니다. 서비스 및 어셈블러와 같은 ShipmentController 클래스의 의존성은 해당 의존성의 모형 인스턴스를 생성하기 위해 @Mock 주석으로 표시됩니다. `Mockito.mock(classOrInterface)`를 사용하여 모형 객체를 생성할 수도 있습니다.
 
-`@InjectMocks`은 테스트 클래스에 필요한 모든 선언된 모형 객체를 찾아 자동으로 주입합니다. ShipmentController는 생성자를 사용하여 주입되는 ShipmentService 및 ShipmentRepresentationModelAssembler 인스턴스를 사용합니다. 
+`@InjectMocks`은 테스트 클래스에 필요한 모든 선언된 모형 객체를 찾아 자동으로 주입합니다. `ShipmentController`는 생성자를 사용하여 주입되는 `ShipmentService` 및 ShipmentRepresentationModelAssembler 인스턴스를 사용합니다. 
 
-@InjectMocks은 ShipmentController 클래스(서비스 및 어셈블러)에서 의존성을 찾습니다. 그런 다음 테스트 클래스에서 서비스 및 어셈블러의 모형을 찾습니다. 일단 그것들을 찾으면, 이 모형 객체를 ShipmentController 클래스에 주입합니다. 필요한 경우 다음과 같이 @InjectsMocks를 사용하는 대신 생성자를 사용하여 테스트 클래스의 인스턴스를 만들 수도 있습니다.
+`@InjectMocks`은 `ShipmentController` 클래스(서비스 및 어셈블러)에서 의존성을 찾습니다. 그런 다음 테스트 클래스에서 서비스 및 어셈블러의 모형을 찾습니다. 일단 그것들을 찾으면, 이 모형 객체를 ShipmentController 클래스에 주입합니다. 필요한 경우 다음과 같이 @InjectsMocks를 사용하는 대신 생성자를 사용하여 테스트 클래스의 인스턴스를 만들 수도 있습니다.
 ```java
 controller = new ShipmentController(service, assembler);
 ```

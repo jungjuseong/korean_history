@@ -1,89 +1,99 @@
 
 # Chapter 14: GraphQL API Development and Testing
 
-You will learn about GraphQL-based API development and its testing in this chapter. You will implement GraphQL-based APIs for a sample application in this chapter. GraphQL server implementation will be developed based on a design-first approach, the way you defined the OpenAPI specification in Chapter 3, API Specifications and Implementation, and designed the schema in Chapter 11, gRPC-based API Development and Testing.
+이 장에서는 GraphQL 기반 API 개발 및 테스트에 대해 배웁니다. 이 장에서는 샘플 애플리케이션을 위한 GraphQL 기반 API를 구현합니다. GraphQL 서버 구현은 3장, API 사양 및 구현에서 OpenAPI 사양을 정의하고 11장, gRPC 기반 API 개발 및 테스트에서 스키마를 설계한 방식인 디자인 우선 접근 방식을 기반으로 개발됩니다.
 
-The following topics will be covered in this chapter:
+이 장에서 다룰 주제는 다음과 같습니다.
 
-- Workflow and tooling
-- Implementing the GraphQL server
-- Documenting APIs
-- Test automation
+- 워크플로 및 도구
+- GraphQL 서버 구현
+- API 문서화
+- 테스트 자동화
 
 
-After completing this chapter, you will have learned how to practically implement the GraphQL concepts learned in the previous chapter and the implementation of the GraphQL server using Java and Spring and its testing.
+이 장을 마치면 이전 장에서 배운 GraphQL 개념을 실제로 구현하는 방법과 Java와 Spring을 사용하여 GraphQL 서버를 구현하고 테스트하는 방법을 배우게 됩니다.이 장에서는 GraphQL 기반 API 개발 및 테스트에 대해 배웁니다. 이 장에서는 샘플 애플리케이션을 위한 GraphQL 기반 API를 구현합니다. GraphQL 서버 구현은 3장, API 사양 및 구현에서 OpenAPI 사양을 정의하고 11장, gRPC 기반 API 개발 및 테스트에서 스키마를 설계한 방식인 디자인 우선 접근 방식을 기반으로 개발됩니다.
+
+이 장에서 다룰 주제는 다음과 같습니다.
+
+- 워크플로 및 도구
+- GraphQL 서버 구현
+- API 문서화
+- 테스트 자동화
+
+
+이 장을 마치면 이전 장에서 배운 GraphQL 개념을 실제로 구현하는 방법과 Java와 Spring을 사용하여 GraphQL 서버를 구현하고 테스트하는 방법을 배우게 됩니다.
+
+[Code](https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/tree/main/Chapter14)
 
 ## Technical requirements
 
 You need the following for developing and testing the GraphQL-based service code presented in this chapter:
 
-- Any Java IDE such as NetBeans, IntelliJ, or Eclipse
-- Java Development Kit (JDK) 15
-- An internet connection to clone the code and download the dependencies and Gradle (version 7+)
+- Any Java IDE
+- JDK 15
 
 So, let's begin!
 
-Please visit the following link to check the code files: https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot/tree/main/Chapter14
-
 ## GraphQL을 위한 워크플로 및 도구
 
-GraphQL의 데이터별 그래프 사고 방식으로 데이터는 객체의 그래프로 구성된 API를 사용하여 노출됩니다. 
-이러한 개체는 관계를 사용하여 연결됩니다. GraphQL은 단일 API 엔드포인트만 노출합니다. 
-클라이언트는 단일 데이터 그래프를 사용하는 이 끝점을 쿼리합니다. 게다가, 데이터 그래프는 GraphQL의 OneGraph 원칙에 따라 단일 소스 또는 여러 소스의 데이터를 해결할 수 있습니다. 이러한 소스는 데이터베이스, 레거시 시스템 또는 REST/gRPC/SOAP를 사용하여 데이터를 노출하는 서비스일 수 있습니다.
+`GraphQL`의 데이터별 그래프 사고 방식으로 데이터는 객체의 그래프로 구성된 API를 사용하여 노출됩니다. 이러한 객체는 관계를 사용하여 연결됩니다. `GraphQL`은 단일 API 엔드포인트만 노출합니다. 클라이언트는 단일 데이터 그래프를 사용하는 이 엔드포인트를 쿼리합니다. 게다가, 데이터 그래프는 `GraphQL`의 OneGraph 원칙에 따라 단일 소스 또는 여러 소스의 데이터를 해결할 수 있습니다. 이러한 소스는 데이터베이스, 레거시 시스템 또는 `REST`/`gRPC`/`SOAP`를 사용하여 데이터를 노출하는 서비스일 수 있습니다.
 
-GraphQL 서버는 다음 두 가지 방법으로 구현할 수 있습니다.
+`GraphQL` 서버는 다음 두 가지 방법으로 구현할 수 있습니다.
 
-- **독립형 서비스**: 독립형 서비스에는 단일 데이터 그래프가 포함됩니다. 단일 또는 여러 소스(GraphQL API 없음)에서 데이터를 가져오는 단일 앱 또는 마이크로서비스 아키텍처일 수 있습니다.
+- **독립형 서비스**: 독립형 서비스에는 단일 데이터 그래프가 포함됩니다. 단일 또는 여러 소스(`GraphQL` API 없음)에서 데이터를 가져오는 단일 앱 또는 마이크로서비스 아키텍처일 수 있습니다.
 
 - **연합 서비스**: 포괄적인 데이터 가져오기를 위해 단일 데이터 그래프를 쿼리하는 것은 매우 쉽습니다. 그러나 엔터프라이즈 애플리케이션은 여러 서비스를 사용하여 만들어지므로 단일 시스템을 구축하지 않는 한 단일 데이터 그래프를 가질 수 없습니다. 단일 시스템을 구축하지 않으면 여러 서비스별 데이터 그래프가 생깁니다.
 
-여기에서 연합 서비스를 사용합니다. 연합 서비스에는 게이트웨이로 노출한 단일 분산 그래프를 포함합니다. 
-클라이언트는 시스템의 진입점인 게이트웨이를 호출합니다. 데이터 그래프는 여러 서비스에 분산되며 각 서비스는 자체 개발 및 릴리스 주기를 독립적으로 유지할 수 있습니다. 그렇지만 연합된 서비스는 여전히 OneGraph 원칙을 따를 것입니다. 
-따라서 클라이언트는 그래프의 어떤 부분을 가져오기 위해 단일 끝점을 쿼리합니다.
+여기에서는 연합 서비스를 사용합니다. 연합 서비스에는 게이트웨이로 노출한 단일 분산 그래프를 포함합니다. 클라이언트는 시스템의 진입점인 게이트웨이를 호출합니다. 데이터 그래프는 여러 서비스에 분산되며 각 서비스는 자체 개발 및 릴리스 주기를 독립적으로 유지할 수 있습니다. 그렇지만 연합된 서비스는 여전히 OneGraph 원칙을 따를 것입니다. 
+
+따라서 클라이언트는 그래프의 어떤 부분을 가져오기 위해 단일 엔드포인트를 쿼리합니다.
 
 전자 상거래 앱이 연합 서비스를 사용하여 개발되었다고 가정해 보겠습니다. 
-GraphQL API를 사용하여 도메인별 데이터 그래프를 노출하는 제품, 주문, 배송, 재고, 고객 및 기타 서비스가 있습니다.
+`GraphQL` API를 사용하여 도메인 별 데이터 그래프를 노출하는 제품, 주문, 배송, 재고, 고객 및 기타 서비스가 있습니다.
 
-다음과 같이 GraphQL 통합 전자 상거래 서비스의 상위 수준 다이어그램을 그려 보겠습니다.
+다음과 같이 `GraphQL` 통합 전자 상거래 서비스의 상위 수준 다이어그램을 그려 보겠습니다.
 
 ![](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781800562479/files/image/Figure_14.1_B16561-CV111.jpg)
 
-Figure 14.1 – 연합 GraphQL 서비스
+Figure 14.1 – 연합 `GraphQL` 서비스
 
 클라이언트가 게이트웨이 엔드포인트를 호출하여 가장 적은 재고로 가장 많이 주문된 제품 목록을 쿼리한다고 가정해 보겠습니다. 
-이 쿼리에는 Orders, Products 및 Inventory 필드가 있을 수 있습니다. 각 서비스는 데이터 그래프의 해당 부분만 분석할 책임이 있습니다. 주문은 주문 관련 데이터를 확인하고, 제품은 제품 관련 데이터를 확인하고, 재고는 재고 관련 데이터를 확인하는 식입니다. 그런 다음 게이트웨이는 그래프 데이터를 통합하고 클라이언트로 다시 보냅니다.
 
-The `graphql-java` library (https://www.graphql-java.com/) provides the Java implementation of the GraphQL specification. Its source code is available at https://github.com/graphql-java/graphql-java.
+이 쿼리에는 `Orders`, `Products` 및 `Inventory` 필드가 있을 수 있습니다. 각 서비스는 데이터 그래프의 해당 부분만 분석할 책임이 있습니다. 주문은 주문 관련 데이터를 확인하고, 제품은 제품 관련 데이터를 확인하고, 재고는 재고 관련 데이터를 확인하는 식입니다. 그런 다음 게이트웨이는 그래프 데이터를 통합하고 클라이언트로 다시 보냅니다.
 
-There are many Spring Boot Starter projects for GraphQL, for example, at https://github.com/graphql-java-kickstart/graphql-spring-boot. However, we are going to use Netflix's Domain Graph Service (DGS) framework (https://netflix.github.io/dgs/). Netflix's DGS provides not only the GraphQL Spring Boot Starter but also the full set of tools and libraries that you need to develop production-ready GraphQL services. It is built on top of Spring Boot and uses the `graphql-java` library.
+`graphql-java` 라이브러리(https://www.graphql-java.com/)는 `GraphQL` 사양의 Java 구현을 제공합니다.
 
-Netflix open-sourced the DGS framework after using it in production in February 2021. It is continuously being enhanced and supported by the community. Netflix uses the same open-sourced code based on their production, which gives the assurance of the code's quality and future maintenance.
+[graphql-spring-boot](https://github.com/graphql-java-kickstart/graphql-spring-boot)에 `GraphQL`용 Spring Boot Starter 프로젝트가 많이 있습니다. 
 
-It provides the following features:
+넷플릭스의 [DGS(Domain Graph Service) 프레임워크](https://netflix.github.io/dgs/)를 사용할 예정입니다. Netflix의 DGS는 `GraphQL Spring Boot Starter` 뿐만 아니라 프로덕션용 `GraphQL` 서비스를 개발하는 데 필요한 전체 도구 및 라이브러리 세트를 제공합니다. `Spring Boot` 위에 구축되었으며 `graphql-java` 라이브러리를 사용합니다.
 
-- Provides a Spring Boot Starter and integration with Spring Security
-- Gradle plugin for code generation from a GraphQL schema
-- Support interfaces and union types, plus provides custom scalar types
-- Supports GraphQL subscriptions using WebSocket and server-sent events
-- Error handling
-- Pluggable instrumentation
-- GraphQL federated services by easy integration with GraphQL Federation
-- File upload
-- GraphQL Java client
-- GraphQL test framework
+Netflix는 2021년 2월 프로덕션에 사용한 후 DGS 프레임워크를 오픈 소스로 제공했습니다. 커뮤니티에서 지속적으로 개선하고 지원하고 있습니다. Netflix는 프로덕션에 따라 동일한 오픈 소스 코드를 사용하므로 코드의 품질과 향후 유지 관리가 보장됩니다.
 
-Full WebFlux support could be available in the future. The release candidate build was available at the time of writing this chapter.
+다음과 같은 기능을 제공합니다.
 
-Let's write a GraphQL server using Netflix's DGS framework in the next section.
+- Spring Boot Starter 및 Spring Security와의 통합 제공
+- `GraphQL` 스키마에서 코드 생성을 위한 Gradle 플러그인
+- 인터페이스 및 공용체 유형을 지원하고 사용자 지정 스칼라 유형을 제공합니다.
+- `WebSocket` 및 서버 전송 이벤트를 사용하여 `GraphQL` 구독 지원
+- 오류 처리
+- 플러그형 계측
+- `GraphQL` Federation과의 손쉬운 통합을 통한 GraphQL 연합 서비스
+- 파일 업로드
+- `GraphQL` 자바 클라이언트
+- `GraphQL` 테스트 프레임워크
+
+완전한 `WebFlux` 지원은 향후 제공될 수 있습니다. 릴리스 후보 빌드는 이 장을 작성하는 시점에 사용할 수 있었습니다.
+
+다음 섹션에서는 Netflix의 DGS 프레임워크를 사용하여 `GraphQL` 서버를 작성해 보겠습니다.
 
 
-## Implementation of the GraphQL server
+## GraphQL 서버 구현
 
-이 장에서는 단독 GraphQL 서버를 개발 합니다. 단독 서버를 개발하면서 얻은 지식으로 연합 서버 구현에 사용할 수 있습니다.
+이 장에서는 GraphQL 서버를 개발했습니다. ##################################################### ##
 
-### Creating the gRPC server project
+### gRPC 서버 프로젝트 생성
 
-Either you can use the Chapter 14 code from a cloned Git repository (https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot), or you can start by creating a new Spring project from scratch using Spring Initializr (https://start.spring.io/) for the server and client with the following options (you will create the gRPC api library project separately):
+복제된 Git 리포지토리(https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring-Boot)에서 14장 코드를 사용하거나 새 Spring을 생성하여 시작할 수 있습니다. 다음 옵션을 사용하여 서버 및 클라이언트에 대해 Spring Initializr(https://start.spring.io/)을 사용하여 처음부터 프로젝트(gRPC api 라이브러리 프로젝트를 별도로 생성함):
 
 - Gradle Project
 - Java
@@ -104,14 +114,13 @@ Package name: com.packt.modern.api
 sourceCompatibility = JavaVersion.VERSION_15
 Dependencies: org.springframework.boot:spring-boot-starter-web
 ```
+그런 다음 GENERATE 버튼을 클릭하고 프로젝트를 다운로드할 수 있습니다. 다운로드한 프로젝트는 GraphQL 서버를 생성하는 데 사용됩니다.
 
-Then, you can click on the GENERATE button and download the project. The downloaded project will be used for creating the GraphQL server.
+다음으로 새로 생성된 프로젝트에 GraphQL DGS 종속성을 추가해 보겠습니다.
 
-Next, let's add the GraphQL DGS dependencies to the newly created project.
+### GraphQL DGS 종속성 추가
 
-### Adding the GraphQL DGS dependencies
-
-Gradle 프로젝트가 준비되면 `build.gradle` 파일에 다음과 같이 GDS 의존성과 플러그인을 넣어 수정한다:
+Gradle 프로젝트가 준비되어 `build.gradle` 파일과 GDS와 결투를 벌이고 있다:
 
 ```gradle
 plugins {

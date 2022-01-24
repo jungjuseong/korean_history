@@ -134,17 +134,17 @@ https://github.com/PacktPublishing/Modern-API-Development-with-Spring-and-Spring
 
 서버는 API를 호스팅하는 서버 목록이 포함된 선택적 섹션입니다. 호스팅된 API 문서가 대화형인 경우 Swagger UI에서 이를 사용하여 API를 직접 호출하고 응답을 표시할 수 있습니다. 제공되지 않으면 호스트된 문서 서버의 루트(/)를 가리킵니다. 서버 URL은 url 속성을 사용하여 표시됩니다.
 
-#### tag
+#### tags
 
-루트 수준에서 정의된 태그 섹션에는 태그 및 해당 메타데이터 컬렉션이 포함됩니다. 태그는 리소스에서 수행되는 작업을 그룹화하는 데 사용됩니다. 태그 메타데이터에는 필수 필드인 이름과 두 개의 추가 선택적 속성인 description 및 externalDocs가 포함됩니다.
+루트 수준에서 정의된 태그 섹션에는 tags 및 해당 메타데이터 컬렉션이 포함됩니다. tags는 리소스에서 수행되는 작업을 그룹화하는 데 사용됩니다. 태그 메타데이터에는 필수 필드인 이름과 두 개의 추가 선택적 속성인 description 및 externalDocs가 포함됩니다.
 
-name 속성은 태그 이름을 포함합니다. 메타데이터에 대한 이전 섹션에서 설명 및 externalDocs 필드에 대해 이미 논의했습니다.
+name 속성은 tag 이름을 포함합니다. 메타데이터에 대한 이전 섹션에서 설명 및 externalDocs 필드에 대해 이미 논의했습니다.
 
 ## components
 
 순차적으로 진행했다면 path를 먼저 논의했을 것입니다. 그러나 개념적으로는 path 섹션에서 모델을 사용하기 전에 먼저 모델을 작성하고 싶습니다. 따라서 먼저 components 섹션에 대해 설명합니다.
 
-다음은 샘플 전자상거래 앱의 components 섹션에 있는 코드입니다.
+다음은 책구매 앱의 components 섹션에 있는 코드입니다.
 
 ```yaml
 components:
